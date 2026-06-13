@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: job-apply-postgres
+    environment:
+      POSTGRES_USER: jobapply
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: job_apply_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobapply"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: job-apply-assistant
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://jobapply:password@postgres:5432/job_apply_db
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      APP_ENV: production
+      LOG_LEVEL: INFO
+    volumes:
+      - ./outputs:/app/outputs
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.database.seed_profile &&
+             python -m app.bot.telegram_bot"
+
+volumes:
+  postgres_data:
