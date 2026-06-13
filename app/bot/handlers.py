@@ -16,6 +16,7 @@ from app.services.application_service import (
     get_last_application,
     mark_application_as_generated,
 )
+from app.database.models import GeneratedDocument
 
 logger = logging.getLogger(__name__)
 
@@ -161,10 +162,10 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text(response)
 
         for doc_type in doc_types:
-            doc = db.query(db.query(__import__("app.database.models", fromlist=["GeneratedDocument"]).GeneratedDocument).filter(
-                __import__("app.database.models", fromlist=["GeneratedDocument"]).GeneratedDocument.application_id == app.id,
-                __import__("app.database.models", fromlist=["GeneratedDocument"]).GeneratedDocument.document_type == doc_type,
-            ).first())
+            doc = db.query(GeneratedDocument).filter(
+                GeneratedDocument.application_id == app.id,
+                GeneratedDocument.document_type == doc_type,
+            ).first()
             if doc:
                 await update.message.reply_document(
                     document=doc.content.encode(),
