@@ -1,18 +1,24 @@
 import logging
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
-from app.config import config
 
 logger = logging.getLogger(__name__)
 
+TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+
+logger.info(f"Template directory: {TEMPLATE_DIR}")
+logger.info(f"Template directory exists: {TEMPLATE_DIR.exists()}")
+if TEMPLATE_DIR.exists():
+    logger.info(f"Available templates: {list(TEMPLATE_DIR.glob('*'))}")
+
 template_env = Environment(
-    loader=FileSystemLoader(config.PROJECT_ROOT / "app" / "templates")
+    loader=FileSystemLoader(str(TEMPLATE_DIR))
 )
 
 def get_output_path(application_id: int, document_type: str) -> Path:
     """Get file path for generated document."""
-    output_dir = Path(config.OUTPUT_DIR)
-    output_dir.mkdir(exist_ok=True)
+    output_dir = Path(Path(__file__).resolve().parent.parent.parent / "outputs")
+    output_dir.mkdir(exist_ok=True, parents=True)
     return output_dir / f"app_{application_id}_{document_type}.html"
 
 def render_cv(context: dict) -> str:
