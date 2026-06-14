@@ -36,3 +36,12 @@ async def analyze_offer(prompt: str) -> dict:
 async def generate_text(prompt: str) -> str:
     """Call OpenAI for unstructured text generation."""
     return await call_openai(prompt, json_mode=False)
+
+async def generate_cv_payload(prompt: str) -> dict:
+    """Call OpenAI for structured CV payload generation."""
+    result = await call_openai(prompt, json_mode=True)
+    try:
+        return json.loads(result)
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse CV payload JSON: {result}")
+        raise

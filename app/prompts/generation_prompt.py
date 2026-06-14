@@ -1,3 +1,79 @@
+def get_cv_payload_prompt(analysis_json: dict, profile_blocks: list, positioning: str) -> str:
+    """Generate prompt for structured CV payload (JSON only)."""
+    profile_text = "\n".join(
+        [f"- {block['title']}: {block['content']}" for block in profile_blocks]
+    )
+
+    return f"""Generate a structured CV payload as JSON for this job application.
+
+POSITIONING: {positioning}
+JOB: {analysis_json['job_title']} at {analysis_json['company']}
+REQUIRED SKILLS: {', '.join(analysis_json['required_skills'])}
+
+CANDIDATE DATA (use ONLY what's listed below):
+{profile_text}
+
+Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
+
+{{
+  "title": "Job-aligned title (max 8 words, e.g. 'Data Analyst - Business Intelligence')",
+  "summary": "Professional summary tailored to {positioning} (plain text, max 70 words)",
+  "experiences": [
+    {{
+      "title": "Job title",
+      "company": "Company name",
+      "context": "Brief context (e.g. 'International B2B, 200+ employees')",
+      "dates": "YYYY – YYYY",
+      "bullets": ["Bullet 1", "Bullet 2", "Bullet 3"]
+    }}
+  ],
+  "projects": [
+    {{
+      "title": "Project name",
+      "context": "Project context",
+      "dates": "YYYY – YYYY",
+      "bullets": ["Bullet 1", "Bullet 2"]
+    }}
+  ],
+  "skills_sections": [
+    {{
+      "label": "Skill category",
+      "content": "Skill 1, Skill 2, Skill 3 (plain text, comma-separated)"
+    }}
+  ],
+  "education": [
+    {{
+      "title": "Degree name",
+      "school": "School name",
+      "year": "YYYY",
+      "meta": "Additional info if relevant"
+    }}
+  ],
+  "certifications": [
+    {{
+      "name": "Certification name"
+    }}
+  ],
+  "languages": [
+    {{
+      "name": "Language name",
+      "level": "Proficiency level (e.g. Native, Professional, Intermediate)"
+    }}
+  ],
+  "ats_keywords": ["Keyword1", "Keyword2"]
+}}
+
+CRITICAL RULES:
+- Return ONLY JSON, no other text
+- No markdown code fences (```json or ```)
+- No HTML tags in any text field
+- Bullets must be plain text, actionable, and CV-ready
+- Extract experiences/projects from CANDIDATE DATA, rewrite them CV-style
+- ATS keywords must match job requirements
+- Never invent skills or experience
+- If a section is empty, use empty array []
+- All text must be plain text (no special formatting)"""
+
 def get_cv_prompt(analysis_json: dict, profile_blocks: list, positioning: str) -> str:
     profile_text = "\n".join(
         [f"- {block['title']}: {block['content']}" for block in profile_blocks]

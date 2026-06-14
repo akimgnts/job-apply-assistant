@@ -1,10 +1,10 @@
 import logging
-from pathlib import Path
+import re
 from sqlalchemy.orm import Session
 from app.config import config
-from app.services.openai_service import generate_text
+from app.services.openai_service import generate_text, generate_cv_payload
 from app.services.document_service import render_cv, render_letter, render_mail, save_document, get_output_path
-from app.prompts.generation_prompt import get_cv_prompt, get_letter_prompt, get_mail_prompt
+from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_letter_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
 from app.database.models import GeneratedDocument, DocumentTypeEnum, ProfileBlock, CategoryEnum
 
@@ -17,7 +17,7 @@ class GenerationAgent:
     def _build_candidate_info(db: Session) -> dict:
         """Build candidate contact info from config/database."""
         candidate = {
-            "name": config.CANDIDATE_NAME or "Candidate",
+            "name": config.CANDIDATE_NAME or "",
             "email": config.CANDIDATE_EMAIL or "",
             "phone": config.CANDIDATE_PHONE or "",
             "linkedin": config.CANDIDATE_LINKEDIN or "",
@@ -27,63 +27,63 @@ class GenerationAgent:
         return candidate
 
     @staticmethod
-    def _build_profile_structure(db: Session, block_ids: list) -> dict:
-        """Convert profile blocks into structured CV sections."""
-        blocks = MatchingAgent.get_selected_blocks(db, block_ids)
+    def _clean_text(text: str) -> str:
+        """Remove markdown/HTML artifacts from text."""
+        if not text:
+            return ""
+        text = text.strip()
+        text = re.sub(r"^```[\w]*\n?", "", text)
+        text = re.sub(r"\n?```$", "", text)
+        text = re.sub(r"<[^>]+>", "", text)
+        return text.strip()
 
-        experiences = []
-        projects = []
-        skills_sections = []
-        education = []
-        certifications = []
-        languages = []
+    @staticmethod
+    def _clean_payload(payload: dict) -> dict:
+        """Clean up CV payload, removing HTML/markdown."""
+        if not payload:
+            return {}
 
-        for block in blocks:
-            if block["category"] == CategoryEnum.experience.value:
-                experiences.append({
-                    "title": block.get("title", ""),
-                    "company": block.get("tags", [""])[0] if block.get("tags") else "",
-                    "context": "",
-                    "dates": "",
-                    "bullets": [block.get("content", "")],
-                })
-            elif block["category"] == CategoryEnum.project.value:
-                projects.append({
-                    "title": block.get("title", ""),
-                    "context": "",
-                    "dates": "",
-                    "bullets": [block.get("content", "")],
-                })
-            elif block["category"] == CategoryEnum.skill.value:
-                skills_sections.append({
-                    "label": block.get("title", ""),
-                    "content": block.get("content", ""),
-                })
-            elif block["category"] == CategoryEnum.education.value:
-                education.append({
-                    "title": block.get("title", ""),
-                    "school": block.get("tags", [""])[0] if block.get("tags") else "",
-                    "year": "",
-                    "meta": "",
-                })
-            elif block["category"] == CategoryEnum.certification.value:
-                certifications.append({
-                    "name": block.get("title", ""),
-                })
-            elif block["category"] == CategoryEnum.language.value:
-                languages.append({
-                    "name": block.get("title", ""),
-                    "level": block.get("tags", [""])[0] if block.get("tags") else "",
-                })
+        payload["title"] = GenerationAgent._clean_text(payload.get("title", ""))[:100]
+        payload["summary"] = GenerationAgent._clean_text(payload.get("summary", ""))[:500]
 
-        return {
-            "experiences": experiences,
-            "projects": projects,
-            "skills_sections": skills_sections,
-            "education": education,
-            "certifications": certifications,
-            "languages": languages,
-        }
+        for exp in payload.get("experiences", []):
+            exp["title"] = GenerationAgent._clean_text(exp.get("title", ""))
+            exp["company"] = GenerationAgent._clean_text(exp.get("company", ""))
+            exp["context"] = GenerationAgent._clean_text(exp.get("context", ""))
+            exp["dates"] = GenerationAgent._clean_text(exp.get("dates", ""))
+            exp["bullets"] = [
+                GenerationAgent._clean_text(b) for b in exp.get("bullets", [])
+            ]
+
+        for proj in payload.get("projects", []):
+            proj["title"] = GenerationAgent._clean_text(proj.get("title", ""))
+            proj["context"] = GenerationAgent._clean_text(proj.get("context", ""))
+            proj["dates"] = GenerationAgent._clean_text(proj.get("dates", ""))
+            proj["bullets"] = [
+                GenerationAgent._clean_text(b) for b in proj.get("bullets", [])
+            ]
+
+        for skill in payload.get("skills_sections", []):
+            skill["label"] = GenerationAgent._clean_text(skill.get("label", ""))
+            skill["content"] = GenerationAgent._clean_text(skill.get("content", ""))
+
+        for edu in payload.get("education", []):
+            edu["title"] = GenerationAgent._clean_text(edu.get("title", ""))
+            edu["school"] = GenerationAgent._clean_text(edu.get("school", ""))
+            edu["year"] = GenerationAgent._clean_text(edu.get("year", ""))
+
+        for cert in payload.get("certifications", []):
+            cert["name"] = GenerationAgent._clean_text(cert.get("name", ""))
+
+        for lang in payload.get("languages", []):
+            lang["name"] = GenerationAgent._clean_text(lang.get("name", ""))
+            lang["level"] = GenerationAgent._clean_text(lang.get("level", ""))
+
+        payload["ats_keywords"] = [
+            GenerationAgent._clean_text(k) for k in payload.get("ats_keywords", [])
+        ]
+
+        return payload
 
     @staticmethod
     async def generate_cv(
@@ -92,30 +92,27 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
     ) -> str:
-        """Generate CV content."""
+        """Generate CV with structured JSON payload."""
         block_ids = analysis.get("profile_blocks_to_use", [])
         blocks = MatchingAgent.get_selected_blocks(db, block_ids)
 
-        prompt = get_cv_prompt(analysis, blocks, positioning)
-        content = await generate_text(prompt)
+        prompt = get_cv_payload_prompt(analysis, blocks, positioning)
+        payload = await generate_cv_payload(prompt)
+
+        payload = GenerationAgent._clean_payload(payload)
 
         candidate = GenerationAgent._build_candidate_info(db)
-        profile_structure = GenerationAgent._build_profile_structure(db, block_ids)
 
         context = {
             "candidate": candidate,
-            "cv": {
-                "title": f"{positioning.upper()}",
-                "summary": content,
-                "experiences": profile_structure["experiences"],
-                "projects": profile_structure["projects"],
-                "skills_sections": profile_structure["skills_sections"],
-                "education": profile_structure["education"],
-                "certifications": profile_structure["certifications"],
-                "languages": profile_structure["languages"],
-                "ats_keywords": analysis.get("ats_keywords", []),
-            },
+            "cv": payload,
         }
+
+        logger.info(
+            f"CV payload: title={payload.get('title', 'N/A')}, "
+            f"experiences={len(payload.get('experiences', []))}, "
+            f"skills_sections={len(payload.get('skills_sections', []))}"
+        )
 
         html = render_cv(context)
 
