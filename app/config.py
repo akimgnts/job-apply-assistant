@@ -19,6 +19,14 @@ class Config:
     # Telegram
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+    # Candidate info
+    CANDIDATE_NAME = os.getenv("CANDIDATE_NAME")
+    CANDIDATE_EMAIL = os.getenv("CANDIDATE_EMAIL")
+    CANDIDATE_PHONE = os.getenv("CANDIDATE_PHONE")
+    CANDIDATE_LINKEDIN = os.getenv("CANDIDATE_LINKEDIN")
+    CANDIDATE_GITHUB = os.getenv("CANDIDATE_GITHUB")
+    CANDIDATE_WEBSITE = os.getenv("CANDIDATE_WEBSITE")
+
     # Paths
     OUTPUT_DIR = os.getenv("OUTPUT_DIR", "outputs")
     PROJECT_ROOT = Path(__file__).parent.parent
