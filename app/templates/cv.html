@@ -267,15 +267,15 @@
         <h2 class="section-title">Technical Skills</h2>
 
         <div class="two-cols">
-          {% for i, skill_section in enumerate(cv.skills_sections) %}
-            {% if i % 2 == 0 %}<div>{% endif %}
+          {% for skill_section in cv.skills_sections %}
+            {% if loop.index0 % 2 == 0 %}<div>{% endif %}
             <div class="skill-block">
               <div class="skill-label">{{ skill_section.label }}</div>
               <div class="skill-text">
                 {{ skill_section.content }}
               </div>
             </div>
-            {% if (i + 1) % 2 == 0 or i == cv.skills_sections|length - 1 %}</div>{% endif %}
+            {% if (loop.index0 + 1) % 2 == 0 or loop.last %}</div>{% endif %}
           {% endfor %}
         </div>
       </section>
