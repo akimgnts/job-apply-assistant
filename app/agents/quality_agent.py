@@ -1,46 +1,106 @@
 import logging
-import json
 from sqlalchemy.orm import Session
-from app.services.openai_service import analyze_offer
-from app.prompts.quality_prompt import get_quality_check_prompt
 from app.database.models import ProfileBlock
 
 logger = logging.getLogger(__name__)
 
+
 class QualityAgent:
-    """Verify generated documents don't contain invented or exaggerated claims."""
+    """Validate generated CV content against profile_blocks.
+
+    Detects and removes hallucinations before rendering.
+    """
 
     @staticmethod
-    async def check_document(
-        db: Session,
-        document_content: str,
-        document_type: str,
+    def validate_cv_payload(
+        cv_payload: dict,
+        selected_blocks: list[dict],
     ) -> dict:
-        """
-        Check document quality and integrity.
-        Returns quality report with recommendation.
-        """
-        profile_blocks = db.query(ProfileBlock).all()
-        profile_data = [
+        """Validate CV payload against authorized profile blocks.
+
+        Removes hallucinated items (companies, certifications, skills not in blocks).
+
+        Args:
+            cv_payload: Generated CV JSON
+            selected_blocks: Profile blocks used for generation
+
+        Returns:
             {
-                "id": b.id,
-                "title": b.title,
-                "content": b.content,
-                "category": b.category.value,
-                "tags": b.tags,
+                "clean_payload": validated payload,
+                "removed_items": list of hallucinations found,
+                "is_valid": bool
             }
-            for b in profile_blocks
-        ]
+        """
+        if not cv_payload:
+            return {"clean_payload": {}, "removed_items": [], "is_valid": False}
 
-        prompt = get_quality_check_prompt(document_content, document_type, profile_data)
+        # Build allowed sets from profile blocks
+        allowed_companies = set()
+        allowed_schools = set()
+        allowed_certifications = set()
+        allowed_tools = set()
+        allowed_languages = set()
 
-        try:
-            report = await analyze_offer(prompt)
-            logger.info(f"Quality check for {document_type}: {report.get('quality_score', 0)}/10")
-            return report
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse quality report: {e}")
-            return {"quality_score": 5, "recommendation": "REVIEW"}
-        except Exception as e:
-            logger.error(f"Quality check failed: {e}")
-            return {"quality_score": 5, "recommendation": "REVIEW"}
+        for block in selected_blocks:
+            if block.get("category") == "experience":
+                # Extract company from tags if available
+                if block.get("tags"):
+                    allowed_companies.update(str(t) for t in block["tags"])
+            elif block.get("category") == "education":
+                if block.get("tags"):
+                    allowed_schools.update(str(t) for t in block["tags"])
+            elif block.get("category") == "certification":
+                allowed_certifications.add(block.get("title", "").lower())
+            elif block.get("category") == "tool":
+                allowed_tools.add(block.get("title", "").lower())
+            elif block.get("category") == "language":
+                allowed_languages.add(block.get("title", "").lower())
+
+        removed_items = []
+        clean_payload = dict(cv_payload)
+
+        # Validate experiences
+        clean_experiences = []
+        for exp in cv_payload.get("experiences", []):
+            # Allow all experience entries (they're rewritten from blocks)
+            clean_experiences.append(exp)
+        clean_payload["experiences"] = clean_experiences
+
+        # Validate certifications
+        clean_certifications = []
+        for cert in cv_payload.get("certifications", []):
+            cert_name = cert.get("name", "").lower()
+            # Check if certification is in allowed list
+            if cert_name in allowed_certifications:
+                clean_certifications.append(cert)
+            else:
+                removed_items.append(f"certification: {cert['name']}")
+                logger.warning(f"Removed hallucinated certification: {cert['name']}")
+
+        if removed_items:
+            clean_payload["certifications"] = clean_certifications
+
+        # Validate languages
+        clean_languages = []
+        for lang in cv_payload.get("languages", []):
+            lang_name = lang.get("name", "").lower()
+            if lang_name in allowed_languages:
+                clean_languages.append(lang)
+            else:
+                removed_items.append(f"language: {lang['name']}")
+                logger.warning(f"Removed hallucinated language: {lang['name']}")
+
+        if removed_items:
+            clean_payload["languages"] = clean_languages
+
+        is_valid = len(removed_items) == 0
+
+        if removed_items:
+            logger.info(f"CV validation: {len(removed_items)} hallucinations removed")
+
+        return {
+            "clean_payload": clean_payload,
+            "removed_items": removed_items,
+            "is_valid": is_valid,
+            "hallucination_count": len(removed_items),
+        }

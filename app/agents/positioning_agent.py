@@ -19,21 +19,27 @@ class PositioningAgent:
 
     @staticmethod
     async def choose_angle(analysis: dict) -> str:
+        """Choose positioning angle from predefined list (JSON mode).
+
+        Returns validated angle from VALID_ANGLES.
         """
-        Choose positioning angle from predefined list.
-        Falls back to first valid angle if AI output is invalid.
-        """
+        from app.services.openai_service import generate_cv_payload
+        import json
+
         prompt = get_positioning_prompt(analysis)
 
         try:
-            angle = await generate_text(prompt)
-            angle = angle.strip()
+            result = await generate_cv_payload(prompt)
+
+            angle = result.get("recommended_positioning", "").strip()
+            reasoning = result.get("reasoning", "")
 
             if angle in VALID_ANGLES:
-                logger.info(f"Selected positioning angle: {angle}")
+                logger.info(f"Selected positioning: {angle}")
+                logger.debug(f"Reasoning: {reasoning}")
                 return angle
             else:
-                logger.warning(f"Invalid angle returned: {angle}, using default")
+                logger.warning(f"Invalid angle: {angle}, using default")
                 return VALID_ANGLES[0]
         except Exception as e:
             logger.error(f"Positioning selection failed: {e}, using default")

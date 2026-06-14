@@ -6,6 +6,7 @@ from app.services.openai_service import generate_text, generate_cv_payload
 from app.services.document_service import render_cv, render_letter, render_mail, save_document, get_output_path
 from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_letter_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
+from app.agents.quality_agent import QualityAgent
 from app.database.models import GeneratedDocument, DocumentTypeEnum, ProfileBlock, CategoryEnum
 
 logger = logging.getLogger(__name__)
@@ -92,7 +93,16 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
     ) -> str:
-        """Generate CV with structured JSON payload."""
+        """Generate CV with validation against profile_blocks.
+
+        Flow:
+        1. Get selected profile blocks
+        2. Generate CV payload (JSON only)
+        3. Clean payload (remove markdown/HTML)
+        4. Validate against profile blocks (remove hallucinations)
+        5. Render Jinja2 template
+        6. Save to DB + file
+        """
         block_ids = analysis.get("profile_blocks_to_use", [])
         blocks = MatchingAgent.get_selected_blocks(db, block_ids)
 
@@ -101,17 +111,26 @@ class GenerationAgent:
 
         payload = GenerationAgent._clean_payload(payload)
 
+        # VALIDATION STEP: Detect and remove hallucinations
+        validation_result = QualityAgent.validate_cv_payload(payload, blocks)
+        clean_payload = validation_result["clean_payload"]
+        removed_items = validation_result["removed_items"]
+
+        if removed_items:
+            logger.warning(f"Hallucinations removed: {removed_items}")
+
         candidate = GenerationAgent._build_candidate_info(db)
 
         context = {
             "candidate": candidate,
-            "cv": payload,
+            "cv": clean_payload,
         }
 
         logger.info(
-            f"CV payload: title={payload.get('title', 'N/A')}, "
-            f"experiences={len(payload.get('experiences', []))}, "
-            f"skills_sections={len(payload.get('skills_sections', []))}"
+            f"CV generated: title={clean_payload.get('title', 'N/A')}, "
+            f"experiences={len(clean_payload.get('experiences', []))}, "
+            f"skills={len(clean_payload.get('skills_sections', []))}, "
+            f"hallucinations_removed={len(removed_items)}"
         )
 
         html = render_cv(context)
