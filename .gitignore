@@ -41,6 +41,9 @@ outputs/
 *.html
 *.txt
 !requirements.txt
+!app/templates/cv.html
+!app/templates/letter.html
+!app/templates/mail.txt
 
 # Database
 *.db

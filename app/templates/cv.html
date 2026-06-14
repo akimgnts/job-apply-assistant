@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ candidate.name }} · {{ cv.title }}</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  @page { size: A4; margin: 10mm; }
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f3f3f3;
+    color: #111;
+    font-family: 'Manrope', sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body { padding: 16px 0; }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    padding: 11mm 13mm;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cv {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-title { text-align: center; margin-bottom: 4px; }
+
+  .top-title h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .top-subtitle {
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.45;
+    color: #444;
+    margin-bottom: 10px;
+  }
+
+  .intro {
+    font-size: 10px;
+    line-height: 1.45;
+    color: #222;
+    margin-bottom: 10px;
+  }
+
+  .section {
+    margin-bottom: 8px;
+    page-break-inside: avoid;
+  }
+
+  .section-title {
+    margin: 0 0 5px 0;
+    padding-bottom: 3px;
+    font-size: 10.7px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    border-bottom: 1px solid #cfcfcf;
+  }
+
+  .job {
+    margin-bottom: 6px;
+    page-break-inside: avoid;
+  }
+
+  .job:last-child { margin-bottom: 0; }
+
+  .job-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 2px;
+  }
+
+  .job-left { min-width: 0; }
+
+  .job-title {
+    font-size: 10.4px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .job-company {
+    font-size: 9.7px;
+    color: #444;
+    line-height: 1.25;
+  }
+
+  .job-date {
+    flex-shrink: 0;
+    font-size: 9.5px;
+    color: #555;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  ul {
+    margin: 3px 0 0 0;
+    padding-left: 15px;
+  }
+
+  li {
+    font-size: 9.4px;
+    line-height: 1.3;
+    margin-bottom: 1px;
+  }
+
+  .two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .skill-block { margin-bottom: 5px; }
+
+  .skill-label {
+    font-size: 9.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.45px;
+    margin-bottom: 2px;
+  }
+
+  .skill-text {
+    font-size: 9.4px;
+    line-height: 1.35;
+    color: #222;
+  }
+
+  .bottom-grid {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 18px;
+  }
+
+  .edu-item { margin-bottom: 5px; }
+
+  .edu-title {
+    font-size: 9.8px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .edu-meta {
+    font-size: 9.5px;
+    color: #444;
+    line-height: 1.3;
+  }
+
+  .simple-text {
+    font-size: 9.4px;
+    line-height: 1.35;
+    color: #222;
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { margin: 0; box-shadow: none; min-height: 297mm; }
+  }
+
+  @media screen {
+    .page { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+  }
+</style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="cv">
+
+      <div class="top-title">
+        <h1>{{ cv.title }}</h1>
+      </div>
+
+      <div class="top-subtitle">
+        {{ candidate.name }}
+        {% if candidate.email %} · {{ candidate.email }}{% endif %}
+        {% if candidate.phone %} · {{ candidate.phone }}{% endif %}<br>
+        {% if candidate.linkedin %}<a href="{{ candidate.linkedin }}" style="color: #444; text-decoration: none;">linkedin.com/in/{{ candidate.linkedin }}</a>{% endif %}
+        {% if candidate.github %} · <a href="{{ candidate.github }}" style="color: #444; text-decoration: none;">github.com/{{ candidate.github }}</a>{% endif %}
+        {% if candidate.website %} · <a href="{{ candidate.website }}" style="color: #444; text-decoration: none;">{{ candidate.website }}</a>{% endif %}
+      </div>
+
+      {% if cv.summary %}
+      <div class="intro">
+        {{ cv.summary }}
+      </div>
+      {% endif %}
+
+      {% if cv.experiences %}
+      <section class="section">
+        <h2 class="section-title">Professional Experience</h2>
+
+        {% for exp in cv.experiences %}
+        <div class="job">
+          <div class="job-head">
+            <div class="job-left">
+              <div class="job-title">{{ exp.title }}</div>
+              <div class="job-company">{{ exp.company }}{% if exp.context %} – {{ exp.context }}{% endif %}</div>
+            </div>
+            <div class="job-date">{{ exp.dates }}</div>
+          </div>
+
+          {% if exp.bullets %}
+          <ul>
+            {% for bullet in exp.bullets %}
+            <li>{{ bullet }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </section>
+      {% endif %}
+
+      {% if cv.projects %}
+      <section class="section">
+        <h2 class="section-title">Projects</h2>
+
+        {% for project in cv.projects %}
+        <div class="job">
+          <div class="job-head">
+            <div class="job-left">
+              <div class="job-title">{{ project.title }}</div>
+              <div class="job-company">{{ project.context }}</div>
+            </div>
+            <div class="job-date">{{ project.dates }}</div>
+          </div>
+
+          {% if project.bullets %}
+          <ul>
+            {% for bullet in project.bullets %}
+            <li>{{ bullet }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </section>
+      {% endif %}
+
+      {% if cv.skills_sections %}
+      <section class="section">
+        <h2 class="section-title">Technical Skills</h2>
+
+        <div class="two-cols">
+          {% for i, skill_section in enumerate(cv.skills_sections) %}
+            {% if i % 2 == 0 %}<div>{% endif %}
+            <div class="skill-block">
+              <div class="skill-label">{{ skill_section.label }}</div>
+              <div class="skill-text">
+                {{ skill_section.content }}
+              </div>
+            </div>
+            {% if (i + 1) % 2 == 0 or i == cv.skills_sections|length - 1 %}</div>{% endif %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      <div class="bottom-grid">
+        {% if cv.education %}
+        <section class="section">
+          <h2 class="section-title">Education</h2>
+
+          {% for edu in cv.education %}
+          <div class="edu-item">
+            <div class="edu-title">{{ edu.title }}</div>
+            <div class="edu-meta">{{ edu.school }}{% if edu.year %} – {{ edu.year }}{% endif %}</div>
+          </div>
+          {% endfor %}
+        </section>
+        {% endif %}
+
+        <div>
+          {% if cv.certifications %}
+          <section class="section">
+            <h2 class="section-title">Certifications</h2>
+
+            <div class="simple-text">
+              {% for cert in cv.certifications %}
+              {{ cert.name }}<br>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}
+
+          {% if cv.languages %}
+          <section class="section">
+            <h2 class="section-title">Languages</h2>
+
+            <div class="simple-text">
+              {% for lang in cv.languages %}
+              {{ lang.name }}{% if lang.level %} – {{ lang.level }}{% endif %}<br>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

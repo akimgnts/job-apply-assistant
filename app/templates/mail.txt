@@ -1,0 +1,6 @@
+Bonjour,
+
+{{ content }}
+
+Cordialement,
+{{ candidate_name }}
