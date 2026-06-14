@@ -28,6 +28,73 @@ class GenerationAgent:
         return candidate
 
     @staticmethod
+    def _build_fallback_cv_payload(blocks: list[dict], positioning: str) -> dict:
+        """Build safe CV payload directly from profile_blocks (no OpenAI).
+
+        Used when OpenAI-generated payload contains hallucinations.
+        Constructs CV entirely from authorized blocks.
+        """
+        payload = {
+            "title": positioning,
+            "summary": "Professional with expertise in data analysis, business intelligence and automation.",
+            "experiences": [],
+            "projects": [],
+            "skills_sections": [],
+            "education": [],
+            "certifications": [],
+            "languages": [],
+            "ats_keywords": [],
+        }
+
+        for block in blocks:
+            category = block.get("category", "")
+
+            if category == "experience":
+                payload["experiences"].append({
+                    "title": block.get("title", ""),
+                    "company": block.get("tags", [""])[0] if block.get("tags") else "",
+                    "context": "",
+                    "dates": "",
+                    "bullets": [block.get("content", "")[:200]],
+                })
+
+            elif category == "project":
+                payload["projects"].append({
+                    "title": block.get("title", ""),
+                    "context": "",
+                    "dates": "",
+                    "bullets": [block.get("content", "")[:200]],
+                })
+
+            elif category == "skill":
+                if block.get("tags"):
+                    payload["skills_sections"].append({
+                        "label": block.get("title", ""),
+                        "content": ", ".join(str(t) for t in block["tags"]),
+                    })
+
+            elif category == "education":
+                payload["education"].append({
+                    "title": block.get("title", ""),
+                    "school": block.get("tags", [""])[0] if block.get("tags") else "",
+                    "year": "",
+                    "meta": "",
+                })
+
+            elif category == "certification":
+                payload["certifications"].append({
+                    "name": block.get("title", ""),
+                })
+
+            elif category == "language":
+                payload["languages"].append({
+                    "name": block.get("title", ""),
+                    "level": block.get("tags", [""])[0] if block.get("tags") else "Intermediate",
+                })
+
+        return payload
+
+    @staticmethod
     def _clean_text(text: str) -> str:
         """Remove markdown/HTML artifacts from text."""
         if not text:
@@ -118,6 +185,13 @@ class GenerationAgent:
 
         if removed_items:
             logger.warning(f"Hallucinations removed: {removed_items}")
+
+        # SAFETY FALLBACK: If too many hallucinations, use safe payload
+        if len(removed_items) > 2 or not clean_payload.get("experiences"):
+            logger.warning(
+                f"Too many hallucinations or invalid payload, using safe fallback CV"
+            )
+            clean_payload = GenerationAgent._build_fallback_cv_payload(blocks, positioning)
 
         candidate = GenerationAgent._build_candidate_info(db)
 
