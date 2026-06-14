@@ -3,6 +3,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
+from app.config import config
 from app.agents.input_agent import InputAgent
 from app.agents.analysis_agent import AnalysisAgent
 from app.agents.matching_agent import MatchingAgent
@@ -16,7 +17,9 @@ from app.services.application_service import (
     get_last_application,
     mark_application_as_generated,
 )
+from app.services.document_service import get_template_debug_info
 from app.database.models import GeneratedDocument
+from app.utils.debug import format_exception_for_telegram, split_telegram_message
 
 logger = logging.getLogger(__name__)
 
@@ -110,10 +113,27 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     except Exception as e:
         logger.error(f"Error processing offer: {e}", exc_info=True)
-        await update.message.reply_text(
-            f"❌ Erreur lors de l'analyse: {str(e)}\n\n"
-            "Réessaye avec une autre offre."
-        )
+
+        if config.DEBUG_TELEGRAM_ERRORS:
+            context_dict = {
+                "user_id": user_id,
+                "command": "handle_offer",
+                "raw_input_len": len(raw_input),
+            }
+
+            extra_debug = None
+            if "TemplateNotFound" in type(e).__name__ or "template" in str(e).lower():
+                extra_debug = get_template_debug_info()
+
+            error_msg = format_exception_for_telegram(e, context_dict, extra_debug)
+            chunks = split_telegram_message(error_msg)
+            for chunk in chunks:
+                await update.message.reply_text(chunk)
+        else:
+            await update.message.reply_text(
+                f"❌ Erreur lors de l'analyse: {str(e)}\n\n"
+                "Réessaye avec une autre offre."
+            )
     finally:
         db.close()
 
@@ -174,7 +194,24 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
     except Exception as e:
         logger.error(f"Error generating documents: {e}", exc_info=True)
-        await update.message.reply_text(f"❌ Erreur: {str(e)}")
+
+        if config.DEBUG_TELEGRAM_ERRORS:
+            context_dict = {
+                "user_id": user_id,
+                "command": command,
+                "application_id": app.id if app else None,
+            }
+
+            extra_debug = None
+            if "TemplateNotFound" in type(e).__name__ or "template" in str(e).lower():
+                extra_debug = get_template_debug_info()
+
+            error_msg = format_exception_for_telegram(e, context_dict, extra_debug)
+            chunks = split_telegram_message(error_msg)
+            for chunk in chunks:
+                await update.message.reply_text(chunk)
+        else:
+            await update.message.reply_text(f"❌ Erreur: {str(e)}")
     finally:
         db.close()
 

@@ -21,6 +21,19 @@ def get_output_path(application_id: int, document_type: str) -> Path:
     output_dir.mkdir(exist_ok=True, parents=True)
     return output_dir / f"app_{application_id}_{document_type}.html"
 
+def get_template_debug_info() -> dict:
+    """Get debug info about template directory."""
+    available = []
+    if TEMPLATE_DIR.exists():
+        available = [f.name for f in TEMPLATE_DIR.glob("*") if f.is_file()]
+
+    return {
+        "template_dir": str(TEMPLATE_DIR),
+        "template_dir_exists": TEMPLATE_DIR.exists(),
+        "available_templates": available,
+        "cwd": str(Path.cwd()),
+    }
+
 def render_cv(context: dict) -> str:
     """Render CV template."""
     template = template_env.get_template("cv.html")
