@@ -86,10 +86,11 @@ STEP 1: Title
 - Must be professional and relevant
 
 STEP 2: Summary
-- Rewrite for job relevance
-- Mention key areas: {', '.join(analysis.get('missions', [])[:3])}
+- OPTIONAL: Rewrite for job relevance (or leave empty "")
+- If writing: mention key areas: {', '.join(analysis.get('missions', [])[:3])}
 - Keep factual (only from Master CV)
 - Max 70 words
+- For finance/business roles: leave empty (experience speaks for itself)
 
 STEP 3: Experience Order
 - DO NOT REORDER experiences
@@ -108,13 +109,13 @@ STEP 4: Experience Bullets
 - Return all original bullets in relevance order
 
 STEP 5: Project Order
-- Rank all 4 projects by relevance to job
-- Most relevant project appears first
-- All 4 projects must be included
-- Never delete projects
+- Default order: [0, 1, 2] (Elevia, Job Apply Assistant, V.I.E Matcher)
+- These 3 projects ALWAYS required (never delete)
+- SkillMap (project 3) only for AI/Product/Data Visualization/Automation roles
+- For all other roles: return [0, 1, 2]
 - Never rewrite project descriptions
-- All project bullets and descriptions unchanged
-- Return as list of project indices: could be [0, 1, 2, 3] or [1, 0, 3, 2], etc.
+- All project bullets unchanged
+- Return as list of project indices
 
 STEP 6: ATS Keywords
 - Select 5-8 keywords matching job
@@ -128,19 +129,18 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 {{
   "title": "Adapted positioning title (max 8 words)",
-  "summary": "Rewritten summary (max 70 words, plain text)",
+  "summary": "",
   "experience_order": [0, 1, 2],
   "experience_bullets": {{
     "0": ["Original Sidel bullet 1", "Original Sidel bullet 2", "Original Sidel bullet 3", "Original Sidel bullet 4", "Original Sidel bullet 5", "Original Sidel bullet 6", "Original Sidel bullet 7", "Original Sidel bullet 8"],
     "1": ["Original MadeByAkim bullet 1", "Original MadeByAkim bullet 2", "Original MadeByAkim bullet 3", "Original MadeByAkim bullet 4", "Original MadeByAkim bullet 5", "Original MadeByAkim bullet 6"],
     "2": ["Original Vassard bullet 1", "Original Vassard bullet 2", "Original Vassard bullet 3"]
   }},
-  "project_order": [0, 1, 2, 3],
+  "project_order": [0, 1, 2],
   "project_bullets": {{
     "0": ["Original Elevia description"],
     "1": ["Original Job Apply Assistant description"],
-    "2": ["Original VIE Matcher description"],
-    "3": ["Original SkillMap description"]
+    "2": ["Original VIE Matcher description"]
   }},
   "ats_keywords": ["Keyword1", "Keyword2"]
 }}
@@ -156,13 +156,17 @@ IMMUTABLE:
 - Sidel: 8 bullets, all included
 - MadeByAkim: 6 bullets, all included
 - Vassard: 3 bullets, all included
-- All 4 projects must be included
-- Project descriptions NEVER rewritten
+- Projects [0, 1, 2] ALWAYS required (Elevia, Job Apply Assistant, V.I.E Matcher)
+- Project 3 (SkillMap) only for AI/Product/Visualization/Automation roles
+- Project descriptions and bullets NEVER rewritten
 - Numbers, dates, company names NEVER change
 
 ALLOWED CHANGES:
 - Reorder bullets within each experience by relevance
 - Reorder projects by relevance
-- Rewrite summary (max 70 words)
 - Adapt title
+- Optional summary: leave empty "" for finance/business roles, or rewrite (max 70 words)
+
+PHILOSOPHY:
+95% Master CV content + 5% adaptation (title, optional summary, bullet priority, project priority)
 """

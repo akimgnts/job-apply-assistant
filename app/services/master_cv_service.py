@@ -24,18 +24,18 @@ def load_master_cv() -> dict:
         "experiences": [
             {
                 "id": 0,
-                "title": "Data, Marketing & Communication Analyst",
+                "title": "Data, Marketing & Communication Analyst (Apprenticeship)",
                 "company": "Sidel",
                 "context": "International B2B industrial environment",
                 "dates": "2023 – 2025",
                 "bullets": [
-                    "Built and maintained reporting supports for marketing, communication and commercial teams using Excel, Power BI and Power Query.",
                     "Consolidated and analyzed multi-source business data related to customers, installed base, leads, events and marketing activity.",
                     "Monitored KPIs, lead tracking and business indicators to improve visibility for internal stakeholders.",
+                    "Structured and maintained reporting supports for marketing, communication and commercial teams using Excel, Power BI and Power Query.",
                     "Supported data quality through cleaning, consistency checks, documentation and structured reporting processes.",
-                    "Collaborated with European marketing, communication and sales stakeholders in an international environment.",
-                    "Prepared business presentations, dashboards, campaign/event reporting and communication assets for internal and external use.",
-                    "Used Python, SQL, Snowflake, Excel and Power BI to support analysis, reporting and operational follow-up.",
+                    "Coordinated with European marketing, communication and sales stakeholders in an international B2B environment.",
+                    "Presented business insights through dashboards, campaign reporting and communication assets for internal and external stakeholders.",
+                    "Analyzed business data using Python, SQL, Snowflake, Excel and Power BI to support decision-making and operational excellence.",
                 ]
             },
             {
@@ -132,8 +132,8 @@ def load_master_cv() -> dict:
         "education": [
             {
                 "title": "MSc Business Intelligence & Analytics / Data Analyst for Marketing",
-                "school": "École Gamma",
-                "year": "2023 – 2025",
+                "school": "Eugenia School",
+                "year": "2025",
             },
             {
                 "title": "Bachelor Responsable Commerce & Marketing",
@@ -203,10 +203,15 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
                     f"Must use original content unchanged."
                 )
 
-    # Check all projects present
+    # Check projects valid (default 3, can include 4 if relevant)
     proj_order = adaptation.get("project_order", [])
-    if len(proj_order) != 4 or set(proj_order) != {0, 1, 2, 3}:
-        issues.append(f"All 4 projects required. Got {proj_order}")
+    valid_projects = {0, 1, 2, 3}
+    if not proj_order or not all(p in valid_projects for p in proj_order):
+        issues.append(f"Invalid project order. Got {proj_order}")
+    # SkillMap (3) optional; Elevia, Job Apply Assistant, V.I.E Matcher (0,1,2) required
+    required_projects = {0, 1, 2}
+    if not required_projects.issubset(set(proj_order)):
+        issues.append(f"Projects 0, 1, 2 (Elevia, Job Apply Assistant, V.I.E Matcher) required. Got {proj_order}")
 
     return {
         "is_valid": len(issues) == 0,

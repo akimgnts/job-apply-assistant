@@ -34,24 +34,24 @@ class GenerationAgent:
         """Build safe adaptation fallback when CVAdaptationAgent fails.
 
         Uses FIXED ordering with ALL original bullets.
-        No rewriting — Master CV content is immutable.
+        Default projects: Elevia, Job Apply Assistant, V.I.E Matcher (no SkillMap).
         """
         # FIXED ordering (never changes)
         fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
-        all_proj_ids = [0, 1, 2, 3]  # Elevia, Job Apply Assistant, VIE Matcher, SkillMap
+        default_proj_ids = [0, 1, 2]  # Elevia, Job Apply Assistant, V.I.E Matcher
 
         adaptation = {
             "title": positioning,
-            "summary": "Professional with expertise in data analysis, business intelligence, automation and AI-assisted systems.",
+            "summary": "",
             "experience_order": fixed_exp_order,
             "experience_bullets": {
                 str(i): master_cv["experiences"][i].get("bullets", [])
                 for i in fixed_exp_order
             },
-            "project_order": all_proj_ids,
+            "project_order": default_proj_ids,
             "project_bullets": {
                 str(i): master_cv["projects"][i].get("bullets", [])
-                for i in all_proj_ids
+                for i in default_proj_ids
             },
             "ats_keywords": [],
         }
