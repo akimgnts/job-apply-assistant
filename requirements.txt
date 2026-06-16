@@ -11,3 +11,4 @@ python-dotenv==1.0.0
 trafilatura==1.6.1
 pydantic>=2.6.0
 pydantic-settings>=2.2.0
+urllib3
