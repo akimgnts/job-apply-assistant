@@ -82,10 +82,13 @@ class GeneratedDocument(Base):
 
     id = Column(Integer, primary_key=True)
     application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+    telegram_user_id = Column(String(255), nullable=False)
     document_type = Column(SQLEnum(DocumentTypeEnum), nullable=False)
     filename = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     file_path = Column(Text, nullable=True)
+    positioning = Column(String(255), nullable=True)
+    skill_profile = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     application = relationship("Application", back_populates="documents")

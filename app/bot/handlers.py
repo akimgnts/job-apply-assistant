@@ -1,6 +1,7 @@
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
+from telegram.constants import ParseMode
 from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.config import config
@@ -20,9 +21,17 @@ from app.services.application_service import (
 from app.services.document_service import get_template_debug_info
 from app.database.models import GeneratedDocument
 from app.utils.debug import format_exception_for_telegram, split_telegram_message
+from app.utils.filename import safe_document_filename
 from app.bot.keyboards import (
     home_menu, back_home, offer_extracted_menu, match_view_menu,
     application_detail_menu, save_or_regenerate_menu, profile_menu, master_cv_menu
+)
+from app.bot.message_formatter import (
+    format_analysis_message,
+    format_match_detail_message,
+    format_applications_list_message,
+    format_profile_message,
+    format_document_generated_message,
 )
 
 logger = logging.getLogger(__name__)
@@ -131,9 +140,19 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         update_user_session(db, user_id, app.id, state="waiting_for_command")
 
-        summary = format_analysis_summary(analysis, positioning)
+        # Format message as professional HTML
+        text, parse_mode = format_analysis_message(
+            job_title=analysis.get("job_title", ""),
+            company=analysis.get("company", ""),
+            positioning=positioning,
+            match_score=app.match_score or 0,
+            strengths=analysis.get("strengths", []),
+            weaknesses=analysis.get("missing_points", [])
+        )
+
         await update.message.reply_text(
-            summary,
+            text,
+            parse_mode=parse_mode,
             reply_markup=offer_extracted_menu(app.id)
         )
 
@@ -296,17 +315,13 @@ async def my_applications_callback(update: Update, context: ContextTypes.DEFAULT
         apps = db.query(Application).filter_by(telegram_user_id=user_id).order_by(desc(Application.created_at)).limit(5).all()
 
         if not apps:
-            await query.edit_message_text(
-                "📂 Aucune candidature sauvegardée.",
-                reply_markup=back_home()
-            )
+            text = "<b>Aucune candidature sauvegardée</b>"
+            await query.edit_message_text(text, parse_mode=ParseMode.HTML, reply_markup=back_home())
             return
 
-        text = "📂 Mes candidatures récentes:\n\n"
-        for app in apps:
-            text += f"{app.company}\n⭐ {app.match_score}/10\n\n"
-
-        await query.edit_message_text(text, reply_markup=back_home())
+        # Format using message formatter
+        text, parse_mode = format_applications_list_message(apps)
+        await query.edit_message_text(text, parse_mode=parse_mode, reply_markup=back_home())
     finally:
         db.close()
 
@@ -433,10 +448,31 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         ).first()
 
         if doc:
-            await query.edit_message_text("✅ CV généré!", reply_markup=save_or_regenerate_menu())
+            # Generate safe filename
+            safe_filename = safe_document_filename(
+                candidate_name=config.CANDIDATE_NAME or "Akim_Guentas",
+                job_title=app.job_title or "Position",
+                company=app.company or "Company",
+                document_type="CV",
+                extension="pdf"
+            )
+
+            # Update document record with metadata
+            doc.filename = safe_filename
+            doc.positioning = positioning
+            doc.skill_profile = skill_profile
+            doc.telegram_user_id = user_id
+            db.commit()
+
+            logger.info(f"CV generated: {safe_filename} for app_id={app.id}")
+
+            # Format success message
+            text, parse_mode = format_document_generated_message("cv")
+
+            await query.edit_message_text(text, parse_mode=parse_mode, reply_markup=save_or_regenerate_menu())
             await query.message.reply_document(
                 document=doc.content.encode(),
-                filename=doc.filename
+                filename=safe_filename
             )
     except Exception as e:
         logger.error(f"Error generating CV: {e}")
@@ -501,24 +537,19 @@ async def view_match_with_app_callback(update: Update, context: ContextTypes.DEF
             return
 
         analysis = app.analyses[0].analysis_json
-        match_score = app.match_score
 
-        text = f"""📊 Match détaillé
+        # Format as professional HTML
+        text, parse_mode = format_match_detail_message(
+            company=app.company or "",
+            job_title=app.job_title or "",
+            positioning=app.recommended_angle or "",
+            match_score=app.match_score or 0,
+            strengths=analysis.get("strengths", []),
+            weaknesses=analysis.get("missing_points", []),
+            missing_skills=analysis.get("required_skills", [])
+        )
 
-**Entreprise:** {app.company}
-**Poste:** {app.job_title}
-**Score:** {match_score}/10
-
-**Positionnement:** {app.recommended_angle}
-
-**Points forts:**
-{chr(10).join([f"• {s}" for s in analysis.get("strengths", [])[:3]])}
-
-**Points manquants:**
-{chr(10).join([f"• {m}" for m in analysis.get("missing_points", [])[:3]])}
-"""
-
-        await query.edit_message_text(text, reply_markup=match_view_menu())
+        await query.edit_message_text(text, parse_mode=parse_mode, reply_markup=match_view_menu())
     finally:
         db.close()
 
