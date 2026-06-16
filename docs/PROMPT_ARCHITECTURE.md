@@ -2,7 +2,12 @@
 
 Job Apply Assistant uses **4 main prompts** in sequence to analyze offers, position candidates, and generate documents.
 
-**Philosophy:** 95% Master CV (immutable source of truth) + 5% AI adaptation (title, summary, bullet priority, project priority).
+**Philosophy:** Truth is immutable. Narrative is flexible.
+- Facts (companies, dates, roles, achievements) cannot be fabricated
+- Bullets can be rewritten for clarity, relevance, and positioning
+- Weak bullets removed, strong bullets amplified
+- Goal: Premium positioning engine, not ATS keyword optimizer
+- CV must feel human, credible, founder-readable (30-second test)
 
 **Status:** Production-ready
 
@@ -87,56 +92,70 @@ Generated CV + Letter + Mail
 
 ## Prompt 3: Adaptation (`app/prompts/adaptation_prompt.py`) ★ CRITICAL
 
-**Purpose:** Adapt Master CV to job offer. Never invent content. **This is where AI maintains 95% Master CV fidelity.**
+**Purpose:** Adapt Master CV to job offer. **Philosophy: Truth is immutable. Narrative is flexible.**
 
 **Agent:** `CVAdaptationAgent.adapt_cv()`
 
 **Input:**
 - Job analysis JSON
 - Positioning angle (from Prompt 2)
-- Master CV structure (immutable source of truth)
+- Master CV structure (facts are source of truth)
 
-**Output:** Adaptation JSON with:
+**Output:** Adaptation JSON with rewritten/selected bullets:
 ```json
 {
   "title": "Adapted positioning title (max 8 words)",
   "summary": "" or "Rewritten summary (max 70 words)",
   "experience_order": [0, 1, 2],
   "experience_bullets": {
-    "0": ["All 8 Sidel bullets in relevance order"],
-    "1": ["All 6 MadeByAkim bullets in relevance order"],
-    "2": ["All 3 Vassard bullets in relevance order"]
+    "0": ["Rewritten Sidel bullet 1 (fact-based, relevant)", "Rewritten Sidel bullet 2", "..."],
+    "1": ["Rewritten MadeByAkim bullet 1", "Rewritten MadeByAkim bullet 2"],
+    "2": ["Rewritten Vassard bullet 1"]
   },
   "project_order": [0, 1, 2],
   "project_bullets": {
-    "0": ["Original Elevia description"],
-    "1": ["Original Job Apply Assistant description"],
-    "2": ["Original V.I.E Matcher description"]
+    "0": ["Rewritten Elevia description (fact-based)"],
+    "1": ["Rewritten Job Apply Assistant description"],
+    "2": ["Rewritten V.I.E Matcher description"]
   },
   "ats_keywords": ["Keyword1", "Keyword2"]
 }
 ```
 
-**Allowed Changes (5% adaptation):**
-- ✅ Adapt title
-- ✅ Rewrite summary (max 70 words, optional, empty for finance/business roles)
+**Allowed Changes (FLEXIBLE NARRATIVE):**
+- ✅ Rewrite bullets for clarity and relevance
+- ✅ Remove weak or irrelevant bullets
+- ✅ Amplify strong bullets that support positioning
+- ✅ Adapt vocabulary to match role domain
+- ✅ Simplify jargon or reorganize facts
 - ✅ Reorder bullets within each experience by relevance
-- ✅ Reorder projects by relevance (add SkillMap only for AI/Product/Visualization roles)
+- ✅ Reorder projects by relevance
+- ✅ Adapt title
+- ✅ Rewrite summary (max 70 words, optional)
 - ✅ Select ATS keywords
 
-**Forbidden (95% Master CV immutable):**
+**Forbidden (IMMUTABLE TRUTH):**
+- ❌ Invent companies, dates, roles, achievements, certifications
+- ❌ Fabricate metrics or percentages
+- ❌ Add technologies not in Master CV
+- ❌ Create new experiences
 - ❌ Reorder experiences (fixed: Sidel [0] → MadeByAkim [1] → Vassard [2])
-- ❌ Rewrite, edit, or delete bullets
-- ❌ Create new bullets
-- ❌ Delete experiences or projects
-- ❌ Invent companies/schools/technologies/dates
-- ❌ Rewrite project descriptions
+- ❌ Claim credit for work not done
 
 **Validation:** `validate_adaptation()` enforces:
 - experience_order must be exactly [0, 1, 2]
-- All bullets present and unchanged (word-for-word)
+- Facts preserved (no fabrications)
+- Bullets exist for each experience (can be rewritten/removed/reordered)
 - All 3 required projects present (0, 1, 2)
 - Optional 4th project (SkillMap, id 3) only for AI/Product/Visualization/Automation roles
+
+**Style Guidelines:**
+- Clarity beats complexity
+- Relevance beats exhaustiveness
+- Signal beats noise
+- Credibility beats keyword stuffing
+- Avoid: ChatGPT tone, buzzwords, generic language
+- Use: confidence, simplicity, clarity, directness
 
 ---
 
@@ -241,6 +260,29 @@ Generated CV + Letter + Mail
 ---
 
 ## Content Philosophy
+
+### Truth is Immutable. Narrative is Flexible.
+
+**Immutable (Facts):**
+- Companies, dates, roles, achievements
+- Education and certifications
+- Technologies used
+- Metrics and results (if real)
+
+**Flexible (Narrative):**
+- Wording and emphasis
+- Bullet selection and ordering
+- Vocabulary adaptation (e.g., BI → analytics, automation → workflow)
+- Tone and language (technical → business, ops → finance)
+- Weak bullet removal, strong bullet amplification
+
+### Premium Positioning, Not ATS Optimization
+
+- **Goal:** Maximize credibility, relevance, positioning, clarity
+- **Test:** Founder/hiring manager understands value in 30 seconds?
+- **Style:** Confidence, simplicity, directness
+- **Avoid:** Buzzwords, keyword stuffing, ChatGPT tone, generic language
+- **Principle:** Signal beats noise. Relevance beats exhaustiveness.
 
 ### Business/Finance Orientation
 

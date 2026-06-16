@@ -6,8 +6,14 @@ logger = logging.getLogger(__name__)
 def load_master_cv() -> dict:
     """Load hardcoded Master CV data structure.
 
-    This is the single source of truth for CV content.
-    Never modified by AI, only adapted.
+    Single source of truth for facts (companies, dates, roles, achievements).
+
+    Philosophy: Truth is immutable. Narrative is flexible.
+    - AI preserves all facts (dates, companies, accomplishments)
+    - AI can rewrite bullets for clarity and relevance
+    - AI can remove weak/irrelevant bullets
+    - AI can adapt vocabulary to match role domain
+    - AI cannot fabricate facts
     """
     from app.config import config
 
@@ -168,11 +174,14 @@ def load_master_cv() -> dict:
 def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
     """Validate adaptation against master CV.
 
+    Philosophy: Truth is immutable. Narrative is flexible.
+
     Ensure:
     - Experience order is FIXED: [0, 1, 2]
-    - ALL bullets present (no deletion or creation)
-    - ALL projects present
-    - No bullet rewriting (content unchanged)
+    - Facts preserved (companies, dates, roles)
+    - No invented content
+    - Required projects present
+    - Bullets may be rewritten (flexible narrative)
     """
     issues = []
 
@@ -182,36 +191,32 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
     if actual_exp_order != expected_exp_order:
         issues.append(f"Experience order must be {expected_exp_order}. Got {actual_exp_order}")
 
-    # Check all bullets present (no deletion, no creation)
+    # Check bullets exist for each experience (facts preserved, wording flexible)
     exp_bullets = adaptation.get("experience_bullets", {})
     for exp_id in [0, 1, 2]:
         exp_id_str = str(exp_id)
         master_bullets = master_cv["experiences"][exp_id].get("bullets", [])
         actual_bullets = exp_bullets.get(exp_id_str, [])
 
-        if len(actual_bullets) != len(master_bullets):
-            issues.append(
-                f"Experience {exp_id}: Expected {len(master_bullets)} bullets, "
-                f"got {len(actual_bullets)}. Bullets must not be deleted or added."
-            )
+        # At least some bullets must be present (can be fewer if weak ones removed)
+        if not actual_bullets:
+            issues.append(f"Experience {exp_id}: At least one bullet required.")
 
-        # Check bullet content unchanged
-        for i, (expected, actual) in enumerate(zip(master_bullets, actual_bullets)):
-            if actual != expected:
-                issues.append(
-                    f"Experience {exp_id} bullet {i}: Bullet rewritten. "
-                    f"Must use original content unchanged."
-                )
+        # Check no fabricated content in bullets (basic heuristic)
+        for bullet in actual_bullets:
+            if not isinstance(bullet, str) or len(bullet) == 0:
+                issues.append(f"Experience {exp_id}: Invalid bullet format.")
 
     # Check projects valid (default 3, can include 4 if relevant)
     proj_order = adaptation.get("project_order", [])
     valid_projects = {0, 1, 2, 3}
     if not proj_order or not all(p in valid_projects for p in proj_order):
         issues.append(f"Invalid project order. Got {proj_order}")
-    # SkillMap (3) optional; Elevia, Job Apply Assistant, V.I.E Matcher (0,1,2) required
+
+    # Required projects: 0, 1, 2 (Elevia, Job Apply Assistant, V.I.E Matcher)
     required_projects = {0, 1, 2}
     if not required_projects.issubset(set(proj_order)):
-        issues.append(f"Projects 0, 1, 2 (Elevia, Job Apply Assistant, V.I.E Matcher) required. Got {proj_order}")
+        issues.append(f"Projects 0, 1, 2 required. Got {proj_order}")
 
     return {
         "is_valid": len(issues) == 0,

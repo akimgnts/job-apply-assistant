@@ -1,23 +1,31 @@
 def get_cv_adaptation_prompt(analysis: dict, positioning: str, master_cv: dict) -> str:
-    """Prompt to adapt existing Master CV to job offer.
+    """Prompt to adapt Master CV to job offer.
 
-    CRITICAL: Only adapt, never invent.
-    Never delete sections or experiences.
-    Never add new companies, schools, certifications, projects.
+    Philosophy: Truth is immutable. Narrative is flexible.
+
+    CRITICAL:
+    - No fabricated facts (companies, dates, technologies, metrics)
+    - No invented experiences or certifications
+    - Preserve underlying facts
+    - Flexible wording to match role relevance
+    - Eliminate weak/irrelevant bullets
+    - Amplify strong/relevant ones
     """
 
     # Format master CV content for reference
     experiences_text = "\n".join(
         [
             f"#{i} {e['title']} @ {e['company']} ({e['dates']})\n"
-            f"  Bullets: {e['bullets'][:3]}"
+            f"  Context: {e.get('context', '')}\n"
+            f"  Bullets:\n"
+            + "\n".join(f"    - {b}" for b in e.get('bullets', []))
             for i, e in enumerate(master_cv.get("experiences", []))
         ]
     )
 
     projects_text = "\n".join(
         [
-            f"#{i} {p['title']}\n  Stack: {p.get('stack', 'N/A')}"
+            f"#{i} {p['title']}\n  Stack: {p.get('stack', 'N/A')}\n  Bullets: {p.get('bullets', [])}"
             for i, p in enumerate(master_cv.get("projects", []))
         ]
     )
@@ -31,27 +39,41 @@ def get_cv_adaptation_prompt(analysis: dict, positioning: str, master_cv: dict) 
 
     return f"""ROLE
 
-You are a CV adaptation specialist.
+You are a premium CV positioning specialist.
 
-Your task is NOT to create a new CV.
+Your task: Adapt Master CV to position the candidate for THIS role.
 
-Your task is to ADAPT an existing Master CV to a specific job offer.
+Philosophy: Truth is immutable. Narrative is flexible.
 
-You may only:
-- Change the title to match positioning
-- Rewrite the summary for job relevance (max 70 words)
-- Reorder project priority (which projects appear first)
-- Mention ATS keywords from the job
+PRESERVE:
+- Facts (companies, dates, technologies, responsibilities, achievements)
+- Experience sequence (Sidel → MadeByAkim → Vassard)
+- Underlying capabilities and accomplishments
 
-You may NEVER:
-- Reorder experiences (order is FIXED: Sidel→MadeByAkim→Vassard)
-- Rewrite, edit, or shorten experience/project bullets
-- Create new bullets
-- Delete experience bullets
-- Delete experiences
-- Invent new experiences, companies, schools, certifications
-- Add new tools/technologies not in Master CV
-- Fabricate dates or metrics
+TRANSFORM:
+- Wording (adapt for industry/role relevance)
+- Emphasis (highlight relevant facts, downplay irrelevant ones)
+- Narrative angle (focus on what matters for THIS role)
+- Language tone (match business/finance/technical context)
+
+ALLOWED:
+- Rewrite bullets to clarify and emphasize relevance
+- Remove weak or irrelevant bullets
+- Amplify strong bullets that support the positioning
+- Reorganize facts within a bullet for clarity
+- Simplify jargon or technical language
+- Adapt vocabulary to match role domain (e.g., BI → analytics, automation → workflow)
+- Use different tool names if technically equivalent (e.g., "data warehouse" vs "SQL")
+
+FORBIDDEN:
+- Invent companies, dates, or achievements
+- Create new experiences or roles
+- Add technologies not mentioned in Master CV
+- Fabricate metrics or percentages
+- Delete entire experiences (can remove weak bullets, not the job itself)
+- Reorder experiences
+- Invent certifications or education
+- Claim credit for work not done by candidate
 
 ---
 
@@ -101,12 +123,19 @@ STEP 3: Experience Order
 - 2 = Vassard (business development)
 
 STEP 4: Experience Bullets
-- DO NOT REWRITE or edit bullets
-- Use ALL bullets from Master CV for each experience
-- Arrange bullets in order of relevance to job
-- Put most relevant bullets first
-- Never create, edit, or shorten bullets
-- Return all original bullets in relevance order
+- PRESERVE FACTS, REWRITE NARRATIVE
+- Select bullets that support the positioning for THIS role
+- Remove weak or irrelevant bullets
+- Rewrite bullets for clarity and relevance
+- Amplify strong bullets that strengthen the positioning
+- Style guide:
+  * Clarity over buzzwords
+  * Relevance over completeness
+  * Signal over noise
+  * Business impact over tool lists
+- Avoid: generic language, keyword stuffing, ChatGPT tone
+- Use: confidence, simplicity, clarity
+- Return: rewritten bullets ordered by relevance
 
 STEP 5: Project Order
 - Default order: [0, 1, 2] (Elevia, Job Apply Assistant, V.I.E Matcher)
@@ -129,18 +158,18 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 {{
   "title": "Adapted positioning title (max 8 words)",
-  "summary": "",
+  "summary": "" or "Short summary explaining role fit (max 70 words)",
   "experience_order": [0, 1, 2],
   "experience_bullets": {{
-    "0": ["Original Sidel bullet 1", "Original Sidel bullet 2", "Original Sidel bullet 3", "Original Sidel bullet 4", "Original Sidel bullet 5", "Original Sidel bullet 6", "Original Sidel bullet 7", "Original Sidel bullet 8"],
-    "1": ["Original MadeByAkim bullet 1", "Original MadeByAkim bullet 2", "Original MadeByAkim bullet 3", "Original MadeByAkim bullet 4", "Original MadeByAkim bullet 5", "Original MadeByAkim bullet 6"],
-    "2": ["Original Vassard bullet 1", "Original Vassard bullet 2", "Original Vassard bullet 3"]
+    "0": ["Rewritten Sidel bullet 1 (fact-based, role-relevant)", "Rewritten Sidel bullet 2", "Rewritten Sidel bullet 3"],
+    "1": ["Rewritten MadeByAkim bullet 1", "Rewritten MadeByAkim bullet 2"],
+    "2": ["Rewritten Vassard bullet 1"]
   }},
   "project_order": [0, 1, 2],
   "project_bullets": {{
-    "0": ["Original Elevia description"],
-    "1": ["Original Job Apply Assistant description"],
-    "2": ["Original VIE Matcher description"]
+    "0": ["Rewritten Elevia description (fact-based)"],
+    "1": ["Rewritten Job Apply Assistant description"],
+    "2": ["Rewritten V.I.E Matcher description"]
   }},
   "ats_keywords": ["Keyword1", "Keyword2"]
 }}
@@ -149,24 +178,40 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 CRITICAL RULES
 
-IMMUTABLE:
-- experience_order MUST ALWAYS be [0, 1, 2] (Sidel, MadeByAkim, Vassard)
-- All 3 experiences required: no deletions
-- All original bullets must be included — NEVER delete, rewrite, or shorten
-- Sidel: 8 bullets, all included
-- MadeByAkim: 6 bullets, all included
-- Vassard: 3 bullets, all included
-- Projects [0, 1, 2] ALWAYS required (Elevia, Job Apply Assistant, V.I.E Matcher)
-- Project 3 (SkillMap) only for AI/Product/Visualization/Automation roles
-- Project descriptions and bullets NEVER rewritten
-- Numbers, dates, company names NEVER change
+TRUTH IS IMMUTABLE:
+- Companies, dates, roles NEVER fabricated
+- Technologies mentioned must exist in Master CV
+- Achievements must be real and provable
+- No invented metrics or percentages
+- No false claims of responsibility
+- experience_order: [0, 1, 2] (sequence immutable)
 
-ALLOWED CHANGES:
-- Reorder bullets within each experience by relevance
-- Reorder projects by relevance
-- Adapt title
-- Optional summary: leave empty "" for finance/business roles, or rewrite (max 70 words)
+NARRATIVE IS FLEXIBLE:
+- Bullets can be rewritten for clarity and relevance
+- Weak bullets can be removed if irrelevant to role
+- Strong bullets can be amplified
+- Vocabulary can adapt to match role domain
+- Tone can shift (technical → business, ops → finance)
+- Focus: signal over noise, relevance over completeness
+
+STYLE GUIDELINES:
+- Clarity beats complexity
+- Relevance beats exhaustiveness
+- Signal beats noise
+- Credibility beats keyword stuffing
+- Simple + clear beats buzzword-heavy
+- Avoid: ChatGPT tone, generic language, keyword stuffing
+- Use: confidence, simplicity, clarity, directness
+
+FINAL TEST:
+Would a founder, recruiter, or hiring manager understand in 30 seconds:
+1. Who this person is?
+2. What value they bring?
+3. Why they fit this role?
+
+If not: SIMPLIFY. Clarity beats everything.
 
 PHILOSOPHY:
-95% Master CV content + 5% adaptation (title, optional summary, bullet priority, project priority)
+100% truthful source material. Flexible wording. Flexible emphasis. Flexible narrative.
+No fabricated facts. No invented metrics. No invented technologies.
 """
