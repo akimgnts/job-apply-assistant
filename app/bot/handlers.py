@@ -20,6 +20,10 @@ from app.services.application_service import (
 from app.services.document_service import get_template_debug_info
 from app.database.models import GeneratedDocument
 from app.utils.debug import format_exception_for_telegram, split_telegram_message
+from app.bot.keyboards import (
+    home_menu, back_home, offer_extracted_menu, match_view_menu,
+    application_detail_menu, save_or_regenerate_menu, profile_menu, master_cv_menu
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,15 +31,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Handle /start command."""
     await update.message.reply_text(
         "👋 Bienvenue dans Job Apply Assistant!\n\n"
-        "Envoie-moi une offre d'emploi (URL ou texte brut) et je vais:\n"
-        "• Analyser l'offre\n"
-        "• Vérifier ton match\n"
-        "• Proposer un angle de candidature\n"
-        "• Générer CV, lettre et mail\n\n"
-        "Commandes:\n"
-        "/start — Afficher ce message\n"
-        "/help — Aide détaillée\n"
-        "/last — Voir dernière offre"
+        "Analyse tes offres, vérifie ton match et génère CV, lettre et mail en quelques secondes.",
+        reply_markup=home_menu()
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -254,10 +251,204 @@ def format_analysis_summary(analysis: dict, positioning: str) -> str:
         f"📊 Match:\n{analysis.get('match_score')}/10\n\n"
         f"✅ Points forts:\n{strengths}\n\n"
         f"⚠️ Points manquants:\n{missing}\n\n"
-        f"📝 Stratégie CV:\n{analysis.get('cv_strategy', 'Non disponible')}\n\n"
-        f"Réponds:\n"
-        f"GO = générer CV + lettre + mail\n"
-        f"CV = générer seulement le CV\n"
-        f"LETTRE = générer seulement la lettre\n"
-        f"MAIL = générer seulement le mail"
+        f"📝 Stratégie CV:\n{analysis.get('cv_strategy', 'Non disponible')}"
     )
+
+
+async def home_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle home button."""
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text(
+        "🏠 Accueil\n\nQue veux-tu faire?",
+        reply_markup=home_menu()
+    )
+
+
+async def analyze_offer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle analyze offer button."""
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text(
+        "📋 Envoie-moi:\n"
+        "• Une URL d'offre\n"
+        "• Le texte de l'offre\n"
+        "• Une capture d'écran",
+        reply_markup=back_home()
+    )
+
+
+async def my_applications_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle my applications button."""
+    query = update.callback_query
+    await query.answer()
+    user_id = str(query.from_user.id)
+    db = SessionLocal()
+
+    try:
+        # Get last 5 applications
+        from sqlalchemy import desc
+        from app.database.models import Application
+
+        apps = db.query(Application).filter_by(telegram_user_id=user_id).order_by(desc(Application.created_at)).limit(5).all()
+
+        if not apps:
+            await query.edit_message_text(
+                "📂 Aucune candidature sauvegardée.",
+                reply_markup=back_home()
+            )
+            return
+
+        text = "📂 Mes candidatures récentes:\n\n"
+        for app in apps:
+            text += f"{app.company}\n⭐ {app.match_score}/10\n\n"
+
+        await query.edit_message_text(text, reply_markup=back_home())
+    finally:
+        db.close()
+
+
+async def view_master_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle view master CV button."""
+    query = update.callback_query
+    await query.answer()
+
+    from app.services.master_cv_service import load_master_cv
+
+    master_cv = load_master_cv()
+
+    # Format CV info
+    exp_text = "\n".join([f"• {e['title']} @ {e['company']}" for e in master_cv["experiences"]])
+    proj_text = "\n".join([f"• {p['title']}" for p in master_cv["projects"][:3]])
+
+    text = f"""📄 Master CV
+
+**Expériences:**
+{exp_text}
+
+**Projets:**
+{proj_text}
+
+**Compétences:**
+{len(master_cv['skills'])} domaines
+"""
+
+    await query.edit_message_text(text, reply_markup=master_cv_menu())
+
+
+async def view_profile_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle view profile button."""
+    query = update.callback_query
+    await query.answer()
+
+    text = f"""⚙️ Mon profil
+
+**Nom:** {config.CANDIDATE_NAME or 'Non défini'}
+**Location:** {config.CANDIDATE_LINKEDIN or 'Non défini'} (Paris)
+**Email:** {config.CANDIDATE_EMAIL or 'Non défini'}
+**Téléphone:** {config.CANDIDATE_PHONE or 'Non défini'}
+**LinkedIn:** {config.CANDIDATE_LINKEDIN or 'Non défini'}
+**GitHub:** {config.CANDIDATE_GITHUB or 'Non défini'}
+"""
+
+    await query.edit_message_text(text, reply_markup=profile_menu())
+
+
+async def view_match_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle view match button."""
+    query = update.callback_query
+    await query.answer()
+    user_id = str(query.from_user.id)
+    db = SessionLocal()
+
+    try:
+        app = get_last_application(db, user_id)
+        if not app or not app.analyses:
+            await query.answer("Aucune analyse disponible", show_alert=True)
+            return
+
+        analysis = app.analyses[0].analysis_json
+        match_score = app.match_score
+
+        text = f"""📊 Match détaillé
+
+**Entreprise:** {app.company}
+**Poste:** {app.job_title}
+**Score:** {match_score}/10
+
+**Positionnement:** {app.recommended_angle}
+
+**Points forts:**
+{chr(10).join([f"• {s}" for s in analysis.get("strengths", [])[:3]])}
+
+**Points manquants:**
+{chr(10).join([f"• {m}" for m in analysis.get("missing_points", [])[:3]])}
+"""
+
+        await query.edit_message_text(text, reply_markup=match_view_menu())
+    finally:
+        db.close()
+
+
+async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle generate CV button."""
+    query = update.callback_query
+    await query.answer("⏳ Génération du CV...")
+
+    user_id = str(query.from_user.id)
+    db = SessionLocal()
+
+    try:
+        app = get_last_application(db, user_id)
+        if not app:
+            await query.answer("Aucune offre en cours", show_alert=True)
+            return
+
+        analysis = app.analyses[0].analysis_json if app.analyses else None
+        positioning = app.recommended_angle
+        skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+
+        # Generate CV
+        await GenerationAgent.generate_cv(db, app.id, analysis, positioning, skill_profile)
+        mark_application_as_generated(db, app.id)
+
+        # Get document
+        from app.database.models import GeneratedDocument
+        doc = db.query(GeneratedDocument).filter(
+            GeneratedDocument.application_id == app.id,
+            GeneratedDocument.document_type == "cv"
+        ).first()
+
+        if doc:
+            await query.edit_message_text("✅ CV généré!", reply_markup=save_or_regenerate_menu())
+            await query.message.reply_document(
+                document=doc.content.encode(),
+                filename=doc.filename
+            )
+    except Exception as e:
+        logger.error(f"Error generating CV: {e}")
+        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+    finally:
+        db.close()
+
+
+async def save_application_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle save application button."""
+    query = update.callback_query
+    await query.answer()
+
+    user_id = str(query.from_user.id)
+    db = SessionLocal()
+
+    try:
+        app = get_last_application(db, user_id)
+        if app:
+            from app.database.models import Application
+            app.status = "saved"
+            db.commit()
+            await query.edit_message_text(
+                "✅ Candidature sauvegardée!",
+                reply_markup=home_menu()
+            )
+    finally:
+        db.close()

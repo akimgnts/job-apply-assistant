@@ -22,6 +22,7 @@ class TruthLevelEnum(str, enum.Enum):
 class ApplicationStatusEnum(str, enum.Enum):
     analyzed = "analyzed"
     generated = "generated"
+    saved = "saved"
     archived = "archived"
 
 class DocumentTypeEnum(str, enum.Enum):
