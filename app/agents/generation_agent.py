@@ -189,12 +189,13 @@ class GenerationAgent:
         application_id: int,
         analysis: dict,
         positioning: str,
+        skill_profile: str = "general_business_data",
     ) -> str:
         """Generate CV by adapting Master CV. Never invent content.
 
         Flow:
         1. Load Master CV (source of truth)
-        2. Call CVAdaptationAgent to adapt for job offer
+        2. Call CVAdaptationAgent to adapt for job offer using skill_profile
         3. Validate adaptation (no new content)
         4. Render master_cv.html with adaptation payload
         5. Save to DB + file
@@ -204,11 +205,12 @@ class GenerationAgent:
         logger.info(f"Master CV loaded: {len(master_cv['experiences'])} experiences")
 
         try:
-            # ADAPT: Get adaptation JSON (not full CV)
+            # ADAPT: Get adaptation JSON (not full CV) with skill profile guidance
             adaptation = await CVAdaptationAgent.adapt_cv(
                 analysis,
                 positioning,
                 master_cv,
+                skill_profile,
             )
 
             # VALIDATE: Ensure no hallucinations in adaptation
@@ -334,19 +336,20 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
         document_types: list[str] = None,
+        skill_profile: str = "general_business_data",
     ) -> dict[str, str]:
-        """Generate requested documents."""
+        """Generate requested documents using skill profile."""
         if document_types is None:
             document_types = ["cv", "letter", "mail"]
 
         results = {}
 
         if "cv" in document_types:
-            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning)
+            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile)
         if "letter" in document_types:
             results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning)
         if "mail" in document_types:
             results["mail"] = await GenerationAgent.generate_mail(db, application_id, analysis, positioning)
 
-        logger.info(f"Generated documents for application {application_id}: {list(results.keys())}")
+        logger.info(f"Generated documents for application {application_id}: {list(results.keys())} with skill_profile={skill_profile}")
         return results

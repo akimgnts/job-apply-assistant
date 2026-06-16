@@ -123,7 +123,14 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
         update_application_with_analysis(db, app.id, analysis)
 
-        positioning = await PositioningAgent.choose_angle(analysis)
+        positioning_result = await PositioningAgent.choose_angle(analysis)
+        positioning = positioning_result.get("positioning", "Data Analyst BI")
+        skill_profile = positioning_result.get("skill_profile", "general_business_data")
+
+        # Store skill_profile in context for document generation
+        if context.user_data is None:
+            context.user_data = {}
+        context.user_data["skill_profile"] = skill_profile
 
         update_user_session(db, user_id, app.id, state="waiting_for_command")
 
@@ -174,6 +181,8 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             return
 
         positioning = analysis.get("recommended_angle", "Data Analyst BI")
+        # Retrieve skill_profile from context
+        skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
         await update.message.chat.send_action("typing")
 
@@ -189,7 +198,7 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             return
 
         documents = await GenerationAgent.generate_documents(
-            db, app.id, analysis, positioning, doc_types
+            db, app.id, analysis, positioning, doc_types, skill_profile
         )
 
         mark_application_as_generated(db, app.id)

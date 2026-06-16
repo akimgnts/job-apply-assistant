@@ -30,7 +30,7 @@ class Config:
 
     # Paths
     OUTPUT_DIR = os.getenv("OUTPUT_DIR", "outputs")
-    PROJECT_ROOT = Path(__file__).parent.parent
+    PROJECT_ROOT = Path(__file__).parent.parent.parent
 
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

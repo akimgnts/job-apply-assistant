@@ -1,4 +1,9 @@
-def get_cv_adaptation_prompt(analysis: dict, positioning: str, master_cv: dict) -> str:
+def get_cv_adaptation_prompt(
+    analysis: dict,
+    positioning: str,
+    master_cv: dict,
+    skill_profile: str = "general_business_data",
+) -> str:
     """Prompt to adapt Master CV to job offer.
 
     Philosophy: Truth is immutable. Narrative is flexible.
@@ -42,8 +47,13 @@ def get_cv_adaptation_prompt(analysis: dict, positioning: str, master_cv: dict) 
 You are a premium CV positioning specialist.
 
 Your task: Adapt Master CV to position the candidate for THIS role.
+Use the skill_profile to reduce noise and emphasize relevant skills.
 
-Philosophy: Truth is immutable. Narrative is flexible.
+Philosophy: Truth is immutable. Narrative is flexible. Signal > Noise.
+
+SKILL PROFILE: {skill_profile}
+
+This determines which skills to emphasize. See SKILL PROFILE RULES below.
 
 PRESERVE:
 - Facts (companies, dates, technologies, responsibilities, achievements)
@@ -100,6 +110,65 @@ Skills:
 
 ---
 
+---
+
+SKILL PROFILE RULES
+
+Skills are NOT equally important. The purpose is not to display everything.
+The purpose is to highlight what MATTERS for THIS role.
+
+PROFILE: {skill_profile}
+
+For marketing_crm:
+  Prioritize: Business Systems, Data & Analytics, Creative & Delivery
+  Reduce: Backend & Data Systems, AI & LLM Workflows
+  → Make CRM, reporting, campaign analysis, customer data visible
+  → De-emphasize FastAPI, Docker, SQLAlchemy, LangChain
+
+For data_bi:
+  Prioritize: Data & Analytics, Business Systems, Automation & APIs
+  Reduce: Creative & Delivery, AI & LLM Workflows
+  → Make SQL, Power BI, reporting, dashboards visible
+  → De-emphasize Adobe, social media, backend tools
+
+For finance_reporting:
+  Prioritize: Data & Analytics, Business Systems
+  Reduce: Backend & Data Systems, AI & LLM Workflows, Creative & Delivery
+  → Make Excel, Power BI, KPI monitoring, reporting visible
+  → De-emphasize backend, AI, creative tools
+
+For data_ai:
+  Prioritize: AI & LLM Workflows, Backend & Data Systems, Data & Analytics, Automation & APIs
+  Reduce: Creative & Delivery
+  → Make Python, SQL, APIs, OpenAI, LangChain visible
+  → De-emphasize Adobe, social media
+
+For automation_ops:
+  Prioritize: Automation & APIs, Business Systems, Data & Analytics
+  Reduce: AI & LLM Workflows, Creative & Delivery
+  → Make Make, n8n, webhooks, CRM integrations visible
+  → De-emphasize backend, AI, creative
+
+For creative_marketing:
+  Prioritize: Creative & Delivery, Business Systems, Data & Analytics
+  Reduce: Backend & Data Systems, AI & LLM Workflows
+  → Make Adobe, design, social media, content visible
+  → De-emphasize backend, AI, data tools
+
+For general_business_data:
+  All skills balanced. Default ordering.
+
+YOUR TASK:
+1. Reorder skill sections to match the skill_profile prioritization
+2. Assign visibility levels: "high" | "normal" | "low"
+   - high: lead with these skills
+   - normal: include fully
+   - low: keep but de-emphasize (short section, moved later)
+3. Return skill_section_order array (reordered labels)
+4. Return skill_section_emphasis object (each section's visibility)
+
+---
+
 ADAPTATION TASK
 
 STEP 1: Title
@@ -146,7 +215,15 @@ STEP 5: Project Order
 - All project bullets unchanged
 - Return as list of project indices
 
-STEP 6: ATS Keywords
+STEP 6: Skill Section Order & Emphasis
+- Reorder skill sections based on skill_profile
+- Assign visibility levels to each section
+- Visibility: "high" (lead), "normal" (include), "low" (de-emphasize)
+- Sections: Data & Analytics, Automation & APIs, AI & LLM Workflows, Backend & Data Systems, Business Systems, Creative & Delivery
+- Do not invent new sections
+- Follow the skill_profile guidance
+
+STEP 7: ATS Keywords
 - Select 5-8 keywords matching job
 - Use from: {', '.join(analysis.get('ats_keywords', []))}
 
@@ -170,6 +247,15 @@ Return ONLY valid JSON (no markdown, no explanation):
     "0": ["Rewritten Elevia description (fact-based)"],
     "1": ["Rewritten Job Apply Assistant description"],
     "2": ["Rewritten V.I.E Matcher description"]
+  }},
+  "skill_section_order": ["Section1", "Section2", "Section3", "Section4", "Section5", "Section6"],
+  "skill_section_emphasis": {{
+    "Data & Analytics": "high" or "normal" or "low",
+    "Automation & APIs": "high" or "normal" or "low",
+    "AI & LLM Workflows": "high" or "normal" or "low",
+    "Backend & Data Systems": "high" or "normal" or "low",
+    "Business Systems": "high" or "normal" or "low",
+    "Creative & Delivery": "high" or "normal" or "low"
   }},
   "ats_keywords": ["Keyword1", "Keyword2"]
 }}

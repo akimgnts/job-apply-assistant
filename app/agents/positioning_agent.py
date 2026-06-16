@@ -15,32 +15,57 @@ VALID_ANGLES = [
 ]
 
 class PositioningAgent:
-    """Choose best positioning angle for the candidate."""
+    """Choose best positioning angle + skill profile for the candidate."""
 
     @staticmethod
-    async def choose_angle(analysis: dict) -> str:
-        """Choose positioning angle from predefined list (JSON mode).
+    async def choose_angle(analysis: dict) -> dict:
+        """Choose positioning angle + skill profile (JSON mode).
 
-        Returns validated angle from VALID_ANGLES.
+        Returns validated dict with:
+        {
+            "positioning": angle from VALID_ANGLES,
+            "skill_profile": key from SKILL_PROFILES,
+            "reasoning": explanation
+        }
         """
         from app.services.openai_service import generate_cv_payload
-        import json
+        from app.config.skill_profiles import validate_skill_profile
 
         prompt = get_positioning_prompt(analysis)
 
         try:
             result = await generate_cv_payload(prompt)
 
-            angle = result.get("recommended_positioning", "").strip()
+            positioning = result.get("positioning", "").strip()
+            skill_profile = result.get("skill_profile", "general_business_data").strip()
             reasoning = result.get("reasoning", "")
 
-            if angle in VALID_ANGLES:
-                logger.info(f"Selected positioning: {angle}")
-                logger.debug(f"Reasoning: {reasoning}")
-                return angle
-            else:
-                logger.warning(f"Invalid angle: {angle}, using default")
-                return VALID_ANGLES[0]
+            # Validate positioning angle
+            if positioning not in VALID_ANGLES:
+                logger.warning(f"Invalid positioning: {positioning}, using default")
+                positioning = VALID_ANGLES[0]
+
+            # Validate skill profile
+            if not validate_skill_profile(skill_profile):
+                logger.warning(f"Invalid skill_profile: {skill_profile}, using general_business_data")
+                skill_profile = "general_business_data"
+
+            logger.info(
+                f"Selected positioning={positioning}, "
+                f"skill_profile={skill_profile}"
+            )
+            logger.debug(f"Reasoning: {reasoning}")
+
+            return {
+                "positioning": positioning,
+                "skill_profile": skill_profile,
+                "reasoning": reasoning,
+            }
+
         except Exception as e:
-            logger.error(f"Positioning selection failed: {e}, using default")
-            return VALID_ANGLES[0]
+            logger.error(f"Positioning selection failed: {e}, using defaults")
+            return {
+                "positioning": VALID_ANGLES[0],
+                "skill_profile": "general_business_data",
+                "reasoning": "Fallback due to error",
+            }
