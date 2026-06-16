@@ -33,24 +33,25 @@ class GenerationAgent:
     def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
         """Build safe adaptation fallback when CVAdaptationAgent fails.
 
-        Returns all master CV content with unchanged positioning and generic summary.
-        No reordering, no bullet emphasis — just structural adaptation.
+        Uses FIXED ordering: experiences [0,1,2], projects [0,1,2,3].
+        No reordering — Master CV order is immutable.
         """
-        all_exp_ids = list(range(len(master_cv.get("experiences", []))))
-        all_proj_ids = list(range(len(master_cv.get("projects", []))))
+        # FIXED ordering (never changes)
+        fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
+        all_proj_ids = [0, 1, 2, 3]  # Elevia, Job Apply Assistant, VIE Matcher, SkillMap
 
         adaptation = {
             "title": positioning,
             "summary": "Professional with expertise in data analysis, business intelligence, automation and AI-assisted systems.",
-            "experience_order": all_exp_ids,
+            "experience_order": fixed_exp_order,
             "experience_bullets": {
-                str(i): exp.get("bullets", [])[:3]
-                for i, exp in enumerate(master_cv.get("experiences", []))
+                str(i): master_cv["experiences"][i].get("bullets", [])[:3]
+                for i in fixed_exp_order
             },
             "project_order": all_proj_ids,
             "project_bullets": {
-                str(i): proj.get("bullets", [])
-                for i, proj in enumerate(master_cv.get("projects", []))
+                str(i): master_cv["projects"][i].get("bullets", [])
+                for i in all_proj_ids
             },
             "ats_keywords": [],
         }

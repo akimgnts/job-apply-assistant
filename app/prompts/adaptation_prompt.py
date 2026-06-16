@@ -40,12 +40,12 @@ Your task is to ADAPT an existing Master CV to a specific job offer.
 You may only:
 - Change the title to match positioning
 - Rewrite the summary for job relevance
-- Reorder experiences by relevance
-- Emphasize relevant bullets
-- Select and order projects by relevance
+- Emphasize relevant bullets by rewriting
+- Select and reorder projects by relevance
 - Mention ATS keywords from the job
 
 You may NEVER:
+- Reorder experiences (order is FIXED: Sidel→MadeByAkim→Vassard)
 - Invent new experiences
 - Invent new companies or schools
 - Invent new certifications or projects
@@ -92,10 +92,12 @@ STEP 2: Summary
 - Max 70 words
 
 STEP 3: Experience Order
-- Rank experiences by relevance to job
-- Put strongest first
-- ALL experiences remain (don't delete)
-- Return as list of experience indices
+- DO NOT REORDER experiences
+- Order is FIXED: [0, 1, 2]
+- Always return: "experience_order": [0, 1, 2]
+- 0 = Sidel (strongest professional role)
+- 1 = MadeByAkim (freelance projects)
+- 2 = Vassard (business development)
 
 STEP 4: Experience Bullets
 - For each experience in final order
@@ -124,13 +126,16 @@ Return ONLY valid JSON (no markdown, no explanation):
   "summary": "Rewritten summary (max 70 words, plain text)",
   "experience_order": [0, 1, 2],
   "experience_bullets": {{
-    "0": ["Adapted bullet 1", "Adapted bullet 2"],
-    "1": ["Adapted bullet 1", "Adapted bullet 2"]
+    "0": ["Adapted Sidel bullet 1", "Adapted Sidel bullet 2"],
+    "1": ["Adapted MadeByAkim bullet 1", "Adapted MadeByAkim bullet 2"],
+    "2": ["Adapted Vassard bullet 1"]
   }},
-  "project_order": [0, 1],
+  "project_order": [0, 1, 2, 3],
   "project_bullets": {{
-    "0": ["Description line 1", "Description line 2"],
-    "1": ["Description line 1"]
+    "0": ["Elevia description"],
+    "1": ["Job Apply Assistant description"],
+    "2": ["VIE Matcher description"],
+    "3": ["SkillMap description"]
   }},
   "ats_keywords": ["Keyword1", "Keyword2"]
 }}
@@ -139,12 +144,13 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 CRITICAL RULES
 
-- Ensure experience_order includes all experience IDs from Master CV
-- Ensure experience_bullets matches experience_order
+- experience_order MUST ALWAYS be [0, 1, 2] — NEVER reorder
+- experience_order: [0, 1, 2] = Sidel, MadeByAkim, Vassard (immutable)
+- All 3 experiences required: no deletions
+- Ensure experience_bullets has entries for all 3 (0, 1, 2)
 - All bullets come from Master CV (may be reworded)
-- No deleted experiences
-- No new companies invented
-- No new projects invented
-- Numbers and dates unchanged
+- No new companies, schools, certifications, or projects invented
+- project_order can be reordered, but all 4 must be present
+- Numbers, dates, company names NEVER change
 - All section headers remain
 """

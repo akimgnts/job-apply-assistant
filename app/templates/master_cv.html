@@ -43,7 +43,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 <div class="page">
 
 <div class="top-title">
-<h1>{{ candidate.name }}</h1>
+<h1>{{ master_cv.personal_info.name }}</h1>
 </div>
 
 <div class="top-subtitle">
@@ -51,7 +51,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 </div>
 
 <div class="contact-line">
-{{ candidate.location | default('') }}{% if candidate.email %} · {{ candidate.email }}{% endif %} · {% if candidate.phone %}{{ candidate.phone }}{% endif %} · {% if candidate.linkedin %}linkedin.com/in/{{ candidate.linkedin }}{% endif %} · {% if candidate.github %}github.com/{{ candidate.github }}{% endif %} · {% if candidate.website %}{{ candidate.website }}{% endif %}
+{{ master_cv.personal_info.location }}{% if master_cv.personal_info.email %} · {{ master_cv.personal_info.email }}{% endif %} · {% if master_cv.personal_info.phone %}{{ master_cv.personal_info.phone }}{% endif %} · {{ master_cv.personal_info.linkedin }} · {{ master_cv.personal_info.github }}{% if master_cv.personal_info.portfolio %} · {{ master_cv.personal_info.portfolio }}{% endif %}
 </div>
 
 <div class="intro">

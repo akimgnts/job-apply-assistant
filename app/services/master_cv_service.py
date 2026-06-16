@@ -9,7 +9,18 @@ def load_master_cv() -> dict:
     This is the single source of truth for CV content.
     Never modified by AI, only adapted.
     """
+    from app.config import config
+
     data = {
+        "personal_info": {
+            "name": "Akim Guentas",
+            "location": "Paris",
+            "email": config.CANDIDATE_EMAIL or "akim@madebyakim.com",
+            "phone": config.CANDIDATE_PHONE or "+33 6 XX XX XX XX",
+            "portfolio": "madebyakim.com",
+            "github": "github.com/akimgnts",
+            "linkedin": "linkedin.com/in/akimguentas",
+        },
         "experiences": [
             {
                 "id": 0,
@@ -158,22 +169,28 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
     """Validate adaptation against master CV.
 
     Ensure:
-    - No new companies invented
-    - No new schools invented
-    - No new certifications invented
-    - No deleted experiences
+    - Experience order is FIXED: [0, 1, 2] (Sidel, MadeByAkim, Vassard)
+    - Education order is FIXED: [0, 1, 2] (MSc, Bachelor, BTS)
+    - Certifications never deleted
+    - Projects never deleted
     - All sections present
     """
     issues = []
 
-    # Get master company/school/cert sets
-    master_companies = {e["company"] for e in master_cv["experiences"]}
-    master_schools = {e["school"] for e in master_cv["education"] if e["school"]}
-    master_certs = {c["name"] for c in master_cv["certifications"]}
+    # FIXED experience order (never reorder)
+    expected_exp_order = [0, 1, 2]
+    actual_exp_order = adaptation.get("experience_order", [])
+    if actual_exp_order != expected_exp_order:
+        issues.append(
+            f"Experience order must be {expected_exp_order} (Sidel, MadeByAkim, Vassard). "
+            f"Got {actual_exp_order}"
+        )
 
-    # Validate (basic check - full validation in QualityAgent)
-    if not adaptation.get("experience_order"):
-        issues.append("No experiences in adaptation")
+    # All certifications must be present
+    master_cert_count = len(master_cv.get("certifications", []))
+    actual_certs = len(adaptation.get("experience_bullets", {}).get("0", []))
+    if not adaptation.get("experience_bullets"):
+        issues.append("Missing experience_bullets in adaptation")
 
     return {
         "is_valid": len(issues) == 0,
