@@ -44,6 +44,8 @@ outputs/
 !app/templates/cv.html
 !app/templates/letter.html
 !app/templates/mail.txt
+!app/templates/master_cv.html
+!app/templates/letter_master.html
 
 # Database
 *.db

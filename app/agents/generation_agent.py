@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 from app.config import config
 from app.services.openai_service import generate_text, generate_cv_payload
 from app.services.document_service import render_cv, render_letter, render_mail, save_document, get_output_path
+from app.services.master_cv_service import load_master_cv, validate_adaptation
 from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_letter_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
 from app.agents.quality_agent import QualityAgent
+from app.agents.cv_adaptation_agent import CVAdaptationAgent
 from app.database.models import GeneratedDocument, DocumentTypeEnum, ProfileBlock, CategoryEnum
 
 logger = logging.getLogger(__name__)
@@ -26,6 +28,33 @@ class GenerationAgent:
             "website": config.CANDIDATE_WEBSITE or "",
         }
         return candidate
+
+    @staticmethod
+    def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
+        """Build safe adaptation fallback when CVAdaptationAgent fails.
+
+        Returns all master CV content with unchanged positioning and generic summary.
+        No reordering, no bullet emphasis — just structural adaptation.
+        """
+        all_exp_ids = list(range(len(master_cv.get("experiences", []))))
+        all_proj_ids = list(range(len(master_cv.get("projects", []))))
+
+        adaptation = {
+            "title": positioning,
+            "summary": "Professional with expertise in data analysis, business intelligence, automation and AI-assisted systems.",
+            "experience_order": all_exp_ids,
+            "experience_bullets": {
+                str(i): exp.get("bullets", [])[:3]
+                for i, exp in enumerate(master_cv.get("experiences", []))
+            },
+            "project_order": all_proj_ids,
+            "project_bullets": {
+                str(i): proj.get("bullets", [])
+                for i, proj in enumerate(master_cv.get("projects", []))
+            },
+            "ats_keywords": [],
+        }
+        return adaptation
 
     @staticmethod
     def _build_fallback_cv_payload(blocks: list[dict], positioning: str) -> dict:
@@ -160,80 +189,55 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
     ) -> str:
-        """Generate CV using complete profile base + selected emphasis.
+        """Generate CV by adapting Master CV. Never invent content.
 
         Flow:
-        1. Fetch ALL profile_blocks (complete base)
-        2. Fetch selected_blocks (priority signal)
-        3. Generate CV payload (JSON only, using BOTH sets)
-        4. Clean payload (remove markdown/HTML)
-        5. Validate against all_profile_blocks (remove hallucinations)
-        6. Render Jinja2 template
-        7. Save to DB + file
+        1. Load Master CV (source of truth)
+        2. Call CVAdaptationAgent to adapt for job offer
+        3. Validate adaptation (no new content)
+        4. Render master_cv.html with adaptation payload
+        5. Save to DB + file
         """
-        # Get selected blocks (priority signal)
-        block_ids = analysis.get("profile_blocks_to_use", [])
-        selected_blocks = MatchingAgent.get_selected_blocks(db, block_ids)
+        # Load Master CV (fixed, verified content)
+        master_cv = load_master_cv()
+        logger.info(f"Master CV loaded: {len(master_cv['experiences'])} experiences")
 
-        # Get ALL blocks (complete profile base)
-        all_blocks = MatchingAgent.get_selected_blocks(
-            db, [b["id"] for b in MatchingAgent.get_selected_blocks(db, None) or []]
-        )
-        # Simpler: just query directly
-        from app.database.models import ProfileBlock
-        all_profile_blocks = db.query(ProfileBlock).order_by(ProfileBlock.priority.desc()).all()
-        all_blocks_dict = [
-            {
-                "id": b.id,
-                "title": b.title,
-                "content": b.content,
-                "category": b.category.value,
-                "tags": b.tags,
-            }
-            for b in all_profile_blocks
-        ]
-
-        prompt = get_cv_payload_prompt(analysis, all_blocks_dict, selected_blocks, positioning)
-        payload = await generate_cv_payload(prompt)
-
-        payload = GenerationAgent._clean_payload(payload)
-
-        # VALIDATION STEP: Detect and remove hallucinations
-        validation_result = QualityAgent.validate_cv_payload(payload, all_blocks_dict)
-        clean_payload = validation_result["clean_payload"]
-        removed_items = validation_result["removed_items"]
-
-        if removed_items:
-            logger.warning(f"Hallucinations removed: {removed_items}")
-
-        # SAFETY FALLBACK: If too many hallucinations, use safe payload
-        if len(removed_items) > 2 or not clean_payload.get("experiences"):
-            logger.warning(
-                f"Too many hallucinations or invalid payload, using safe fallback CV"
+        try:
+            # ADAPT: Get adaptation JSON (not full CV)
+            adaptation = await CVAdaptationAgent.adapt_cv(
+                analysis,
+                positioning,
+                master_cv,
             )
-            clean_payload = GenerationAgent._build_fallback_cv_payload(all_blocks_dict, positioning)
 
+            # VALIDATE: Ensure no hallucinations in adaptation
+            validation_result = validate_adaptation(adaptation, master_cv)
+            if not validation_result["is_valid"]:
+                logger.warning(f"Adaptation validation failed: {validation_result['issues']}")
+                # Fallback: use master CV with unchanged title/summary
+                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
+
+            logger.info(
+                f"CV adapted: title={adaptation.get('title', 'N/A')}, "
+                f"experiences_order={adaptation.get('experience_order', [])}, "
+                f"projects_order={adaptation.get('project_order', [])}"
+            )
+
+        except Exception as e:
+            logger.error(f"CV adaptation failed: {e}, using fallback")
+            adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
+
+        # Build context for master_cv.html template
         candidate = GenerationAgent._build_candidate_info(db)
 
         context = {
             "candidate": candidate,
-            "cv": clean_payload,
+            "adaptation": adaptation,
+            "master_cv": master_cv,
         }
 
-        # Extract titles for logging
-        exp_titles = [e.get("title", "") for e in clean_payload.get("experiences", [])]
-        skill_labels = [s.get("label", "") for s in clean_payload.get("skills_sections", [])]
-
-        logger.info(
-            f"CV generated: title={clean_payload.get('title', 'N/A')}, "
-            f"all_blocks={len(all_blocks_dict)}, "
-            f"selected_blocks={len(selected_blocks)}, "
-            f"experiences={len(clean_payload.get('experiences', []))} {exp_titles}, "
-            f"skills={len(clean_payload.get('skills_sections', []))} {skill_labels}, "
-            f"hallucinations_removed={len(removed_items)}"
-        )
-
-        html = render_cv(context)
+        # Render master_cv.html with adaptation payload
+        html = render_cv(context, template_name="master_cv.html")
 
         filepath = get_output_path(application_id, "cv")
         save_document(html, filepath)

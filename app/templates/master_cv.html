@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ candidate.name }} – Master CV</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+@page{size:A4;margin:8mm}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Manrope',sans-serif;background:#f3f3f3;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{padding:12px 0}
+.page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:9mm 11mm;display:flex;flex-direction:column}
+.top-title{text-align:center;margin-bottom:2px}
+.top-title h1{margin:0;font-size:24px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#111827}
+.top-subtitle{text-align:center;font-size:11px;line-height:1.35;font-weight:700;color:#334155;margin-bottom:4px}
+.contact-line{text-align:center;font-size:9.5px;line-height:1.35;color:#555;margin-bottom:10px}
+.intro{font-size:10.2px;line-height:1.48;text-align:justify;margin-bottom:11px;color:#222;padding:7px 9px;border-left:3px solid #334155;background:#f8fafc}
+.section{margin-bottom:9px;page-break-inside:avoid}
+.section-title{margin:0 0 6px;padding-bottom:4px;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid #cbd5e1;color:#111827}
+.job{margin-bottom:8px;page-break-inside:avoid}
+.job-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:3px;align-items:baseline}
+.job-title{font-size:10.7px;font-weight:800;line-height:1.2;color:#111827}
+.job-company{font-size:9.6px;color:#475569;line-height:1.22}
+.job-date{font-size:9.2px;color:#64748b;white-space:nowrap}
+ul{margin:3px 0 0 0;padding-left:15px}
+li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
+.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.skill-block{margin-bottom:6px}
+.skill-label{font-size:9.3px;font-weight:800;letter-spacing:.45px;text-transform:uppercase;margin-bottom:2px;color:#111827}
+.skill-text{font-size:9.15px;line-height:1.35;color:#222}
+.bottom-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:8px;align-items:start}
+.edu-item{margin-bottom:6px}
+.edu-title{font-size:9.8px;font-weight:800;line-height:1.2;color:#111827}
+.edu-meta{font-size:9.2px;color:#475569;line-height:1.25}
+.simple-text{font-size:9.25px;line-height:1.4;color:#222}
+@media print{body{background:#fff;padding:0}.page{box-shadow:none;margin:0;min-height:297mm}}
+@media screen{.page{box-shadow:0 8px 30px rgba(0,0,0,.08)}}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<div class="top-title">
+<h1>{{ candidate.name }}</h1>
+</div>
+
+<div class="top-subtitle">
+{{ adaptation.title }}
+</div>
+
+<div class="contact-line">
+{{ candidate.location | default('') }}{% if candidate.email %} · {{ candidate.email }}{% endif %} · {% if candidate.phone %}{{ candidate.phone }}{% endif %} · {% if candidate.linkedin %}linkedin.com/in/{{ candidate.linkedin }}{% endif %} · {% if candidate.github %}github.com/{{ candidate.github }}{% endif %} · {% if candidate.website %}{{ candidate.website }}{% endif %}
+</div>
+
+<div class="intro">
+{{ adaptation.summary }}
+</div>
+
+<section class="section">
+<h2 class="section-title">Experience</h2>
+
+{% for exp_id in adaptation.experience_order %}
+  {% if master_cv.experiences_by_id[exp_id] %}
+    {% set exp = master_cv.experiences_by_id[exp_id] %}
+    {% set exp_id_str = exp_id|string %}
+    <div class="job">
+      <div class="job-head">
+        <div>
+          <div class="job-title">{{ exp.title }}</div>
+          <div class="job-company">{{ exp.company }}{% if exp.context %} · {{ exp.context }}{% endif %}</div>
+        </div>
+        <div class="job-date">{{ exp.dates }}</div>
+      </div>
+      <ul>
+        {% for bullet in adaptation.experience_bullets[exp_id_str] %}
+        <li>{{ bullet }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endfor %}
+
+</section>
+
+<section class="section">
+<h2 class="section-title">Projects</h2>
+
+{% for proj_id in adaptation.project_order %}
+  {% if master_cv.projects_by_id[proj_id] %}
+    {% set proj = master_cv.projects_by_id[proj_id] %}
+    {% set proj_id_str = proj_id|string %}
+    <div class="job">
+      <div class="job-head">
+        <div>
+          <div class="job-title">{{ proj.title }}</div>
+          {% if proj.stack %}<div class="job-company">{{ proj.stack }}</div>{% endif %}
+        </div>
+        {% if proj.dates %}<div class="job-date">{{ proj.dates }}</div>{% endif %}
+      </div>
+      <ul>
+        {% for bullet in adaptation.project_bullets[proj_id_str] %}
+        <li>{{ bullet }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endfor %}
+
+</section>
+
+<section class="section">
+<h2 class="section-title">Technical Skills</h2>
+
+<div class="two-cols">
+  {% for skill in master_cv.skills %}
+  <div class="skill-block">
+    <div class="skill-label">{{ skill.label }}</div>
+    <div class="skill-text">{{ skill.content }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+</section>
+
+<div class="bottom-grid">
+
+<section class="section">
+<h2 class="section-title">Education</h2>
+
+{% for edu in master_cv.education %}
+<div class="edu-item">
+  <div class="edu-title">{{ edu.title }}</div>
+  <div class="edu-meta">{{ edu.school }}{% if edu.year %} · {{ edu.year }}{% endif %}</div>
+</div>
+{% endfor %}
+
+</section>
+
+<section class="section">
+<h2 class="section-title">Certifications & Languages</h2>
+
+<div class="simple-text">
+{% for cert in master_cv.certifications %}
+{{ cert.name }}<br>
+{% endfor %}
+<br>
+{% for lang in master_cv.languages %}
+{{ lang.name }} – {{ lang.level }}<br>
+{% endfor %}
+</div>
+
+</section>
+
+</div>
+
+</div>
+</body>
+</html>

@@ -34,14 +34,14 @@ def get_template_debug_info() -> dict:
         "cwd": str(Path.cwd()),
     }
 
-def render_cv(context: dict) -> str:
+def render_cv(context: dict, template_name: str = "cv.html") -> str:
     """Render CV template."""
-    template = template_env.get_template("cv.html")
+    template = template_env.get_template(template_name)
     return template.render(**context)
 
-def render_letter(context: dict) -> str:
+def render_letter(context: dict, template_name: str = "letter.html") -> str:
     """Render motivation letter template."""
-    template = template_env.get_template("letter.html")
+    template = template_env.get_template(template_name)
     return template.render(**context)
 
 def render_mail(context: dict) -> str:
