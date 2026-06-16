@@ -1,6 +1,7 @@
 import logging
 import re
 from urllib.parse import urlparse
+import trafilatura
 
 logger = logging.getLogger(__name__)
 
@@ -14,15 +15,12 @@ def is_url(text: str) -> bool:
         return False
 
 
-def clean_job_text(raw_html: str) -> str:
+def clean_job_text(text: str) -> str:
     """Clean extracted job text by removing noise and normalizing spaces."""
-    if not raw_html:
+    if not text:
         return ""
 
-    text = raw_html.strip()
-
-    # Remove HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
+    text = text.strip()
 
     # Remove cookie/footer sections
     text = re.sub(r'(?i)(cookie|accept all|decline|preferences|privacy policy).*?(?=\n\n|\Z)', '', text)
@@ -50,7 +48,7 @@ async def ingest_job_input(raw_input: str) -> dict:
     """
     Ingest job input: either plain text or URL.
 
-    If URL: extract content using Scrapling Fetcher
+    If URL: extract content using trafilatura
     If text: return as-is
 
     Returns:
@@ -77,13 +75,21 @@ async def ingest_job_input(raw_input: str) -> dict:
     # URL input
     url = raw_input
     try:
-        from scrapling.fetchers import Fetcher
+        # Fetch URL
+        downloaded = trafilatura.fetch_url(url, timeout=10)
+        if not downloaded:
+            raise ValueError("Could not fetch URL")
 
-        page = Fetcher.get(url, timeout=10)
-        if not page or not page.text:
-            raise ValueError("Empty response from URL")
+        # Extract text
+        extracted = trafilatura.extract(
+            downloaded,
+            include_comments=False,
+            favor_precision=True
+        )
+        if not extracted:
+            raise ValueError("Could not extract text from URL")
 
-        clean_text = clean_job_text(page.text)
+        clean_text = clean_job_text(extracted)
 
         if not clean_text or len(clean_text) < 100:
             raise ValueError("Extracted text too short or empty")
