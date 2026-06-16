@@ -33,8 +33,8 @@ class GenerationAgent:
     def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
         """Build safe adaptation fallback when CVAdaptationAgent fails.
 
-        Uses FIXED ordering: experiences [0,1,2], projects [0,1,2,3].
-        No reordering — Master CV order is immutable.
+        Uses FIXED ordering with ALL original bullets.
+        No rewriting — Master CV content is immutable.
         """
         # FIXED ordering (never changes)
         fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
@@ -45,7 +45,7 @@ class GenerationAgent:
             "summary": "Professional with expertise in data analysis, business intelligence, automation and AI-assisted systems.",
             "experience_order": fixed_exp_order,
             "experience_bullets": {
-                str(i): master_cv["experiences"][i].get("bullets", [])[:3]
+                str(i): master_cv["experiences"][i].get("bullets", [])
                 for i in fixed_exp_order
             },
             "project_order": all_proj_ids,

@@ -39,17 +39,17 @@ Your task is to ADAPT an existing Master CV to a specific job offer.
 
 You may only:
 - Change the title to match positioning
-- Rewrite the summary for job relevance
-- Emphasize relevant bullets by rewriting
-- Select and reorder projects by relevance
+- Rewrite the summary for job relevance (max 70 words)
+- Reorder project priority (which projects appear first)
 - Mention ATS keywords from the job
 
 You may NEVER:
 - Reorder experiences (order is FIXED: Sidel→MadeByAkim→Vassard)
-- Invent new experiences
-- Invent new companies or schools
-- Invent new certifications or projects
-- Delete any section or experience
+- Rewrite, edit, or shorten experience/project bullets
+- Create new bullets
+- Delete experience bullets
+- Delete experiences
+- Invent new experiences, companies, schools, certifications
 - Add new tools/technologies not in Master CV
 - Fabricate dates or metrics
 
@@ -100,16 +100,21 @@ STEP 3: Experience Order
 - 2 = Vassard (business development)
 
 STEP 4: Experience Bullets
-- For each experience in final order
-- Select and reword 2-4 most relevant bullets
-- Focus on: {', '.join(analysis.get('missions', [])[:2])}
-- Never invent metrics or responsibilities
+- DO NOT REWRITE or edit bullets
+- Use ALL bullets from Master CV for each experience
+- Arrange bullets in order of relevance to job
+- Put most relevant bullets first
+- Never create, edit, or shorten bullets
+- Return all original bullets in relevance order
 
 STEP 5: Project Order
-- Rank projects by relevance
-- Keep only most relevant
-- ALL remaining projects keep all bullets
-- Return as list of project indices
+- Rank all 4 projects by relevance to job
+- Most relevant project appears first
+- All 4 projects must be included
+- Never delete projects
+- Never rewrite project descriptions
+- All project bullets and descriptions unchanged
+- Return as list of project indices: could be [0, 1, 2, 3] or [1, 0, 3, 2], etc.
 
 STEP 6: ATS Keywords
 - Select 5-8 keywords matching job
@@ -126,16 +131,16 @@ Return ONLY valid JSON (no markdown, no explanation):
   "summary": "Rewritten summary (max 70 words, plain text)",
   "experience_order": [0, 1, 2],
   "experience_bullets": {{
-    "0": ["Adapted Sidel bullet 1", "Adapted Sidel bullet 2"],
-    "1": ["Adapted MadeByAkim bullet 1", "Adapted MadeByAkim bullet 2"],
-    "2": ["Adapted Vassard bullet 1"]
+    "0": ["Original Sidel bullet 1", "Original Sidel bullet 2", "Original Sidel bullet 3", "Original Sidel bullet 4", "Original Sidel bullet 5", "Original Sidel bullet 6", "Original Sidel bullet 7", "Original Sidel bullet 8"],
+    "1": ["Original MadeByAkim bullet 1", "Original MadeByAkim bullet 2", "Original MadeByAkim bullet 3", "Original MadeByAkim bullet 4", "Original MadeByAkim bullet 5", "Original MadeByAkim bullet 6"],
+    "2": ["Original Vassard bullet 1", "Original Vassard bullet 2", "Original Vassard bullet 3"]
   }},
   "project_order": [0, 1, 2, 3],
   "project_bullets": {{
-    "0": ["Elevia description"],
-    "1": ["Job Apply Assistant description"],
-    "2": ["VIE Matcher description"],
-    "3": ["SkillMap description"]
+    "0": ["Original Elevia description"],
+    "1": ["Original Job Apply Assistant description"],
+    "2": ["Original VIE Matcher description"],
+    "3": ["Original SkillMap description"]
   }},
   "ats_keywords": ["Keyword1", "Keyword2"]
 }}
@@ -144,13 +149,20 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 CRITICAL RULES
 
-- experience_order MUST ALWAYS be [0, 1, 2] — NEVER reorder
-- experience_order: [0, 1, 2] = Sidel, MadeByAkim, Vassard (immutable)
+IMMUTABLE:
+- experience_order MUST ALWAYS be [0, 1, 2] (Sidel, MadeByAkim, Vassard)
 - All 3 experiences required: no deletions
-- Ensure experience_bullets has entries for all 3 (0, 1, 2)
-- All bullets come from Master CV (may be reworded)
-- No new companies, schools, certifications, or projects invented
-- project_order can be reordered, but all 4 must be present
+- All original bullets must be included — NEVER delete, rewrite, or shorten
+- Sidel: 8 bullets, all included
+- MadeByAkim: 6 bullets, all included
+- Vassard: 3 bullets, all included
+- All 4 projects must be included
+- Project descriptions NEVER rewritten
 - Numbers, dates, company names NEVER change
-- All section headers remain
+
+ALLOWED CHANGES:
+- Reorder bullets within each experience by relevance
+- Reorder projects by relevance
+- Rewrite summary (max 70 words)
+- Adapt title
 """

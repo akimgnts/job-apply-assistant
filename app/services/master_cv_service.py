@@ -15,8 +15,8 @@ def load_master_cv() -> dict:
         "personal_info": {
             "name": "Akim Guentas",
             "location": "Paris",
-            "email": config.CANDIDATE_EMAIL or "akim@madebyakim.com",
-            "phone": config.CANDIDATE_PHONE or "+33 6 XX XX XX XX",
+            "email": config.CANDIDATE_EMAIL or "",
+            "phone": config.CANDIDATE_PHONE or "",
             "portfolio": "madebyakim.com",
             "github": "github.com/akimgnts",
             "linkedin": "linkedin.com/in/akimguentas",
@@ -169,11 +169,10 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
     """Validate adaptation against master CV.
 
     Ensure:
-    - Experience order is FIXED: [0, 1, 2] (Sidel, MadeByAkim, Vassard)
-    - Education order is FIXED: [0, 1, 2] (MSc, Bachelor, BTS)
-    - Certifications never deleted
-    - Projects never deleted
-    - All sections present
+    - Experience order is FIXED: [0, 1, 2]
+    - ALL bullets present (no deletion or creation)
+    - ALL projects present
+    - No bullet rewriting (content unchanged)
     """
     issues = []
 
@@ -181,16 +180,33 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
     expected_exp_order = [0, 1, 2]
     actual_exp_order = adaptation.get("experience_order", [])
     if actual_exp_order != expected_exp_order:
-        issues.append(
-            f"Experience order must be {expected_exp_order} (Sidel, MadeByAkim, Vassard). "
-            f"Got {actual_exp_order}"
-        )
+        issues.append(f"Experience order must be {expected_exp_order}. Got {actual_exp_order}")
 
-    # All certifications must be present
-    master_cert_count = len(master_cv.get("certifications", []))
-    actual_certs = len(adaptation.get("experience_bullets", {}).get("0", []))
-    if not adaptation.get("experience_bullets"):
-        issues.append("Missing experience_bullets in adaptation")
+    # Check all bullets present (no deletion, no creation)
+    exp_bullets = adaptation.get("experience_bullets", {})
+    for exp_id in [0, 1, 2]:
+        exp_id_str = str(exp_id)
+        master_bullets = master_cv["experiences"][exp_id].get("bullets", [])
+        actual_bullets = exp_bullets.get(exp_id_str, [])
+
+        if len(actual_bullets) != len(master_bullets):
+            issues.append(
+                f"Experience {exp_id}: Expected {len(master_bullets)} bullets, "
+                f"got {len(actual_bullets)}. Bullets must not be deleted or added."
+            )
+
+        # Check bullet content unchanged
+        for i, (expected, actual) in enumerate(zip(master_bullets, actual_bullets)):
+            if actual != expected:
+                issues.append(
+                    f"Experience {exp_id} bullet {i}: Bullet rewritten. "
+                    f"Must use original content unchanged."
+                )
+
+    # Check all projects present
+    proj_order = adaptation.get("project_order", [])
+    if len(proj_order) != 4 or set(proj_order) != {0, 1, 2, 3}:
+        issues.append(f"All 4 projects required. Got {proj_order}")
 
     return {
         "is_valid": len(issues) == 0,
