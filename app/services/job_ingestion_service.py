@@ -1,8 +1,11 @@
 import logging
 import re
 from urllib.parse import urlparse
+import urllib3
+import trafilatura
 
 logger = logging.getLogger(__name__)
+urllib3.disable_warnings()
 
 
 def is_url(text: str) -> bool:
@@ -47,7 +50,7 @@ async def ingest_job_input(raw_input: str) -> dict:
     """
     Ingest job input: either plain text or URL.
 
-    If URL: extract content using Scrapling HTTP Fetcher
+    If URL: extract content using trafilatura
     If text: return as-is
 
     Returns:
@@ -74,21 +77,25 @@ async def ingest_job_input(raw_input: str) -> dict:
     # URL input
     url = raw_input
     try:
-        from scrapling import Scraper
+        # Fetch URL with User-Agent to avoid blocks
+        http = urllib3.PoolManager()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = http.request('GET', url, headers=headers, timeout=10)
+        if response.status != 200:
+            raise ValueError(f"HTTP {response.status}")
 
-        # Use only HTTP Fetcher (no DynamicFetcher/Playwright)
-        scraper = Scraper()
-        page = await scraper.afetch(url, timeout=10)
+        # Extract text
+        extracted = trafilatura.extract(
+            response.data,
+            include_comments=False,
+            favor_precision=True
+        )
+        if not extracted:
+            raise ValueError("Could not extract text from URL")
 
-        if not page or not page.html:
-            raise ValueError("Empty response from URL")
-
-        # Extract text from HTML (basic HTML to text conversion)
-        text = page.text if hasattr(page, 'text') else page.html
-        if not text:
-            raise ValueError("No text extracted from URL")
-
-        clean_text = clean_job_text(text)
+        clean_text = clean_job_text(extracted)
 
         if not clean_text or len(clean_text) < 100:
             raise ValueError("Extracted text too short or empty")
