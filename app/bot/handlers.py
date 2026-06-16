@@ -132,7 +132,10 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         update_user_session(db, user_id, app.id, state="waiting_for_command")
 
         summary = format_analysis_summary(analysis, positioning)
-        await update.message.reply_text(summary)
+        await update.message.reply_text(
+            summary,
+            reply_markup=offer_extracted_menu(app.id)
+        )
 
     except Exception as e:
         logger.error(f"Error processing offer: {e}", exc_info=True)
@@ -396,10 +399,20 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await query.answer("⏳ Génération du CV...")
 
     user_id = str(query.from_user.id)
+
+    # Parse app_id from callback_data (format: gen_cv:123)
+    callback_parts = query.data.split(":")
+    app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
+
     db = SessionLocal()
 
     try:
-        app = get_last_application(db, user_id)
+        if app_id:
+            from app.database.models import Application
+            app = db.query(Application).filter_by(id=app_id).first()
+        else:
+            app = get_last_application(db, user_id)
+
         if not app:
             await query.answer("Aucune offre en cours", show_alert=True)
             return
@@ -438,10 +451,20 @@ async def save_application_callback(update: Update, context: ContextTypes.DEFAUL
     await query.answer()
 
     user_id = str(query.from_user.id)
+
+    # Parse app_id from callback_data
+    callback_parts = query.data.split(":")
+    app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
+
     db = SessionLocal()
 
     try:
-        app = get_last_application(db, user_id)
+        if app_id:
+            from app.database.models import Application
+            app = db.query(Application).filter_by(id=app_id).first()
+        else:
+            app = get_last_application(db, user_id)
+
         if app:
             from app.database.models import Application
             app.status = "saved"
@@ -452,3 +475,200 @@ async def save_application_callback(update: Update, context: ContextTypes.DEFAUL
             )
     finally:
         db.close()
+
+
+async def view_match_with_app_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle view match button (with app_id)."""
+    query = update.callback_query
+    await query.answer()
+
+    # Parse app_id
+    callback_parts = query.data.split(":")
+    app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
+
+    db = SessionLocal()
+
+    try:
+        if app_id:
+            from app.database.models import Application
+            app = db.query(Application).filter_by(id=app_id).first()
+        else:
+            user_id = str(query.from_user.id)
+            app = get_last_application(db, user_id)
+
+        if not app or not app.analyses:
+            await query.answer("Aucune analyse disponible", show_alert=True)
+            return
+
+        analysis = app.analyses[0].analysis_json
+        match_score = app.match_score
+
+        text = f"""📊 Match détaillé
+
+**Entreprise:** {app.company}
+**Poste:** {app.job_title}
+**Score:** {match_score}/10
+
+**Positionnement:** {app.recommended_angle}
+
+**Points forts:**
+{chr(10).join([f"• {s}" for s in analysis.get("strengths", [])[:3]])}
+
+**Points manquants:**
+{chr(10).join([f"• {m}" for m in analysis.get("missing_points", [])[:3]])}
+"""
+
+        await query.edit_message_text(text, reply_markup=match_view_menu())
+    finally:
+        db.close()
+
+
+async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle generate letter button."""
+    query = update.callback_query
+    await query.answer("⏳ Génération de la lettre...")
+
+    callback_parts = query.data.split(":")
+    app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
+    user_id = str(query.from_user.id)
+
+    db = SessionLocal()
+
+    try:
+        if app_id:
+            from app.database.models import Application
+            app = db.query(Application).filter_by(id=app_id).first()
+        else:
+            app = get_last_application(db, user_id)
+
+        if not app:
+            await query.answer("Aucune offre en cours", show_alert=True)
+            return
+
+        analysis = app.analyses[0].analysis_json if app.analyses else None
+        positioning = app.recommended_angle
+
+        await GenerationAgent.generate_cv(db, app.id, analysis, positioning)
+        mark_application_as_generated(db, app.id)
+
+        from app.database.models import GeneratedDocument
+        doc = db.query(GeneratedDocument).filter(
+            GeneratedDocument.application_id == app.id,
+            GeneratedDocument.document_type == "letter"
+        ).first()
+
+        if doc:
+            await query.edit_message_text("✅ Lettre générée!", reply_markup=save_or_regenerate_menu())
+            await query.message.reply_document(
+                document=doc.content.encode(),
+                filename=doc.filename
+            )
+    except Exception as e:
+        logger.error(f"Error generating letter: {e}")
+        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+    finally:
+        db.close()
+
+
+async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle generate mail button."""
+    query = update.callback_query
+    await query.answer("⏳ Génération du mail...")
+
+    callback_parts = query.data.split(":")
+    app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
+    user_id = str(query.from_user.id)
+
+    db = SessionLocal()
+
+    try:
+        if app_id:
+            from app.database.models import Application
+            app = db.query(Application).filter_by(id=app_id).first()
+        else:
+            app = get_last_application(db, user_id)
+
+        if not app:
+            await query.answer("Aucune offre en cours", show_alert=True)
+            return
+
+        analysis = app.analyses[0].analysis_json if app.analyses else None
+        positioning = app.recommended_angle
+
+        await GenerationAgent.generate_cv(db, app.id, analysis, positioning)
+        mark_application_as_generated(db, app.id)
+
+        from app.database.models import GeneratedDocument
+        doc = db.query(GeneratedDocument).filter(
+            GeneratedDocument.application_id == app.id,
+            GeneratedDocument.document_type == "mail"
+        ).first()
+
+        if doc:
+            await query.edit_message_text("✅ Mail généré!", reply_markup=save_or_regenerate_menu())
+            await query.message.reply_document(
+                document=doc.content.encode(),
+                filename=doc.filename
+            )
+    except Exception as e:
+        logger.error(f"Error generating mail: {e}")
+        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+    finally:
+        db.close()
+
+
+async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle generate all documents button."""
+    query = update.callback_query
+    await query.answer("⏳ Génération de tous les documents...")
+
+    callback_parts = query.data.split(":")
+    app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
+    user_id = str(query.from_user.id)
+
+    db = SessionLocal()
+
+    try:
+        if app_id:
+            from app.database.models import Application
+            app = db.query(Application).filter_by(id=app_id).first()
+        else:
+            app = get_last_application(db, user_id)
+
+        if not app:
+            await query.answer("Aucune offre en cours", show_alert=True)
+            return
+
+        analysis = app.analyses[0].analysis_json if app.analyses else None
+        positioning = app.recommended_angle
+        skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+
+        # Generate all documents
+        await GenerationAgent.generate_documents(db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile)
+        mark_application_as_generated(db, app.id)
+
+        await query.edit_message_text("✅ Documents générés!", reply_markup=save_or_regenerate_menu())
+
+        # Send all documents
+        from app.database.models import GeneratedDocument
+        docs = db.query(GeneratedDocument).filter(
+            GeneratedDocument.application_id == app.id
+        ).all()
+
+        for doc in docs:
+            await query.message.reply_document(
+                document=doc.content.encode(),
+                filename=doc.filename
+            )
+    except Exception as e:
+        logger.error(f"Error generating all: {e}")
+        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+    finally:
+        db.close()
+
+
+async def regenerate_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle regenerate button (alias for gen_all)."""
+    # Just forward to gen_all_callback
+    update.callback_query.data = update.callback_query.data.replace("regenerate:", "gen_all:")
+    await gen_all_callback(update, context)

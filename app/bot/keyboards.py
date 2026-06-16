@@ -32,16 +32,25 @@ def back_home_and_action(action_label: str, action_callback: str) -> InlineKeybo
     return InlineKeyboardMarkup(keyboard)
 
 
-def offer_extracted_menu() -> InlineKeyboardMarkup:
-    """Menu after extracting offer: analyze, save, back."""
+def offer_extracted_menu(application_id: int = None) -> InlineKeyboardMarkup:
+    """Menu after extracting offer: view match, generate docs, save."""
     keyboard = [
-        [InlineKeyboardButton("📊 Voir le match", callback_data="view_match")],
-        [InlineKeyboardButton("📄 Générer CV", callback_data="gen_cv")],
-        [InlineKeyboardButton("✉️ Générer lettre", callback_data="gen_letter")],
-        [InlineKeyboardButton("📧 Générer mail", callback_data="gen_mail")],
-        [InlineKeyboardButton("🚀 Tout générer", callback_data="gen_all")],
-        [InlineKeyboardButton("💾 Sauvegarder", callback_data="save_application")],
-        [InlineKeyboardButton("🏠 Accueil", callback_data="home")],
+        [
+            InlineKeyboardButton("📊 Voir le match", callback_data=f"view_match:{application_id}" if application_id else "view_match"),
+            InlineKeyboardButton("📄 Générer CV", callback_data=f"gen_cv:{application_id}" if application_id else "gen_cv")
+        ],
+        [
+            InlineKeyboardButton("✉️ Générer lettre", callback_data=f"gen_letter:{application_id}" if application_id else "gen_letter"),
+            InlineKeyboardButton("📧 Générer mail", callback_data=f"gen_mail:{application_id}" if application_id else "gen_mail")
+        ],
+        [
+            InlineKeyboardButton("🚀 Tout générer", callback_data=f"gen_all:{application_id}" if application_id else "gen_all"),
+            InlineKeyboardButton("♻️ Régénérer", callback_data=f"regenerate:{application_id}" if application_id else "regenerate")
+        ],
+        [
+            InlineKeyboardButton("💾 Sauvegarder", callback_data=f"save_application:{application_id}" if application_id else "save_application"),
+            InlineKeyboardButton("🏠 Accueil", callback_data="home")
+        ],
     ]
     return InlineKeyboardMarkup(keyboard)
 

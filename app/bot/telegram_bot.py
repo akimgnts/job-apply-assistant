@@ -13,7 +13,12 @@ from app.bot.handlers import (
     view_master_cv_callback,
     view_profile_callback,
     view_match_callback,
+    view_match_with_app_callback,
     gen_cv_callback,
+    gen_letter_callback,
+    gen_mail_callback,
+    gen_all_callback,
+    regenerate_callback,
     save_application_callback,
 )
 
@@ -32,15 +37,33 @@ def setup_bot():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("last", last_command))
 
-    # Callbacks (buttons)
+    # Callbacks (buttons) — with and without app_id
     app.add_handler(CallbackQueryHandler(home_callback, pattern="^home$"))
     app.add_handler(CallbackQueryHandler(analyze_offer_callback, pattern="^analyze_offer$"))
     app.add_handler(CallbackQueryHandler(my_applications_callback, pattern="^my_applications$"))
     app.add_handler(CallbackQueryHandler(view_master_cv_callback, pattern="^view_master_cv$"))
     app.add_handler(CallbackQueryHandler(view_profile_callback, pattern="^view_profile$"))
-    app.add_handler(CallbackQueryHandler(view_match_callback, pattern="^view_match$"))
-    app.add_handler(CallbackQueryHandler(gen_cv_callback, pattern="^gen_cv$"))
-    app.add_handler(CallbackQueryHandler(save_application_callback, pattern="^save_application$"))
+
+    # Match view: with or without app_id
+    app.add_handler(CallbackQueryHandler(view_match_with_app_callback, pattern="^view_match(:[0-9]+)?$"))
+
+    # Gen CV: with or without app_id
+    app.add_handler(CallbackQueryHandler(gen_cv_callback, pattern="^gen_cv(:[0-9]+)?$"))
+
+    # Gen Letter: with or without app_id
+    app.add_handler(CallbackQueryHandler(gen_letter_callback, pattern="^gen_letter(:[0-9]+)?$"))
+
+    # Gen Mail: with or without app_id
+    app.add_handler(CallbackQueryHandler(gen_mail_callback, pattern="^gen_mail(:[0-9]+)?$"))
+
+    # Gen All: with or without app_id
+    app.add_handler(CallbackQueryHandler(gen_all_callback, pattern="^gen_all(:[0-9]+)?$"))
+
+    # Regenerate: with or without app_id
+    app.add_handler(CallbackQueryHandler(regenerate_callback, pattern="^regenerate(:[0-9]+)?$"))
+
+    # Save Application: with or without app_id
+    app.add_handler(CallbackQueryHandler(save_application_callback, pattern="^save_application(:[0-9]+)?$"))
 
     # Text messages
     app.add_handler(MessageHandler(filters.Regex("^(GO|CV|LETTRE|MAIL)$"), handle_command))
