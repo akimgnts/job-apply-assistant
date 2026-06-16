@@ -1,53 +1,353 @@
-# Prompt Architecture Refactor
+# Prompt Architecture
 
-**Purpose:** Separate concerns cleanly. Make profile_blocks the single source of truth.
+Job Apply Assistant uses **4 main prompts** in sequence to analyze offers, position candidates, and generate documents.
 
-**Status:** Implemented
+**Philosophy:** 95% Master CV (immutable source of truth) + 5% AI adaptation (title, summary, bullet priority, project priority).
+
+**Status:** Production-ready
 
 ---
 
-## Architecture Overview
+## Pipeline Overview
 
 ```
-Offer
-  ↓
-[AnalysisAgent]
-  • Analyze offer only
-  • Never rewrite experiences
-  • Never create content
-  • Return: company, job_title, required_skills, missions, match_score
-  ↓
-[PositioningAgent]
-  • Choose angle from 7 fixed options
-  • Use offer analysis for context
-  • Return: recommended_positioning + reasoning
-  ↓
-[GenerationAgent]
-  • Transform AUTHORIZED profile blocks into CV
-  • Adapt experiences for job relevance
-  • Rewrite for business impact
-  • CRITICAL: Never invent
-  • Return: JSON cv_payload
-  ↓
-[QualityAgent]
-  • Validate payload against profile_blocks
-  • Remove hallucinations
-  • Build allowed sets (companies, schools, certs, languages)
-  • Return: clean_payload + removed_items
-  ↓
-[Jinja2 Template]
-  • Render HTML from clean payload
-  • No logic, no validation
-  • Trust the payload
-  ↓
-Telegram
+Job Offer (URL/text)
+    ↓
+[1. ANALYSIS] → Job analysis JSON
+    ↓
+[2. POSITIONING] → Positioning angle (1 of 7)
+    ↓
+[3. ADAPTATION] → Adaptation payload (bullets, projects, summary)
+    ↓
+[4. QUALITY CHECK] → Validation report
+    ↓
+Generated CV + Letter + Mail
 ```
 
 ---
 
-## 1. AnalysisAgent
+## Prompt 1: Analysis (`app/prompts/analysis_prompt.py`)
 
-**File:** `app/agents/analysis_agent.py`
+**Purpose:** Extract structured job requirements and match against candidate profile.
+
+**Agent:** `AnalysisAgent.analyze()`
+
+**Input:**
+- Job offer text (URL-extracted or user-pasted)
+- All candidate profile blocks (experiences, skills, education)
+
+**Output:** JSON with:
+```json
+{
+  "company": "Company name",
+  "job_title": "Job title",
+  "sector": "Industry",
+  "seniority": "junior/mid/senior/lead",
+  "missions": ["Main responsibility 1", "Main responsibility 2"],
+  "required_skills": ["Skill 1", "Skill 2"],
+  "soft_skills": ["Soft skill 1"],
+  "ats_keywords": ["Keyword1", "Keyword2"],
+  "business_challenges": "What problems this role solves",
+  "match_score": 0-10,
+  "strengths": ["Why candidate fits"],
+  "missing_points": ["Gap 1"],
+  "profile_blocks_to_use": [1, 2, 3],
+  "profile_blocks_to_avoid": [4, 5]
+}
+```
+
+**Rules (CRITICAL):**
+- Analyze offer only — do not rewrite candidate content
+- Never invent experiences/skills
+- match_score = honest 0-10 assessment
+- If skill missing from profile → put in missing_points
+- profile_blocks_to_use = indices of best matching blocks
+
+---
+
+## Prompt 2: Positioning (`app/prompts/positioning_prompt.py`)
+
+**Purpose:** Choose best positioning angle from 7 fixed options.
+
+**Agent:** `PositioningAgent.choose_angle()`
+
+**Input:**
+- Job analysis JSON
+- 7 predefined positioning angles (e.g., "Data Analyst BI", "Growth Marketer", etc.)
+
+**Output:** One positioning string selected from the 7 options.
+
+**Rules:**
+- Choose only from predefined angles — never create new ones
+- Base choice on job requirements + match_score
+- Positioning guides CV/letter customization
+- Must align with candidate's Master CV strengths
+
+---
+
+## Prompt 3: Adaptation (`app/prompts/adaptation_prompt.py`) ★ CRITICAL
+
+**Purpose:** Adapt Master CV to job offer. Never invent content. **This is where AI maintains 95% Master CV fidelity.**
+
+**Agent:** `CVAdaptationAgent.adapt_cv()`
+
+**Input:**
+- Job analysis JSON
+- Positioning angle (from Prompt 2)
+- Master CV structure (immutable source of truth)
+
+**Output:** Adaptation JSON with:
+```json
+{
+  "title": "Adapted positioning title (max 8 words)",
+  "summary": "" or "Rewritten summary (max 70 words)",
+  "experience_order": [0, 1, 2],
+  "experience_bullets": {
+    "0": ["All 8 Sidel bullets in relevance order"],
+    "1": ["All 6 MadeByAkim bullets in relevance order"],
+    "2": ["All 3 Vassard bullets in relevance order"]
+  },
+  "project_order": [0, 1, 2],
+  "project_bullets": {
+    "0": ["Original Elevia description"],
+    "1": ["Original Job Apply Assistant description"],
+    "2": ["Original V.I.E Matcher description"]
+  },
+  "ats_keywords": ["Keyword1", "Keyword2"]
+}
+```
+
+**Allowed Changes (5% adaptation):**
+- ✅ Adapt title
+- ✅ Rewrite summary (max 70 words, optional, empty for finance/business roles)
+- ✅ Reorder bullets within each experience by relevance
+- ✅ Reorder projects by relevance (add SkillMap only for AI/Product/Visualization roles)
+- ✅ Select ATS keywords
+
+**Forbidden (95% Master CV immutable):**
+- ❌ Reorder experiences (fixed: Sidel [0] → MadeByAkim [1] → Vassard [2])
+- ❌ Rewrite, edit, or delete bullets
+- ❌ Create new bullets
+- ❌ Delete experiences or projects
+- ❌ Invent companies/schools/technologies/dates
+- ❌ Rewrite project descriptions
+
+**Validation:** `validate_adaptation()` enforces:
+- experience_order must be exactly [0, 1, 2]
+- All bullets present and unchanged (word-for-word)
+- All 3 required projects present (0, 1, 2)
+- Optional 4th project (SkillMap, id 3) only for AI/Product/Visualization/Automation roles
+
+---
+
+## Prompt 4: Quality Check (`app/prompts/quality_prompt.py`)
+
+**Purpose:** Validate generated documents for hallucinations and inconsistencies.
+
+**Agent:** `QualityAgent.check_document()`
+
+**Input:**
+- Generated CV/letter/mail HTML
+- Master CV (source of truth)
+- Original job analysis
+
+**Output:** Quality report with:
+```json
+{
+  "status": "SAFE" | "REVIEW" | "REJECT",
+  "issues": ["List of detected issues"],
+  "flags": ["Warnings for review"],
+  "confidence": 0-1
+}
+```
+
+**Checks:**
+- No invented companies/schools/certifications
+- No fabricated achievements or metrics
+- All content originates from Master CV
+- Dates/numbers unchanged
+- Tone and language appropriate for business/finance
+
+---
+
+## Master CV Service (`app/services/master_cv_service.py`)
+
+**Purpose:** Provide immutable source of truth for all CV content.
+
+**Load:** `load_master_cv()` returns:
+```python
+{
+  "personal_info": {
+    "name": "Akim Guentas",
+    "location": "Paris",
+    "email": "akimguentas13@gmail.com",
+    "phone": "+33...",
+    "portfolio": "madebyakim.com",
+    "github": "github.com/akimgnts",
+    "linkedin": "linkedin.com/in/akimguentas"
+  },
+  "experiences": [
+    { 
+      "id": 0, 
+      "title": "Data, Marketing & Communication Analyst (Apprenticeship)",
+      "company": "Sidel",
+      "context": "International B2B industrial environment",
+      "dates": "2023 – 2025",
+      "bullets": [8 business-oriented bullets]
+    },
+    { 
+      "id": 1,
+      "title": "Freelance Projects · Data, Automation & Digital Systems",
+      "company": "MadeByAkim / Made By Curve",
+      "dates": "2024 – Present",
+      "bullets": [6 bullets]
+    },
+    {
+      "id": 2,
+      "title": "Business Development & Reporting",
+      "company": "Vassard OMB Mobilier",
+      "dates": "2022 – 2023",
+      "bullets": [3 bullets]
+    }
+  ],
+  "projects": [
+    { "id": 0, "title": "Elevia · Personal Data & AI Project", ... },
+    { "id": 1, "title": "Job Apply Assistant", ... },
+    { "id": 2, "title": "V.I.E Matcher", ... },
+    { "id": 3, "title": "SkillMap Automation Console", ... }  # optional
+  ],
+  "skills": [6 skill sections],
+  "education": [3 degrees, formatted with graduation year only],
+  "certifications": [3 certs],
+  "languages": [3 languages],
+  "experiences_by_id": { 0: ..., 1: ..., 2: ... },
+  "projects_by_id": { 0: ..., 1: ..., 2: ..., 3: ... }
+}
+```
+
+**Key Properties:**
+- All content verified (no hallucinations)
+- Bullet count fixed per experience
+- Education year format: graduation year only (e.g., "2025")
+- Personal info: real values, no placeholders
+- experiences_by_id + projects_by_id dicts for template access
+
+**Validation:** `validate_adaptation()` checks:
+- All bullets present and unchanged
+- Projects contain required 3 ([0, 1, 2])
+- experience_order is exactly [0, 1, 2]
+- SkillMap (3) only when role-appropriate
+
+---
+
+## Content Philosophy
+
+### Business/Finance Orientation
+
+Master CV refined for professional CVs (not startup/tech):
+- **Action verbs:** analyze, consolidate, structure, monitor, coordinate, present
+- **Avoid:** built, created, developed (too casual/technical)
+- **Summary:** optional (empty for finance/business roles — experience speaks for itself)
+- **Education:** graduation year only (e.g., "Eugenia School — 2025")
+- **School name:** "Eugenia School" (not "École Gamma")
+- **Projects:** 3 default [0, 1, 2] + 1 optional (SkillMap for AI/Product/Visualization roles)
+
+---
+
+## Integration in Agents
+
+| Agent | Prompts Used | Input | Output |
+|-------|-------------|-------|--------|
+| **InputAgent** | None | URL/text | Extracted job offer text |
+| **AnalysisAgent** | Prompt 1 | Offer + profile blocks | Analysis JSON |
+| **MatchingAgent** | None | Analysis | Validated profile blocks |
+| **PositioningAgent** | Prompt 2 | Analysis | Positioning angle |
+| **CVAdaptationAgent** | Prompt 3 | Analysis + positioning + Master CV | Adaptation payload |
+| **GenerationAgent** | None | Adaptation + Master CV | Rendered HTML (CV/letter/mail) |
+| **QualityAgent** | Prompt 4 | Generated HTML + Master CV | Safety report |
+
+---
+
+## Common Tasks
+
+### Test Analysis Prompt
+
+```python
+from app.prompts.analysis_prompt import get_analysis_prompt
+from app.services.openai_service import analyze_offer
+
+prompt = get_analysis_prompt(job_offer_text, profile_blocks)
+analysis = analyze_offer(prompt)
+print(analysis)
+```
+
+### Test Adaptation Prompt
+
+```python
+from app.prompts.adaptation_prompt import get_cv_adaptation_prompt
+from app.services.openai_service import generate_cv_payload
+from app.services.master_cv_service import load_master_cv
+
+master = load_master_cv()
+prompt = get_cv_adaptation_prompt(analysis, positioning, master)
+adaptation = generate_cv_payload(prompt)
+print(adaptation)
+```
+
+### Verify Master CV
+
+```python
+from app.services.master_cv_service import load_master_cv
+
+master = load_master_cv()
+for exp in master["experiences"]:
+    print(f"{exp['company']}: {len(exp['bullets'])} bullets")
+    
+for proj in master["projects"]:
+    print(f"{proj['title']}: {len(proj['bullets'])} bullet(s)")
+```
+
+### Test Adaptation Validation
+
+```python
+from app.services.master_cv_service import validate_adaptation
+
+result = validate_adaptation(adaptation_json, master_cv)
+if result["is_valid"]:
+    print("✓ Adaptation passed validation")
+else:
+    print("✗ Issues found:")
+    for issue in result["issues"]:
+        print(f"  - {issue}")
+```
+
+---
+
+## Files Reference
+
+| File | Purpose |
+|------|---------|
+| `app/prompts/analysis_prompt.py` | Prompt 1: Job analysis |
+| `app/prompts/positioning_prompt.py` | Prompt 2: Positioning angle |
+| `app/prompts/adaptation_prompt.py` | Prompt 3: Master CV adaptation |
+| `app/prompts/quality_prompt.py` | Prompt 4: Quality validation |
+| `app/services/master_cv_service.py` | Master CV storage + validation |
+| `app/agents/analysis_agent.py` | Executes Prompt 1 |
+| `app/agents/positioning_agent.py` | Executes Prompt 2 |
+| `app/agents/cv_adaptation_agent.py` | Executes Prompt 3 |
+| `app/agents/quality_agent.py` | Executes Prompt 4 |
+| `app/agents/generation_agent.py` | Orchestrates CV/letter/mail rendering |
+
+---
+
+## Future Enhancements
+
+- [ ] Prompt caching (reduce OpenAI API calls)
+- [ ] Fine-tuned models (custom positioning angles)
+- [ ] A/B testing different adaptation strategies
+- [ ] Multi-language support (FR/ES/DE prompts)
+- [ ] Dynamic positioning (learned from user feedback)
+- [ ] Master CV versioning (maintain multiple versions)
 
 **Responsibility:** Understand the job offer. Nothing else.
 
