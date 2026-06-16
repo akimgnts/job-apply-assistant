@@ -160,26 +160,46 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
     ) -> str:
-        """Generate CV with validation against profile_blocks.
+        """Generate CV using complete profile base + selected emphasis.
 
         Flow:
-        1. Get selected profile blocks
-        2. Generate CV payload (JSON only)
-        3. Clean payload (remove markdown/HTML)
-        4. Validate against profile blocks (remove hallucinations)
-        5. Render Jinja2 template
-        6. Save to DB + file
+        1. Fetch ALL profile_blocks (complete base)
+        2. Fetch selected_blocks (priority signal)
+        3. Generate CV payload (JSON only, using BOTH sets)
+        4. Clean payload (remove markdown/HTML)
+        5. Validate against all_profile_blocks (remove hallucinations)
+        6. Render Jinja2 template
+        7. Save to DB + file
         """
+        # Get selected blocks (priority signal)
         block_ids = analysis.get("profile_blocks_to_use", [])
-        blocks = MatchingAgent.get_selected_blocks(db, block_ids)
+        selected_blocks = MatchingAgent.get_selected_blocks(db, block_ids)
 
-        prompt = get_cv_payload_prompt(analysis, blocks, positioning)
+        # Get ALL blocks (complete profile base)
+        all_blocks = MatchingAgent.get_selected_blocks(
+            db, [b["id"] for b in MatchingAgent.get_selected_blocks(db, None) or []]
+        )
+        # Simpler: just query directly
+        from app.database.models import ProfileBlock
+        all_profile_blocks = db.query(ProfileBlock).order_by(ProfileBlock.priority.desc()).all()
+        all_blocks_dict = [
+            {
+                "id": b.id,
+                "title": b.title,
+                "content": b.content,
+                "category": b.category.value,
+                "tags": b.tags,
+            }
+            for b in all_profile_blocks
+        ]
+
+        prompt = get_cv_payload_prompt(analysis, all_blocks_dict, selected_blocks, positioning)
         payload = await generate_cv_payload(prompt)
 
         payload = GenerationAgent._clean_payload(payload)
 
         # VALIDATION STEP: Detect and remove hallucinations
-        validation_result = QualityAgent.validate_cv_payload(payload, blocks)
+        validation_result = QualityAgent.validate_cv_payload(payload, all_blocks_dict)
         clean_payload = validation_result["clean_payload"]
         removed_items = validation_result["removed_items"]
 
@@ -191,7 +211,7 @@ class GenerationAgent:
             logger.warning(
                 f"Too many hallucinations or invalid payload, using safe fallback CV"
             )
-            clean_payload = GenerationAgent._build_fallback_cv_payload(blocks, positioning)
+            clean_payload = GenerationAgent._build_fallback_cv_payload(all_blocks_dict, positioning)
 
         candidate = GenerationAgent._build_candidate_info(db)
 
@@ -200,10 +220,16 @@ class GenerationAgent:
             "cv": clean_payload,
         }
 
+        # Extract titles for logging
+        exp_titles = [e.get("title", "") for e in clean_payload.get("experiences", [])]
+        skill_labels = [s.get("label", "") for s in clean_payload.get("skills_sections", [])]
+
         logger.info(
             f"CV generated: title={clean_payload.get('title', 'N/A')}, "
-            f"experiences={len(clean_payload.get('experiences', []))}, "
-            f"skills={len(clean_payload.get('skills_sections', []))}, "
+            f"all_blocks={len(all_blocks_dict)}, "
+            f"selected_blocks={len(selected_blocks)}, "
+            f"experiences={len(clean_payload.get('experiences', []))} {exp_titles}, "
+            f"skills={len(clean_payload.get('skills_sections', []))} {skill_labels}, "
             f"hallucinations_removed={len(removed_items)}"
         )
 

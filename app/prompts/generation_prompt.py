@@ -1,14 +1,23 @@
-def get_cv_payload_prompt(analysis_json: dict, profile_blocks: list, positioning: str) -> str:
-    """Generate CV payload with clear philosophy: adapt, don't invent.
+def get_cv_payload_prompt(analysis_json: dict, all_profile_blocks: list, selected_blocks: list, positioning: str) -> str:
+    """Generate CV payload using complete profile + selected emphasis.
 
     System prompt ensures:
-    - Only authorized profile blocks are used
-    - Experiences are rewritten for business impact
-    - No hallucinations possible
+    - Complete profile is used (all_profile_blocks)
+    - Selected blocks get priority/emphasis
+    - Only authorized content (no invention)
+    - Experiences rewritten for job relevance
     """
-    blocks_text = "\n".join(
+    # Build all blocks text (complete profile)
+    all_blocks_text = "\n".join(
         [f"#{block['id']} [{block['category']}] {block['title']}\n{block['content']}"
-         for block in profile_blocks]
+         for block in all_profile_blocks]
+    )
+
+    # Build selected blocks text (priority signal)
+    selected_ids = {b['id'] for b in selected_blocks}
+    selected_blocks_text = "\n".join(
+        [f"#{block['id']} [{block['category']}] {block['title']}"
+         for block in all_profile_blocks if block['id'] in selected_ids]
     )
 
     return f"""ROLE
@@ -44,9 +53,17 @@ Required skills: {', '.join(analysis_json['required_skills'][:5])}
 
 ---
 
-AUTHORIZED CANDIDATE DATA (you can ONLY use what's listed below)
+AUTHORIZED CANDIDATE DATA
 
-{blocks_text}
+All available profile blocks (factual base):
+
+{all_blocks_text}
+
+---
+
+PRIORITY BLOCKS (emphasize these first):
+
+{selected_blocks_text}
 
 ---
 
@@ -138,7 +155,11 @@ Return ONLY valid JSON (no markdown, no HTML):
   "ats_keywords": ["Keyword1", "Keyword2"]
 }}
 
-VALIDATION: Ensure all values come from authorized blocks above. Empty fields are OK. Invented data is NOT OK."""
+VALIDATION:
+- Ensure all experiences/projects/education/certifications come from authorized blocks above
+- Prioritize PRIORITY BLOCKS first, then other available blocks
+- Empty fields are OK (if info not in blocks)
+- Invented data is NOT OK (if not in blocks, don't include)"""
 
 def get_cv_prompt(analysis_json: dict, profile_blocks: list, positioning: str) -> str:
     profile_text = "\n".join(
