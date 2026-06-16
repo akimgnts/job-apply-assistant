@@ -198,9 +198,14 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
         master_bullets = master_cv["experiences"][exp_id].get("bullets", [])
         actual_bullets = exp_bullets.get(exp_id_str, [])
 
-        # At least some bullets must be present (can be fewer if weak ones removed)
-        if not actual_bullets:
-            issues.append(f"Experience {exp_id}: At least one bullet required.")
+        # Sidel (exp_id 0) is flagship: MINIMUM 5 bullets
+        if exp_id == 0:
+            if len(actual_bullets) < 5:
+                issues.append(f"Sidel experience: Minimum 5 bullets required. Got {len(actual_bullets)}.")
+        else:
+            # Other experiences: at least one bullet required
+            if not actual_bullets:
+                issues.append(f"Experience {exp_id}: At least one bullet required.")
 
         # Check no fabricated content in bullets (basic heuristic)
         for bullet in actual_bullets:

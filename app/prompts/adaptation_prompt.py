@@ -194,9 +194,6 @@ STEP 3: Experience Order
 STEP 4: Experience Bullets
 - PRESERVE FACTS, REWRITE NARRATIVE
 - Select bullets that support the positioning for THIS role
-- Remove weak or irrelevant bullets
-- Rewrite bullets for clarity and relevance
-- Amplify strong bullets that strengthen the positioning
 - Style guide:
   * Clarity over buzzwords
   * Relevance over completeness
@@ -204,7 +201,47 @@ STEP 4: Experience Bullets
   * Business impact over tool lists
 - Avoid: generic language, keyword stuffing, ChatGPT tone
 - Use: confidence, simplicity, clarity
-- Return: rewritten bullets ordered by relevance
+
+SIDEL EXPERIENCE (Experience #0) — FLAGSHIP RULE:
+
+Sidel is the anchor experience (2-year apprenticeship, international B2B industrial).
+MINIMUM 5 bullets. NEVER compress below this.
+
+Core bullets to preserve in ALL roles:
+1. "Consolidated and analyzed multi-source business data related to customers, installed base, leads, events and marketing activity."
+2. "Monitored KPIs and business indicators to improve visibility for internal stakeholders."
+3. "Structured and maintained reporting supports for marketing, communication and commercial teams using Excel, Power BI and Power Query."
+5. "Coordinated with European marketing, communication and sales stakeholders in an international B2B environment."
+7. "Analyzed business data using Python, SQL, Snowflake, Excel and Power BI to support decision-making and operational excellence."
+
+Adaptations by role:
+
+For marketing_crm roles:
+  - Keep bullets 1, 2, 3, 5, 6
+  - Emphasize: Reporting, coordination with marketing teams, communication assets
+  - Rewrite to highlight: "coordinated with European marketing teams", "structured reporting for communication"
+
+For data_bi roles:
+  - Keep bullets 1, 2, 3, 7
+  - Emphasize: Data consolidation, KPI monitoring, SQL/Snowflake/Power BI
+  - Rewrite to highlight: "Analyzed customer data using SQL, Python and Snowflake", "Built KPI monitoring dashboards"
+
+For data_ai roles:
+  - Keep bullets 1, 7
+  - Emphasize: SQL, Python, Snowflake, data analysis
+  - Rewrite to highlight: "Analyzed business data using Python, SQL and Snowflake"
+
+For finance/business roles:
+  - Keep bullets 1, 2, 5
+  - Emphasize: KPI monitoring, business insights, stakeholder reporting
+  - Rewrite to highlight: "Monitored KPIs to support business decision-making"
+
+NEVER REMOVE:
+- International context (European teams, B2B environment)
+- Duration (2-year apprenticeship implies scope and depth)
+- Core technologies (SQL, Snowflake, Power BI)
+
+Return: 5-6 bullets that show breadth, context, and impact.
 
 STEP 5: Project Order
 - Default order: [0, 1, 2] (Elevia, Job Apply Assistant, V.I.E Matcher)
