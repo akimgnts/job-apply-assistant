@@ -81,18 +81,37 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     db = SessionLocal()
 
     try:
+        # Check if input is URL
+        from app.services.job_ingestion_service import is_url
+        if is_url(raw_input):
+            await update.message.reply_text("🔎 Lien reçu. Extraction en cours...")
+
         await update.message.chat.send_action("typing")
 
-        offer_text, metadata = InputAgent.process(raw_input)
+        # Use async InputAgent
+        offer_text, metadata = await InputAgent.process(raw_input)
 
+        # Handle extraction failure
         if offer_text is None:
-            await update.message.reply_text(
-                "❌ Je n'ai pas réussi à lire correctement cette offre.\n\n"
-                "Colle-moi le texte complet de l'offre ici."
-            )
+            error_detail = metadata.get("error_detail", "")
+            if config.DEBUG_TELEGRAM_ERRORS and error_detail:
+                await update.message.reply_text(
+                    f"❌ Impossible de lire automatiquement cette offre.\n\n"
+                    f"Erreur: {error_detail[:200]}\n\n"
+                    f"Envoie le texte complet de l'offre."
+                )
+            else:
+                await update.message.reply_text(
+                    "❌ Impossible de lire automatiquement cette offre.\n\n"
+                    "Colle-moi le texte complet de l'offre ici."
+                )
             return
 
-        await update.message.reply_text("🔍 Analyse en cours...")
+        # Success message for URL extraction
+        if metadata.get("source_type") == "url":
+            await update.message.reply_text("✅ Offre extraite avec succès.\nAnalyse en cours...")
+        else:
+            await update.message.reply_text("🔍 Analyse en cours...")
 
         app = create_application(db, user_id, offer_text, metadata.get("source_url"))
 
