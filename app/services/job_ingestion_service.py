@@ -1,7 +1,6 @@
 import logging
 import re
 from urllib.parse import urlparse
-import trafilatura
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +47,7 @@ async def ingest_job_input(raw_input: str) -> dict:
     """
     Ingest job input: either plain text or URL.
 
-    If URL: extract content using trafilatura
+    If URL: extract content using Scrapling HTTP Fetcher
     If text: return as-is
 
     Returns:
@@ -75,21 +74,21 @@ async def ingest_job_input(raw_input: str) -> dict:
     # URL input
     url = raw_input
     try:
-        # Fetch URL
-        downloaded = trafilatura.fetch_url(url, timeout=10)
-        if not downloaded:
-            raise ValueError("Could not fetch URL")
+        from scrapling import Scraper
 
-        # Extract text
-        extracted = trafilatura.extract(
-            downloaded,
-            include_comments=False,
-            favor_precision=True
-        )
-        if not extracted:
-            raise ValueError("Could not extract text from URL")
+        # Use only HTTP Fetcher (no DynamicFetcher/Playwright)
+        scraper = Scraper()
+        page = await scraper.afetch(url, timeout=10)
 
-        clean_text = clean_job_text(extracted)
+        if not page or not page.html:
+            raise ValueError("Empty response from URL")
+
+        # Extract text from HTML (basic HTML to text conversion)
+        text = page.text if hasattr(page, 'text') else page.html
+        if not text:
+            raise ValueError("No text extracted from URL")
+
+        clean_text = clean_job_text(text)
 
         if not clean_text or len(clean_text) < 100:
             raise ValueError("Extracted text too short or empty")
