@@ -5,10 +5,12 @@ from app.config import config
 from app.services.openai_service import generate_text, generate_cv_payload
 from app.services.document_service import render_cv, render_letter, render_mail, save_document, get_output_path
 from app.services.master_cv_service import load_master_cv, validate_adaptation
-from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_letter_prompt, get_mail_prompt
+from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
 from app.agents.quality_agent import QualityAgent
 from app.agents.cv_adaptation_agent import CVAdaptationAgent
+from app.agents.letter_agent import LetterAgent
+from app.agents.gap_analysis_agent import GapAnalysisAgent
 from app.database.models import GeneratedDocument, DocumentTypeEnum, ProfileBlock, CategoryEnum
 
 logger = logging.getLogger(__name__)
@@ -363,34 +365,51 @@ class GenerationAgent:
         application_id: int,
         analysis: dict,
         positioning: str,
+        telegram_user_id: str = None,
     ) -> str:
-        """Generate motivation letter."""
-        prompt = get_letter_prompt(analysis, positioning)
-        content = await generate_text(prompt)
+        """Generate French cover letter (LetterAgent V1).
+
+        Uses gap analysis to inform tone + bridges.
+        """
+        # Get gap analysis for context-aware letter
+        gap_assessment = await GapAnalysisAgent.analyze_gap(analysis, positioning)
+
+        # Generate letter payload (5 paragraphs)
+        letter_payload = await LetterAgent.generate_letter_payload(
+            analysis,
+            positioning,
+            gap_assessment,
+        )
+
+        # Build context for template
+        candidate = GenerationAgent._build_candidate_info(db)
 
         context = {
-            "candidate_name": "Akim Guentas",
-            "company": analysis.get("company", ""),
-            "job_position": analysis.get("job_title", ""),
-            "content": content,
+            "candidate": candidate,
+            "letter": letter_payload,
         }
 
-        html = render_letter(context)
+        # Render HTML
+        html = render_letter(context, template_name="letter_master.html")
 
+        # Save document
         filepath = get_output_path(application_id, "letter")
         save_document(html, filepath)
 
         doc = GeneratedDocument(
             application_id=application_id,
+            telegram_user_id=telegram_user_id or "",
             document_type=DocumentTypeEnum.letter,
             filename=filepath.name,
             content=html,
             file_path=str(filepath),
+            format="html",
+            positioning=positioning,
         )
         db.add(doc)
         db.commit()
 
-        logger.info(f"Generated letter for application {application_id}")
+        logger.info(f"Generated letter for application {application_id} user={telegram_user_id}")
         return html
 
     @staticmethod
@@ -447,7 +466,7 @@ class GenerationAgent:
         if "cv" in document_types:
             results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile, telegram_user_id)
         if "letter" in document_types:
-            results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning)
+            results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning, telegram_user_id)
         if "mail" in document_types:
             results["mail"] = await GenerationAgent.generate_mail(db, application_id, analysis, positioning)
 

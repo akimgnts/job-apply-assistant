@@ -39,8 +39,8 @@ def render_cv(context: dict, template_name: str = "cv.html") -> str:
     template = template_env.get_template(template_name)
     return template.render(**context)
 
-def render_letter(context: dict, template_name: str = "letter.html") -> str:
-    """Render motivation letter template."""
+def render_letter(context: dict, template_name: str = "letter_master.html") -> str:
+    """Render motivation letter template (LetterAgent V1)."""
     template = template_env.get_template(template_name)
     return template.render(**context)
 
