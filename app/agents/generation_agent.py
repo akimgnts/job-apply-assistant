@@ -253,6 +253,7 @@ class GenerationAgent:
             filename=filepath.name,
             content=html,
             file_path=str(filepath),
+            format="html",  # HTML-first delivery strategy
             positioning=positioning,
             skill_profile=skill_profile,
         )

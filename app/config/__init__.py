@@ -35,4 +35,7 @@ class Config:
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
+    # Document delivery
+    ENABLE_PDF_EXPORT = os.getenv("ENABLE_PDF_EXPORT", "false").lower() == "true"
+
 config = Config()

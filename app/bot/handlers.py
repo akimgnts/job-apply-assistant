@@ -466,13 +466,16 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
             logger.info(f"CV generated: {safe_filename} for app_id={app.id}")
 
-            # Format success message
-            text, parse_mode = format_document_generated_message("cv")
+            # Format success message (HTML-first strategy)
+            text = "<b>CV HTML généré</b>\n\nTu peux l'ouvrir dans ton navigateur et l'imprimer en PDF si besoin."
 
-            await query.edit_message_text(text, parse_mode=parse_mode, reply_markup=save_or_regenerate_menu())
+            await query.edit_message_text(text, parse_mode=ParseMode.HTML, reply_markup=save_or_regenerate_menu())
+
+            # Send HTML file (not PDF)
+            html_filename = safe_filename.replace(".pdf", ".html")
             await query.message.reply_document(
                 document=doc.content.encode(),
-                filename=safe_filename
+                filename=html_filename
             )
     except Exception as e:
         logger.error(f"Error generating CV: {e}", exc_info=True)

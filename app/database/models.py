@@ -87,6 +87,7 @@ class GeneratedDocument(Base):
     filename = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     file_path = Column(Text, nullable=True)
+    format = Column(String(10), default="html")  # html, pdf, txt
     positioning = Column(String(255), nullable=True)
     skill_profile = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
