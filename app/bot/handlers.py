@@ -19,7 +19,7 @@ from app.services.application_service import (
     mark_application_as_generated,
 )
 from app.services.document_service import get_template_debug_info
-from app.database.models import GeneratedDocument
+from app.database.models import GeneratedDocument, DocumentTypeEnum
 from app.utils.debug import format_exception_for_telegram, split_telegram_message
 from app.utils.filename import safe_document_filename
 from app.bot.keyboards import (
@@ -231,7 +231,7 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         for doc_type in doc_types:
             doc = db.query(GeneratedDocument).filter(
                 GeneratedDocument.application_id == app.id,
-                GeneratedDocument.document_type == doc_type,
+                GeneratedDocument.document_type == DocumentTypeEnum(doc_type),
             ).first()
             if doc:
                 await update.message.reply_document(
@@ -467,10 +467,9 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             logger.info("[CV] CV generation complete, retrieving document")
 
         # Get document
-        from app.database.models import GeneratedDocument
         doc = db.query(GeneratedDocument).filter(
             GeneratedDocument.application_id == app.id,
-            GeneratedDocument.document_type == "cv"
+            GeneratedDocument.document_type == DocumentTypeEnum.cv
         ).first()
 
         if not doc:
@@ -671,10 +670,9 @@ async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             await progress_msg.edit_text("Lettre : rendu HTML...")
             logger.info("[LETTER] Letter generation complete, retrieving document")
 
-        from app.database.models import GeneratedDocument
         doc = db.query(GeneratedDocument).filter(
             GeneratedDocument.application_id == app.id,
-            GeneratedDocument.document_type == "letter"
+            GeneratedDocument.document_type == DocumentTypeEnum.letter
         ).first()
 
         if not doc:
@@ -780,10 +778,9 @@ async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             await progress_msg.edit_text("Mail : préparation du fichier...")
             logger.info("[MAIL] Mail generation complete, retrieving document")
 
-        from app.database.models import GeneratedDocument
         doc = db.query(GeneratedDocument).filter(
             GeneratedDocument.application_id == app.id,
-            GeneratedDocument.document_type == "mail"
+            GeneratedDocument.document_type == DocumentTypeEnum.mail
         ).first()
 
         if not doc:
@@ -895,10 +892,9 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.edit_message_text("✅ Documents générés!", reply_markup=save_or_regenerate_menu())
 
         # Send all documents
-        from app.database.models import GeneratedDocument
         docs = db.query(GeneratedDocument).filter(
             GeneratedDocument.application_id == app.id,
-            GeneratedDocument.document_type.in_(["cv", "letter", "mail"])
+            GeneratedDocument.document_type.in_([DocumentTypeEnum.cv, DocumentTypeEnum.letter, DocumentTypeEnum.mail])
         ).all()
 
         if not docs:
