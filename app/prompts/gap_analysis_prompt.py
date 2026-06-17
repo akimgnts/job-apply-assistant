@@ -113,11 +113,11 @@ C) SKILL GAP (manageable):
 
 Combine three factors:
 
-fit_factors = {
+fit_factors = {{
   "family_match": 0.0-1.0 (is this same career family?),
   "level_match": 0.0-1.0 (is this same level?),
   "skill_match": 0.0-1.0 (does candidate have skills?)
-}
+}}
 
 confidence = (family_match * 0.5) + (level_match * 0.3) + (skill_match * 0.2)
 
