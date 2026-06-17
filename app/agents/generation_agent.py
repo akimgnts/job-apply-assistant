@@ -271,6 +271,13 @@ class GenerationAgent:
         logger.info(f"Master CV loaded: {len(master_cv['experiences'])} experiences")
 
         try:
+            # GAP ANALYSIS: Measure exact mismatch (P0 - confidence scoring)
+            from app.agents.gap_analysis_agent import GapAnalysisAgent
+            gap_assessment = await GapAnalysisAgent.analyze_gap(analysis, positioning)
+            logger.info(f"Gap assessment: confidence={gap_assessment.get('confidence')}, "
+                       f"family={gap_assessment.get('role_family')}, "
+                       f"level_gap={gap_assessment.get('level_gap')}")
+
             # BRIDGE: Reason about why this candidate fits this role
             from app.agents.bridge_engine import BridgeEngine
             bridge_reasoning = await BridgeEngine.reason_fit(analysis, positioning)
