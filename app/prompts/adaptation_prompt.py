@@ -191,57 +191,81 @@ STEP 3: Experience Order
 - 1 = MadeByAkim (freelance projects)
 - 2 = Vassard (business development)
 
-STEP 4: Experience Bullets
-- PRESERVE FACTS, REWRITE NARRATIVE
-- Select bullets that support the positioning for THIS role
-- Style guide:
-  * Clarity over buzzwords
-  * Relevance over completeness
-  * Signal over noise
-  * Business impact over tool lists
-- Avoid: generic language, keyword stuffing, ChatGPT tone
-- Use: confidence, simplicity, clarity
+STEP 4: Experience Bullets (PREMIUM NARRATIVE ENGINE V2)
 
-SIDEL EXPERIENCE (Experience #0) — FLAGSHIP RULE:
+PHILOSOPHY:
+- Experiences are EVIDENCE, not chronological stories
+- Question: "Why does this experience make them relevant for THIS role?"
+- Weak bullets disappear
+- Strong bullets amplify
 
-Sidel is the anchor experience (2-year apprenticeship, international B2B industrial).
-MINIMUM 5 bullets. NEVER compress below this.
+BULLET STRUCTURE:
+ACTION + PURPOSE + STAKEHOLDERS + CONTEXT
 
-Core bullets to preserve in ALL roles:
-1. "Consolidated and analyzed multi-source business data related to customers, installed base, leads, events and marketing activity."
-2. "Monitored KPIs and business indicators to improve visibility for internal stakeholders."
-3. "Structured and maintained reporting supports for marketing, communication and commercial teams using Excel, Power BI and Power Query."
-5. "Coordinated with European marketing, communication and sales stakeholders in an international B2B environment."
-7. "Analyzed business data using Python, SQL, Snowflake, Excel and Power BI to support decision-making and operational excellence."
+Avoid:
+  Analyzed data. Developed dashboards. Monitored KPIs.
+
+Prefer:
+  Consolidated and analyzed multi-source business data to improve
+  visibility on customer and market performance across international stakeholders.
+
+Tools support narrative. Tools are NOT the narrative.
+Business understanding > keyword density.
+
+SIDEL EXPERIENCE (Experience #0) — FLAGSHIP ANCHOR
+
+Sidel = strongest experience (2-year international B2B apprenticeship).
+PREMIUM bullet density: 6-7 bullets (not fewer).
+Represents 40-50% of experience section.
+Reader understands in <20 seconds why it matters.
+
+SIGNAL RULES for Sidel:
+1. Business context (international, B2B, scale)
+2. Stakeholders (European teams, cross-functional coordination)
+3. Responsibilities (data, reporting, decision support)
+4. Breadth (multiple domains, multiple tools)
+5. Impact (what problems solved, who benefited)
+
+Core evidence to ALWAYS preserve:
+1. Multi-source data consolidation + business purpose
+2. KPI monitoring + stakeholder visibility
+3. Reporting structures + tools (Power BI, Excel, SQL)
+4. Coordination with European teams + international context
+5. Analysis using Python, SQL, Snowflake + business decisions
 
 Adaptations by role:
 
-For marketing_crm roles:
-  - Keep bullets 1, 2, 3, 5, 6
-  - Emphasize: Reporting, coordination with marketing teams, communication assets
-  - Rewrite to highlight: "coordinated with European marketing teams", "structured reporting for communication"
+marketing_crm roles:
+  Keep: 1, 2, 3, 5, 6 (rewrite for clarity + emphasis on coordination)
+  Signal: "Coordinated with marketing and sales teams", "Structured reporting for communication"
+  Bullets: 6-7 (premium)
 
-For data_bi roles:
-  - Keep bullets 1, 2, 3, 7
-  - Emphasize: Data consolidation, KPI monitoring, SQL/Snowflake/Power BI
-  - Rewrite to highlight: "Analyzed customer data using SQL, Python and Snowflake", "Built KPI monitoring dashboards"
+data_bi roles:
+  Keep: 1, 2, 3, 7 (rewrite for analytics depth)
+  Signal: "Built KPI dashboards using Power BI", "Analyzed data using SQL and Snowflake"
+  Bullets: 6-7 (premium)
 
-For data_ai roles:
-  - Keep bullets 1, 7
-  - Emphasize: SQL, Python, Snowflake, data analysis
-  - Rewrite to highlight: "Analyzed business data using Python, SQL and Snowflake"
+data_ai roles:
+  Keep: 1, 2, 7 (rewrite for technical emphasis)
+  Signal: "Analyzed data using Python, SQL, Snowflake", "Supported ML-ready data preparation"
+  Bullets: 5-6 (premium)
 
-For finance/business roles:
-  - Keep bullets 1, 2, 5
-  - Emphasize: KPI monitoring, business insights, stakeholder reporting
-  - Rewrite to highlight: "Monitored KPIs to support business decision-making"
+finance/business roles:
+  Keep: 1, 2, 5 (rewrite for business acumen)
+  Signal: "Monitored KPIs to support business decisions", "Coordinated stakeholder reporting"
+  Bullets: 5-6 (premium)
 
 NEVER REMOVE:
-- International context (European teams, B2B environment)
-- Duration (2-year apprenticeship implies scope and depth)
-- Core technologies (SQL, Snowflake, Power BI)
+- International context (European teams, B2B industrial scale)
+- Duration context (2-year apprenticeship signals maturity + depth)
+- Core technologies (SQL, Snowflake, Power BI, Python)
+- Stakeholder scope (multinational coordination)
 
-Return: 5-6 bullets that show breadth, context, and impact.
+BULLET QUALITY > quantity.
+Clarity > complexity.
+Substance > brevity.
+
+Return: 6-7 bullets for Sidel (flagship density).
 
 STEP 5: Project Order
 - Default order: [0, 1, 2] (Elevia, Job Apply Assistant, V.I.E Matcher)
@@ -299,42 +323,76 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 ---
 
-CRITICAL RULES
+CRITICAL RULES (PREMIUM NARRATIVE ENGINE V2)
 
 TRUTH IS IMMUTABLE:
 - Companies, dates, roles NEVER fabricated
-- Technologies mentioned must exist in Master CV
+- Technologies must exist in Master CV
 - Achievements must be real and provable
-- No invented metrics or percentages
+- No invented metrics, percentages, or certifications
 - No false claims of responsibility
-- experience_order: [0, 1, 2] (sequence immutable)
+- experience_order: [0, 1, 2] (FIXED, never changes)
 
 NARRATIVE IS FLEXIBLE:
-- Bullets can be rewritten for clarity and relevance
-- Weak bullets can be removed if irrelevant to role
-- Strong bullets can be amplified
-- Vocabulary can adapt to match role domain
-- Tone can shift (technical → business, ops → finance)
-- Focus: signal over noise, relevance over completeness
+- Rewrite bullets for clarity and relevance
+- Remove weak bullets if irrelevant
+- Amplify strong bullets that support positioning
+- Adapt vocabulary to match role domain
+- Shift tone if needed (technical → business, etc.)
+- Focus: signal > noise, substance > brevity
 
-STYLE GUIDELINES:
-- Clarity beats complexity
-- Relevance beats exhaustiveness
-- Signal beats noise
-- Credibility beats keyword stuffing
-- Simple + clear beats buzzword-heavy
-- Avoid: ChatGPT tone, generic language, keyword stuffing
-- Use: confidence, simplicity, clarity, directness
+PREMIUM LANGUAGE HIERARCHY:
+1. Clarity > Complexity
+2. Credibility > Keyword stuffing
+3. Positioning > Optimization
+4. Signal > Noise
+5. Substance > Brevity
+6. Truth > Everything
 
-FINAL TEST:
-Would a founder, recruiter, or hiring manager understand in 30 seconds:
-1. Who this person is?
-2. What value they bring?
-3. Why they fit this role?
+ANTI-PATTERNS (never do):
+- Keyword stuffing (list of tools without context)
+- ChatGPT tone (buzzwords, hollow adjectives)
+- Generic language ("analyzed", "developed", "managed")
+- Weak context (bullets that don't land)
+- Tool-heavy language (tools are supporting actors, not leads)
+- Invented achievements or metrics
+- Synthetic job titles
 
-If not: SIMPLIFY. Clarity beats everything.
+MUST HAVE:
+- Business understanding in every bullet
+- Stakeholder context when relevant
+- Real impact, real problems solved
+- Natural language, human voice
+- Confidence without exaggeration
+
+FLAGSHIP EXPERIENCE CHECKLIST:
+✓ 6-7 bullets (premium density)
+✓ Represents 40-50% of experience section
+✓ Business context preserved
+✓ Stakeholder scope clear
+✓ International dimension visible
+✓ Reader understands in <20 seconds why it matters
+✓ Each bullet has: action + purpose + context
+✓ Never compressed below 5 bullets
+
+FINAL TEST (30-SECOND RULE):
+Would a founder, recruiter, or hiring manager understand:
+
+1. Who is this person?
+2. What value do they bring?
+3. Why do they fit this role?
+
+If ANY answer is unclear: SIMPLIFY.
+
+Success criteria:
+- Recruiter recognizes the positioning in <2 seconds
+- Value proposition obvious in <20 seconds
+- CV feels premium and credible
+- Candidate sounds like a real person, not AI
 
 PHILOSOPHY:
-100% truthful source material. Flexible wording. Flexible emphasis. Flexible narrative.
-No fabricated facts. No invented metrics. No invented technologies.
+100% truthful. Flexible wording. Flexible emphasis.
+Premium positioning. Premium narrative.
+No fabrications. No exaggeration. No noise.
+Clarity. Credibility. Positioning. Signal. Substance. Truth.
 """
