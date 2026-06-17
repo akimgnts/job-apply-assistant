@@ -141,6 +141,31 @@ Invalid bridges (do NOT use):
 - "Worked on projects → can manage teams" (authority claim)
 - "Used SQL → can architect databases" (expertise claim)
 
+=== STEP 6: Weak Fit Behavior (confidence < 0.50) ===
+
+When fit is weak:
+
+Do NOT:
+- Try harder to make it fit
+- Move closer to offer
+- Invent bridges
+- Claim capabilities not held
+
+DO:
+- Increase truth
+- Prefer candidate identity over offer alignment
+- Accept weak fit
+- Acknowledge gaps honestly
+
+Weak fit is ACCEPTABLE.
+Forced fit is NOT.
+
+Example:
+- Offer: Team Lead (requires management)
+- Candidate: junior IC (no management)
+- Weak fit: confidence 0.45
+- Action: Position as IC, acknowledge gap, let recruiter decide
+
 === RETURN ===
 
 Return ONLY valid JSON:

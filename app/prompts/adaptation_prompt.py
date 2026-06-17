@@ -183,29 +183,58 @@ STEP 2: Summary
 - Max 70 words
 - For finance/business roles: leave empty (experience speaks for itself)
 
-VOCABULARY RULES (AGENT ALIGNMENT V2):
-Sound junior-to-mid level. Be honest.
+CRITICAL VOCABULARY RULES (ENFORCED):
 
-FORBIDDEN (exaggerates):
-  expert, extensive experience, architected, managed, owned, mentored, led,
-  enterprise-grade, robust and scalable, advanced expertise, seasoned,
-  specialist in, driving, spearheaded, pioneer, world-class, cutting-edge
+NEVER USE (hard forbidden):
+  • experienced in delivering
+  • enterprise clients
+  • enterprise-grade
+  • managed
+  • led
+  • mentored
+  • architected
+  • owned
+  • expert
+  • extensive experience
+  • robust and scalable
+  • advanced expertise
+  • seasoned
+  • specialist in
+  • driving
+  • spearheaded
 
-PREFERRED (authentic):
-  background in, exposure to, worked on, contributed to, supported,
-  experience across, combining, focused on, collaborated with, helped deliver
+ALWAYS USE (preferred):
+  • background in
+  • exposure to
+  • worked on
+  • contributed to
+  • supported
+  • experience across
+  • combining
+  • focused on
+  • collaborated with
+  • helped deliver
+  • involved in
+  • participated in
 
-PRESERVE IDENTITY (candidate is multi-dimensional):
+SENIORITY INDEPENDENCE RULE:
+Never infer seniority from offer.
+Candidate seniority independent from role seniority.
+Sound junior-to-mid, not senior.
+
+PRESERVE IDENTITY (multi-dimensional, not single domain):
   Do NOT collapse into single domain
   Keep: stakeholders, international, communication, business understanding,
         cross-functional work, reporting, coordination
 
-Example of WRONG (collapses identity):
+Example of WRONG:
+  "Experienced in delivering technical solutions to enterprise clients"
   "Data engineer with expertise in Python and SQL"
 
-Example of RIGHT (preserves identity):
-  "Data-oriented profile combining data engineering, reporting, and
+Example of RIGHT:
+  "Data-oriented profile combining data consolidation, reporting, and
   stakeholder coordination across international teams"
+  "Background in data analysis, automation, and international collaboration"
 
 STEP 3: Experience Order
 - DO NOT REORDER experiences

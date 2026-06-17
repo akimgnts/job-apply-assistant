@@ -74,16 +74,36 @@ For each project:
 4. Add substantive detail (without fake impact)
 5. Support the target positioning
 
+PROJECT BULLET STRUCTURE:
+
+For each project, explain:
+1. PURPOSE (why built?)
+2. PROBLEM (what gap does it fill?)
+3. APPROACH (what did you actually do?)
+
+Without technical dumping.
+
 Examples of WRONG:
-- "Built a MVP that reached 1000 users" (fake scale for hobby project)
-- "Led a startup-style data platform" (not a startup, side project)
-- "Architected ML pipeline" (if just implemented, didn't design)
-- "Open-source solution powering teams" (too much hype for side project)
+- "Built a MVP that reached 1000 users" (fake scale)
+- "Led a startup-style data platform" (false narrative)
+- "Architected ML pipeline" (inflates scope)
+- "Open-source solution powering teams" (hype)
+- "FastAPI + PostgreSQL + OpenAI" (just listing tech)
 
 Examples of RIGHT:
-- "Document canonicalization + scoring system for job matching"
-- "Telegram bot integrating OpenAI for CV generation and job analysis"
-- "Automated matching algorithm coordinating 500+ VIE applications"
+- "Document canonicalization + scoring system for job matching" (what + why)
+- "Telegram bot integrating OpenAI for personalized CV generation and job analysis" (what + how + why)
+- "Automated matching algorithm coordinating 500+ VIE applications" (what + scale)
+- "Python-based candidate analysis tool: extracts job requirements, scores profile fit, generates targeted CV" (approach + impact)
+
+RULES:
+✓ Truthful scale (500+ apps is real data)
+✓ Real technology (Python, PostgreSQL, OpenAI)
+✓ Built/created/implemented (not architected/led/owned)
+✓ Problem → solution narrative
+✗ Fake scale (1M users for side project)
+✗ Fake titles (architected, led, owned)
+✗ Pure technical dumping (FastAPI + PostgreSQL + Redis)
 
 === CRITICAL ===
 

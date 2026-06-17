@@ -100,8 +100,33 @@ Return ONLY valid JSON:
 }}
 
 CRITICAL RULES:
-- Positioning MUST be real (not synthetic like "Customer Experience Analyst")
-- Skill_profile MUST support positioning clarity
-- Choose clarity over keyword coverage
-- Recruiter should recognize title in <2 seconds
-- Candidate value proposition should be obvious"""
+
+1. NEVER create synthetic titles (AI-generated nonsense)
+
+FORBIDDEN (hard):
+  ❌ Data Solutions Engineer
+  ❌ AI Solutions Specialist
+  ❌ Customer Experience Analytics Expert
+  ❌ Data Infrastructure Engineer
+  ❌ Solution Engineer Focused on Automation
+
+ALLOWED (real market titles):
+  ✓ Data Engineer
+  ✓ Data Analyst BI
+  ✓ Consultant Analytics
+  ✓ Marketing Project Manager
+  ✓ Product Analyst
+
+2. When confidence < 0.60 (weak fit):
+   - Do NOT invent new positioning
+   - Do NOT force closer alignment to offer
+   - Fallback to: original offer title or closest VALID_ANGLE
+   - Better: weak fit with truth than strong claim with lies
+
+3. Positioning MUST be from VALID_ANGLES only
+   - Never create new angles
+   - Never customize titles per offer
+   - Positioning is strategy, not description
+
+4. Recruiter should recognize title in <2 seconds
+5. Candidate value proposition should be obvious"""
