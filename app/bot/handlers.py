@@ -663,22 +663,29 @@ async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             logger.info("[LETTER] Starting letter generation for app_id=%s, positioning=%s", app.id, positioning)
 
         # Generate letter (FIX: was calling generate_cv instead of generate_letter)
+        logger.info("[LETTER] Calling generate_letter for app_id=%s", app.id)
         await GenerationAgent.generate_letter(db, app.id, analysis, positioning, user_id)
+        logger.info("[LETTER] generate_letter completed")
         mark_application_as_generated(db, app.id)
 
         if config.DEBUG_TELEGRAM_STEPS:
             await progress_msg.edit_text("Lettre : rendu HTML...")
             logger.info("[LETTER] Letter generation complete, retrieving document")
 
+        logger.info("[LETTER] Querying GeneratedDocument for app_id=%s with type=letter", app.id)
         doc = db.query(GeneratedDocument).filter(
             GeneratedDocument.application_id == app.id,
             GeneratedDocument.document_type == DocumentTypeEnum.letter
         ).first()
+        logger.info("[LETTER] Query result: doc=%s", doc)
 
         if not doc:
+            logger.error("[LETTER] Document not found for app_id=%s, checking all docs", app.id)
+            all_docs = db.query(GeneratedDocument).filter(
+                GeneratedDocument.application_id == app.id
+            ).all()
+            logger.error("[LETTER] All docs for app_id=%s: %s", app.id, [(d.id, d.document_type, d.filename) for d in all_docs])
             await query.message.reply_text("❌ Lettre : Document non créé.")
-            if config.DEBUG_TELEGRAM_STEPS:
-                logger.error("[LETTER] Document not found after generation for app_id=%s", app.id)
             return
 
         # Validate file
