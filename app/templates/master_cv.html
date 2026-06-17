@@ -47,16 +47,25 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 </div>
 
 <div class="top-subtitle">
-{{ adaptation.title }}
+{{ adaptation.title or positioning or analysis_job_title or "Data & AI Analyst" }}
 </div>
 
 <div class="contact-line">
-{{ master_cv.personal_info.location }}{% if master_cv.personal_info.email %} · {{ master_cv.personal_info.email }}{% endif %} · {% if master_cv.personal_info.phone %}{{ master_cv.personal_info.phone }}{% endif %} · {{ master_cv.personal_info.linkedin }} · {{ master_cv.personal_info.github }}{% if master_cv.personal_info.portfolio %} · {{ master_cv.personal_info.portfolio }}{% endif %}
+{% set contact_items = [] %}
+{% if master_cv.personal_info.location %}{% set _ = contact_items.append(master_cv.personal_info.location) %}{% endif %}
+{% if master_cv.personal_info.email %}{% set _ = contact_items.append(master_cv.personal_info.email) %}{% endif %}
+{% if master_cv.personal_info.phone %}{% set _ = contact_items.append(master_cv.personal_info.phone) %}{% endif %}
+{% if master_cv.personal_info.linkedin %}{% set _ = contact_items.append(master_cv.personal_info.linkedin) %}{% endif %}
+{% if master_cv.personal_info.github %}{% set _ = contact_items.append(master_cv.personal_info.github) %}{% endif %}
+{% if master_cv.personal_info.portfolio %}{% set _ = contact_items.append(master_cv.personal_info.portfolio) %}{% endif %}
+{{ contact_items|join(" · ") }}
 </div>
 
+{% if adaptation.summary and adaptation.summary.strip() %}
 <div class="intro">
 {{ adaptation.summary }}
 </div>
+{% endif %}
 
 <section class="section">
 <h2 class="section-title">Experience</h2>
@@ -68,10 +77,10 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
     <div class="job">
       <div class="job-head">
         <div>
-          <div class="job-title">{{ exp.title }}</div>
-          <div class="job-company">{{ exp.company }}{% if exp.context %} · {{ exp.context }}{% endif %}</div>
+          <div class="job-title">{{ exp.title or "" }}</div>
+          <div class="job-company">{{ exp.company or "" }}{% if exp.context %} · {{ exp.context }}{% endif %}</div>
         </div>
-        <div class="job-date">{{ exp.dates }}</div>
+        <div class="job-date">{{ exp.dates or "" }}</div>
       </div>
       <ul>
         {% for bullet in adaptation.experience_bullets[exp_id_str] %}
@@ -94,10 +103,10 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
     <div class="job">
       <div class="job-head">
         <div>
-          <div class="job-title">{{ proj.title }}</div>
-          {% if proj.stack %}<div class="job-company">{{ proj.stack }}</div>{% endif %}
+          <div class="job-title">{{ proj.title or "" }}</div>
+          {% if proj.stack %}<div class="job-company">{{ proj.stack or "" }}</div>{% endif %}
         </div>
-        {% if proj.dates %}<div class="job-date">{{ proj.dates }}</div>{% endif %}
+        {% if proj.dates %}<div class="job-date">{{ proj.dates or "" }}</div>{% endif %}
       </div>
       <ul>
         {% for bullet in adaptation.project_bullets[proj_id_str] %}
@@ -145,8 +154,8 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 
 {% for edu in master_cv.education %}
 <div class="edu-item">
-  <div class="edu-title">{{ edu.title }}</div>
-  <div class="edu-meta">{{ edu.school }}{% if edu.year %} · {{ edu.year }}{% endif %}</div>
+  <div class="edu-title">{{ edu.title or "" }}</div>
+  <div class="edu-meta">{{ edu.school or "" }}{% if edu.year %} · {{ edu.year }}{% endif %}</div>
 </div>
 {% endfor %}
 
@@ -157,11 +166,11 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 
 <div class="simple-text">
 {% for cert in master_cv.certifications %}
-{{ cert.name }}<br>
+{{ cert.name or "" }}<br>
 {% endfor %}
 <br>
 {% for lang in master_cv.languages %}
-{{ lang.name }} – {{ lang.level }}<br>
+{{ lang.name or "" }} – {{ lang.level or "Intermediate" }}<br>
 {% endfor %}
 </div>
 

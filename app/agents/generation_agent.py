@@ -39,10 +39,11 @@ class GenerationAgent:
         # FIXED ordering (never changes)
         fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
         default_proj_ids = [0, 1, 2]  # Elevia, Job Apply Assistant, V.I.E Matcher
+        default_summary = "Business-oriented profile combining data analysis, reporting, automation and stakeholder collaboration across international environments. Experienced in transforming information into actionable insights to support business decisions and operational efficiency."
 
         adaptation = {
             "title": positioning,
-            "summary": "",
+            "summary": default_summary,
             "experience_order": fixed_exp_order,
             "experience_bullets": {
                 str(i): master_cv["experiences"][i].get("bullets", [])
@@ -136,6 +137,70 @@ class GenerationAgent:
         return text.strip()
 
     @staticmethod
+    def _validate_rendered_html(html: str) -> dict:
+        """Validate rendered HTML for common rendering issues.
+
+        Returns dict with:
+        - is_valid: bool
+        - issues: list of issue strings
+        """
+        issues = []
+
+        # Check for "None" string (Python None rendered as text)
+        if "None" in html:
+            # Find context for debugging
+            import re
+            matches = re.finditer(r'.{0,40}None.{0,40}', html)
+            for m in matches:
+                issues.append(f"Found 'None' text: ...{m.group()}...")
+                break  # Just report first occurrence
+
+        # Check for "null" string
+        if ">null<" in html or " null " in html or ">null<" in html:
+            issues.append("Found 'null' text in HTML")
+
+        # Check for duplicate separators in contact line
+        if " ·  · " in html or " ·   · " in html:
+            issues.append("Found duplicate separators in contact line")
+
+        # Check for empty intro section
+        if '<div class="intro"></div>' in html or '<div class="intro">\n</div>' in html:
+            issues.append("Found empty intro section (should be omitted)")
+
+        # Check for title rendering
+        if '<div class="top-subtitle"></div>' in html or '<div class="top-subtitle">\n</div>' in html:
+            issues.append("Title subtitle section is empty")
+
+        return {
+            "is_valid": len(issues) == 0,
+            "issues": issues,
+        }
+
+    @staticmethod
+    def _ensure_adaptation_defaults(adaptation: dict) -> dict:
+        """Ensure adaptation has safe defaults for all required fields.
+
+        Prevents None/empty values from rendering in HTML.
+        """
+        default_summary = "Business-oriented profile combining data analysis, reporting, automation and stakeholder collaboration across international environments. Experienced in transforming information into actionable insights to support business decisions and operational efficiency."
+
+        # Ensure title exists
+        if not adaptation.get("title") or not str(adaptation.get("title", "")).strip():
+            adaptation["title"] = "Data & AI Analyst"
+
+        # Ensure summary exists and is non-empty
+        if not adaptation.get("summary") or not str(adaptation.get("summary", "")).strip():
+            adaptation["summary"] = default_summary
+
+        # Ensure experience and project orders exist
+        if not adaptation.get("experience_order"):
+            adaptation["experience_order"] = []
+        if not adaptation.get("project_order"):
+            adaptation["project_order"] = []
+
+        return adaptation
+
+    @staticmethod
     def _clean_payload(payload: dict) -> dict:
         """Clean up CV payload, removing HTML/markdown."""
         if not payload:
@@ -221,6 +286,9 @@ class GenerationAgent:
                 # Fallback: use master CV with unchanged title/summary
                 adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
 
+            # Ensure all defaults are set
+            adaptation = GenerationAgent._ensure_adaptation_defaults(adaptation)
+
             logger.info(
                 f"CV adapted: title={adaptation.get('title', 'N/A')}, "
                 f"experiences_order={adaptation.get('experience_order', [])}, "
@@ -231,6 +299,9 @@ class GenerationAgent:
             logger.error(f"CV adaptation failed: {e}, using fallback")
             adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
 
+        # Ensure all defaults are set (always, even on success path)
+        adaptation = GenerationAgent._ensure_adaptation_defaults(adaptation)
+
         # Build context for master_cv.html template
         candidate = GenerationAgent._build_candidate_info(db)
 
@@ -238,10 +309,19 @@ class GenerationAgent:
             "candidate": candidate,
             "adaptation": adaptation,
             "master_cv": master_cv,
+            "positioning": positioning,
+            "analysis_job_title": analysis.get("job_title", "") if analysis else "",
         }
 
         # Render master_cv.html with adaptation payload
         html = render_cv(context, template_name="master_cv.html")
+
+        # Validate rendered HTML
+        validation = GenerationAgent._validate_rendered_html(html)
+        if not validation["is_valid"]:
+            logger.warning(f"CV HTML validation issues: {validation['issues']}")
+        else:
+            logger.info(f"CV HTML validation passed")
 
         filepath = get_output_path(application_id, "cv")
         save_document(html, filepath)
