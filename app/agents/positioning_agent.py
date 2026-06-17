@@ -7,11 +7,11 @@ logger = logging.getLogger(__name__)
 VALID_ANGLES = [
     "Data Analyst BI",
     "Marketing Data Analyst",
-    "Data & AI Project Analyst",
-    "Automation / AI Workflow Analyst",
     "Data Steward / Data Quality",
     "Business Analyst orienté data",
+    "Data & AI Consultant",
     "Product / Ops Analyst",
+    "Business Intelligence Analyst",
 ]
 
 class PositioningAgent:

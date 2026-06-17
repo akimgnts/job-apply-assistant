@@ -183,6 +183,30 @@ STEP 2: Summary
 - Max 70 words
 - For finance/business roles: leave empty (experience speaks for itself)
 
+VOCABULARY RULES (AGENT ALIGNMENT V2):
+Sound junior-to-mid level. Be honest.
+
+FORBIDDEN (exaggerates):
+  expert, extensive experience, architected, managed, owned, mentored, led,
+  enterprise-grade, robust and scalable, advanced expertise, seasoned,
+  specialist in, driving, spearheaded, pioneer, world-class, cutting-edge
+
+PREFERRED (authentic):
+  background in, exposure to, worked on, contributed to, supported,
+  experience across, combining, focused on, collaborated with, helped deliver
+
+PRESERVE IDENTITY (candidate is multi-dimensional):
+  Do NOT collapse into single domain
+  Keep: stakeholders, international, communication, business understanding,
+        cross-functional work, reporting, coordination
+
+Example of WRONG (collapses identity):
+  "Data engineer with expertise in Python and SQL"
+
+Example of RIGHT (preserves identity):
+  "Data-oriented profile combining data engineering, reporting, and
+  stakeholder coordination across international teams"
+
 STEP 3: Experience Order
 - DO NOT REORDER experiences
 - Order is FIXED: [0, 1, 2]
@@ -215,16 +239,23 @@ Business understanding > keyword density.
 SIDEL EXPERIENCE (Experience #0) — FLAGSHIP ANCHOR
 
 Sidel = strongest experience (2-year international B2B apprenticeship).
-PREMIUM bullet density: 6-7 bullets (not fewer).
-Represents 40-50% of experience section.
+PREMIUM bullet density: 6-7 bullets (not fewer, not 3-4).
+Represents 40-50% of experience section (typically 15-20 lines in CV).
 Reader understands in <20 seconds why it matters.
 
-SIGNAL RULES for Sidel:
+PRESERVE IDENTITY RULE:
+Never compress Sidel into single domain.
+Candidate is: Data + Analytics + Automation + Business + Communication.
+All dimensions are strengths. Do NOT erase them.
+
+SIGNAL RULES for Sidel (preserve multi-dimensional nature):
 1. Business context (international, B2B, scale)
-2. Stakeholders (European teams, cross-functional coordination)
-3. Responsibilities (data, reporting, decision support)
-4. Breadth (multiple domains, multiple tools)
-5. Impact (what problems solved, who benefited)
+2. Stakeholders (European teams, cross-functional, communication)
+3. Data responsibilities (consolidation, analysis, quality)
+4. Reporting (dashboards, KPIs, visibility for decision-making)
+5. Tools & breadth (Power BI, SQL, Snowflake, Excel, Python)
+6. Automation & coordination (workflows, processes, improvements)
+7. International scope (European teams, multinational context)
 
 Core evidence to ALWAYS preserve:
 1. Multi-source data consolidation + business purpose

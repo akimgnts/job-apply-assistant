@@ -25,14 +25,21 @@ Example:
 Bad: "Role involves CRM, reporting, analytics → Analyst"
 Good: "Role manages marketing projects with CRM tools → Project Manager"
 
-VALID POSITIONING ANGLES (real market titles):
+VALID POSITIONING ANGLES (real market titles recruiters actually use):
 1. Data Analyst BI
 2. Marketing Data Analyst
-3. Data & AI Project Analyst
-4. Automation / AI Workflow Analyst
-5. Data Steward / Data Quality
-6. Business Analyst orienté data
-7. Product / Ops Analyst
+3. Data Steward / Data Quality
+4. Business Analyst orienté data
+5. Data & AI Consultant
+6. Product / Ops Analyst
+7. Business Intelligence Analyst
+
+INVALID (synthetic AI-generated titles — NEVER use):
+❌ Data Infrastructure Engineer (too specific, not a market title)
+❌ Customer Experience Marketing Analyst (made-up)
+❌ Solution Engineer Focused on Automation (jargon, not recruiter-searchable)
+❌ AI Solutions Specialist (marketing speak)
+❌ Team Lead (authority claim if not held)
 
 SKILL PROFILES (determine CV emphasis):
 
