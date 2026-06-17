@@ -190,6 +190,7 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
         skill_profile: str = "general_business_data",
+        telegram_user_id: str = None,
     ) -> str:
         """Generate CV by adapting Master CV. Never invent content.
 
@@ -247,15 +248,18 @@ class GenerationAgent:
 
         doc = GeneratedDocument(
             application_id=application_id,
+            telegram_user_id=telegram_user_id or "",
             document_type=DocumentTypeEnum.cv,
             filename=filepath.name,
             content=html,
             file_path=str(filepath),
+            positioning=positioning,
+            skill_profile=skill_profile,
         )
         db.add(doc)
         db.commit()
 
-        logger.info(f"Generated CV for application {application_id}")
+        logger.info(f"Generated CV for application {application_id} user={telegram_user_id}")
         return html
 
     @staticmethod
@@ -337,6 +341,7 @@ class GenerationAgent:
         positioning: str,
         document_types: list[str] = None,
         skill_profile: str = "general_business_data",
+        telegram_user_id: str = None,
     ) -> dict[str, str]:
         """Generate requested documents using skill profile."""
         if document_types is None:
@@ -345,11 +350,11 @@ class GenerationAgent:
         results = {}
 
         if "cv" in document_types:
-            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile)
+            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile, telegram_user_id)
         if "letter" in document_types:
             results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning)
         if "mail" in document_types:
             results["mail"] = await GenerationAgent.generate_mail(db, application_id, analysis, positioning)
 
-        logger.info(f"Generated documents for application {application_id}: {list(results.keys())} with skill_profile={skill_profile}")
+        logger.info(f"Generated documents for application {application_id}: {list(results.keys())} with skill_profile={skill_profile} user={telegram_user_id}")
         return results

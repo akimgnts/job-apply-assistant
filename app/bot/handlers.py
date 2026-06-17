@@ -437,7 +437,7 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
         # Generate CV
-        await GenerationAgent.generate_cv(db, app.id, analysis, positioning, skill_profile)
+        await GenerationAgent.generate_cv(db, app.id, analysis, positioning, skill_profile, user_id)
         mark_application_as_generated(db, app.id)
 
         # Get document
@@ -475,8 +475,8 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 filename=safe_filename
             )
     except Exception as e:
-        logger.error(f"Error generating CV: {e}")
-        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+        logger.error(f"Error generating CV: {e}", exc_info=True)
+        await query.answer("Une erreur est survenue. Consultez les logs.")
     finally:
         db.close()
 
@@ -595,8 +595,8 @@ async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
                 filename=doc.filename
             )
     except Exception as e:
-        logger.error(f"Error generating letter: {e}")
-        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+        logger.error(f"Error generating letter: {e}", exc_info=True)
+        await query.answer("Une erreur est survenue. Consultez les logs.")
     finally:
         db.close()
 
@@ -642,8 +642,8 @@ async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 filename=doc.filename
             )
     except Exception as e:
-        logger.error(f"Error generating mail: {e}")
-        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+        logger.error(f"Error generating mail: {e}", exc_info=True)
+        await query.answer("Une erreur est survenue. Consultez les logs.")
     finally:
         db.close()
 
@@ -675,7 +675,7 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
         # Generate all documents
-        await GenerationAgent.generate_documents(db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile)
+        await GenerationAgent.generate_documents(db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile, user_id)
         mark_application_as_generated(db, app.id)
 
         await query.edit_message_text("✅ Documents générés!", reply_markup=save_or_regenerate_menu())
@@ -692,8 +692,8 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 filename=doc.filename
             )
     except Exception as e:
-        logger.error(f"Error generating all: {e}")
-        await query.answer(f"Erreur: {str(e)}", show_alert=True)
+        logger.error(f"Error generating all: {e}", exc_info=True)
+        await query.answer("Une erreur est survenue. Consultez les logs.")
     finally:
         db.close()
 
