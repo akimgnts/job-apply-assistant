@@ -409,9 +409,9 @@ async def view_match_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle generate CV button."""
+    """Handle generate CV button with step-by-step progress."""
     query = update.callback_query
-    await query.answer("⏳ Génération du CV...")
+    await query.answer()
 
     user_id = str(query.from_user.id)
 
@@ -420,8 +420,14 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
 
     db = SessionLocal()
+    progress_msg = None
 
     try:
+        # Send initial progress message
+        progress_msg = await query.message.reply_text("CV : demande reçue.")
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[CV] Request received, app_id=%s, user_id=%s", app_id, user_id)
+
         if app_id:
             from app.database.models import Application
             app = db.query(Application).filter_by(id=app_id).first()
@@ -429,16 +435,36 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             app = get_last_application(db, user_id)
 
         if not app:
-            await query.answer("Aucune offre en cours", show_alert=True)
+            await query.message.reply_text("❌ CV : Aucune offre en cours.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[CV] No application found for user_id=%s", user_id)
             return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("CV : récupération de l'analyse...")
+            logger.info("[CV] Loading analysis for app_id=%s", app.id)
 
         analysis = app.analyses[0].analysis_json if app.analyses else None
         positioning = app.recommended_angle
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
+        if not analysis:
+            await query.message.reply_text("❌ CV : Analyse non trouvée.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[CV] No analysis found for app_id=%s", app.id)
+            return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("CV : génération du contenu...")
+            logger.info("[CV] Starting CV generation for app_id=%s, positioning=%s, skill_profile=%s", app.id, positioning, skill_profile)
+
         # Generate CV
         await GenerationAgent.generate_cv(db, app.id, analysis, positioning, skill_profile, user_id)
         mark_application_as_generated(db, app.id)
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("CV : rendu HTML...")
+            logger.info("[CV] CV generation complete, retrieving document")
 
         # Get document
         from app.database.models import GeneratedDocument
@@ -447,39 +473,72 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             GeneratedDocument.document_type == "cv"
         ).first()
 
-        if doc:
-            # Generate safe filename
-            safe_filename = safe_document_filename(
-                candidate_name=config.CANDIDATE_NAME or "Akim_Guentas",
-                job_title=app.job_title or "Position",
-                company=app.company or "Company",
-                document_type="CV",
-                extension="pdf"
-            )
+        if not doc:
+            await query.message.reply_text("❌ CV : Document non créé.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[CV] Document not found after generation for app_id=%s", app.id)
+            return
 
-            # Update document record with metadata
-            doc.filename = safe_filename
-            doc.positioning = positioning
-            doc.skill_profile = skill_profile
-            doc.telegram_user_id = user_id
-            db.commit()
+        # Validate file
+        if not doc.content or len(doc.content.strip()) == 0:
+            await query.message.reply_text("❌ CV : Contenu vide.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[CV] Document content is empty for app_id=%s", app.id)
+            return
 
-            logger.info(f"CV generated: {safe_filename} for app_id={app.id}")
+        # Generate safe filename
+        safe_filename = safe_document_filename(
+            candidate_name=config.CANDIDATE_NAME or "Akim_Guentas",
+            job_title=app.job_title or "Position",
+            company=app.company or "Company",
+            document_type="CV",
+            extension="pdf"
+        )
 
-            # Format success message (HTML-first strategy)
-            text = "<b>CV HTML généré</b>\n\nTu peux l'ouvrir dans ton navigateur et l'imprimer en PDF si besoin."
+        # Update document record with metadata
+        doc.filename = safe_filename
+        doc.positioning = positioning
+        doc.skill_profile = skill_profile
+        doc.telegram_user_id = user_id
+        db.commit()
 
-            await query.edit_message_text(text, parse_mode=ParseMode.HTML, reply_markup=save_or_regenerate_menu())
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[CV] Document metadata updated: filename=%s, size=%d bytes", safe_filename, len(doc.content))
 
-            # Send HTML file (not PDF)
-            html_filename = safe_filename.replace(".pdf", ".html")
-            await query.message.reply_document(
-                document=doc.content.encode(),
-                filename=html_filename
-            )
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("CV : envoi du fichier...")
+
+        # Format success message (HTML-first strategy)
+        text = "<b>✅ CV généré</b>\n\nOuvriras le fichier dans ton navigateur et imprime en PDF si besoin."
+
+        await query.edit_message_text(text, parse_mode=ParseMode.HTML, reply_markup=save_or_regenerate_menu())
+
+        # Send HTML file (not PDF)
+        html_filename = safe_filename.replace(".pdf", ".html")
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[CV] Sending file: %s", html_filename)
+
+        await query.message.reply_document(
+            document=doc.content.encode(),
+            filename=html_filename
+        )
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.delete()
+            logger.info("[CV] CV generation complete and sent for app_id=%s", app.id)
+
     except Exception as e:
-        logger.error(f"Error generating CV: {e}", exc_info=True)
-        await query.answer("Une erreur est survenue. Consultez les logs.")
+        logger.error("[CV] Error: %s", str(e), exc_info=True)
+        error_msg = f"❌ CV : Erreur lors de la génération."
+        if config.DEBUG_TELEGRAM_ERRORS:
+            error_msg += f"\n\n{str(e)[:200]}"
+        await query.message.reply_text(error_msg)
+        if progress_msg:
+            try:
+                await progress_msg.delete()
+            except:
+                pass
     finally:
         db.close()
 
@@ -558,17 +617,23 @@ async def view_match_with_app_callback(update: Update, context: ContextTypes.DEF
 
 
 async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle generate letter button."""
+    """Handle generate letter button with step-by-step progress."""
     query = update.callback_query
-    await query.answer("⏳ Génération de la lettre...")
+    await query.answer()
 
     callback_parts = query.data.split(":")
     app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
     user_id = str(query.from_user.id)
 
     db = SessionLocal()
+    progress_msg = None
 
     try:
+        # Send initial progress message
+        progress_msg = await query.message.reply_text("Lettre : demande reçue.")
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[LETTER] Request received, app_id=%s, user_id=%s", app_id, user_id)
+
         if app_id:
             from app.database.models import Application
             app = db.query(Application).filter_by(id=app_id).first()
@@ -576,14 +641,35 @@ async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             app = get_last_application(db, user_id)
 
         if not app:
-            await query.answer("Aucune offre en cours", show_alert=True)
+            await query.message.reply_text("❌ Lettre : Aucune offre en cours.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[LETTER] No application found for user_id=%s", user_id)
             return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Lettre : récupération de l'analyse...")
+            logger.info("[LETTER] Loading analysis for app_id=%s", app.id)
 
         analysis = app.analyses[0].analysis_json if app.analyses else None
         positioning = app.recommended_angle
 
-        await GenerationAgent.generate_cv(db, app.id, analysis, positioning)
+        if not analysis:
+            await query.message.reply_text("❌ Lettre : Analyse non trouvée.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[LETTER] No analysis found for app_id=%s", app.id)
+            return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Lettre : génération du contenu...")
+            logger.info("[LETTER] Starting letter generation for app_id=%s, positioning=%s", app.id, positioning)
+
+        # Generate letter (FIX: was calling generate_cv instead of generate_letter)
+        await GenerationAgent.generate_letter(db, app.id, analysis, positioning, user_id)
         mark_application_as_generated(db, app.id)
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Lettre : rendu HTML...")
+            logger.info("[LETTER] Letter generation complete, retrieving document")
 
         from app.database.models import GeneratedDocument
         doc = db.query(GeneratedDocument).filter(
@@ -591,31 +677,72 @@ async def gen_letter_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             GeneratedDocument.document_type == "letter"
         ).first()
 
-        if doc:
-            await query.edit_message_text("✅ Lettre générée!", reply_markup=save_or_regenerate_menu())
-            await query.message.reply_document(
-                document=doc.content.encode(),
-                filename=doc.filename
-            )
+        if not doc:
+            await query.message.reply_text("❌ Lettre : Document non créé.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[LETTER] Document not found after generation for app_id=%s", app.id)
+            return
+
+        # Validate file
+        if not doc.content or len(doc.content.strip()) == 0:
+            await query.message.reply_text("❌ Lettre : Contenu vide.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[LETTER] Document content is empty for app_id=%s", app.id)
+            return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[LETTER] Document retrieved: filename=%s, size=%d bytes", doc.filename, len(doc.content))
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Lettre : envoi du fichier...")
+
+        await query.edit_message_text("✅ Lettre générée!", reply_markup=save_or_regenerate_menu())
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[LETTER] Sending file: %s", doc.filename)
+
+        await query.message.reply_document(
+            document=doc.content.encode(),
+            filename=doc.filename
+        )
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.delete()
+            logger.info("[LETTER] Letter generation complete and sent for app_id=%s", app.id)
+
     except Exception as e:
-        logger.error(f"Error generating letter: {e}", exc_info=True)
-        await query.answer("Une erreur est survenue. Consultez les logs.")
+        logger.error("[LETTER] Error: %s", str(e), exc_info=True)
+        error_msg = f"❌ Lettre : Erreur lors de la génération."
+        if config.DEBUG_TELEGRAM_ERRORS:
+            error_msg += f"\n\n{str(e)[:200]}"
+        await query.message.reply_text(error_msg)
+        if progress_msg:
+            try:
+                await progress_msg.delete()
+            except:
+                pass
     finally:
         db.close()
 
 
 async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle generate mail button."""
+    """Handle generate mail button with step-by-step progress."""
     query = update.callback_query
-    await query.answer("⏳ Génération du mail...")
+    await query.answer()
 
     callback_parts = query.data.split(":")
     app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
     user_id = str(query.from_user.id)
 
     db = SessionLocal()
+    progress_msg = None
 
     try:
+        # Send initial progress message
+        progress_msg = await query.message.reply_text("Mail : demande reçue.")
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[MAIL] Request received, app_id=%s, user_id=%s", app_id, user_id)
+
         if app_id:
             from app.database.models import Application
             app = db.query(Application).filter_by(id=app_id).first()
@@ -623,14 +750,35 @@ async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             app = get_last_application(db, user_id)
 
         if not app:
-            await query.answer("Aucune offre en cours", show_alert=True)
+            await query.message.reply_text("❌ Mail : Aucune offre en cours.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[MAIL] No application found for user_id=%s", user_id)
             return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Mail : récupération de l'analyse...")
+            logger.info("[MAIL] Loading analysis for app_id=%s", app.id)
 
         analysis = app.analyses[0].analysis_json if app.analyses else None
         positioning = app.recommended_angle
 
-        await GenerationAgent.generate_cv(db, app.id, analysis, positioning)
+        if not analysis:
+            await query.message.reply_text("❌ Mail : Analyse non trouvée.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[MAIL] No analysis found for app_id=%s", app.id)
+            return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Mail : génération du contenu...")
+            logger.info("[MAIL] Starting mail generation for app_id=%s, positioning=%s", app.id, positioning)
+
+        # Generate mail (FIX: was calling generate_cv instead of generate_mail)
+        await GenerationAgent.generate_mail(db, app.id, analysis, positioning)
         mark_application_as_generated(db, app.id)
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Mail : préparation du fichier...")
+            logger.info("[MAIL] Mail generation complete, retrieving document")
 
         from app.database.models import GeneratedDocument
         doc = db.query(GeneratedDocument).filter(
@@ -638,31 +786,72 @@ async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             GeneratedDocument.document_type == "mail"
         ).first()
 
-        if doc:
-            await query.edit_message_text("✅ Mail généré!", reply_markup=save_or_regenerate_menu())
-            await query.message.reply_document(
-                document=doc.content.encode(),
-                filename=doc.filename
-            )
+        if not doc:
+            await query.message.reply_text("❌ Mail : Document non créé.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[MAIL] Document not found after generation for app_id=%s", app.id)
+            return
+
+        # Validate file
+        if not doc.content or len(doc.content.strip()) == 0:
+            await query.message.reply_text("❌ Mail : Contenu vide.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[MAIL] Document content is empty for app_id=%s", app.id)
+            return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[MAIL] Document retrieved: filename=%s, size=%d bytes", doc.filename, len(doc.content))
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Mail : envoi du fichier...")
+
+        await query.edit_message_text("✅ Mail généré!", reply_markup=save_or_regenerate_menu())
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[MAIL] Sending file: %s", doc.filename)
+
+        await query.message.reply_document(
+            document=doc.content.encode(),
+            filename=doc.filename
+        )
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.delete()
+            logger.info("[MAIL] Mail generation complete and sent for app_id=%s", app.id)
+
     except Exception as e:
-        logger.error(f"Error generating mail: {e}", exc_info=True)
-        await query.answer("Une erreur est survenue. Consultez les logs.")
+        logger.error("[MAIL] Error: %s", str(e), exc_info=True)
+        error_msg = f"❌ Mail : Erreur lors de la génération."
+        if config.DEBUG_TELEGRAM_ERRORS:
+            error_msg += f"\n\n{str(e)[:200]}"
+        await query.message.reply_text(error_msg)
+        if progress_msg:
+            try:
+                await progress_msg.delete()
+            except:
+                pass
     finally:
         db.close()
 
 
 async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle generate all documents button."""
+    """Handle generate all documents button with step-by-step progress."""
     query = update.callback_query
-    await query.answer("⏳ Génération de tous les documents...")
+    await query.answer()
 
     callback_parts = query.data.split(":")
     app_id = int(callback_parts[1]) if len(callback_parts) > 1 else None
     user_id = str(query.from_user.id)
 
     db = SessionLocal()
+    progress_msg = None
 
     try:
+        # Send initial progress message
+        progress_msg = await query.message.reply_text("Documents : demande reçue.")
+        if config.DEBUG_TELEGRAM_STEPS:
+            logger.info("[ALL] Request received, app_id=%s, user_id=%s", app_id, user_id)
+
         if app_id:
             from app.database.models import Application
             app = db.query(Application).filter_by(id=app_id).first()
@@ -670,33 +859,86 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             app = get_last_application(db, user_id)
 
         if not app:
-            await query.answer("Aucune offre en cours", show_alert=True)
+            await query.message.reply_text("❌ Documents : Aucune offre en cours.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[ALL] No application found for user_id=%s", user_id)
             return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Documents : récupération de l'analyse...")
+            logger.info("[ALL] Loading analysis for app_id=%s", app.id)
 
         analysis = app.analyses[0].analysis_json if app.analyses else None
         positioning = app.recommended_angle
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
+        if not analysis:
+            await query.message.reply_text("❌ Documents : Analyse non trouvée.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.warning("[ALL] No analysis found for app_id=%s", app.id)
+            return
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Documents : génération du CV...")
+            logger.info("[ALL] Starting documents generation for app_id=%s", app.id)
+
         # Generate all documents
-        await GenerationAgent.generate_documents(db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile, user_id)
+        await GenerationAgent.generate_documents(
+            db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile, user_id
+        )
         mark_application_as_generated(db, app.id)
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.edit_text("Documents : envoi des fichiers...")
+            logger.info("[ALL] All documents generated, retrieving for send")
 
         await query.edit_message_text("✅ Documents générés!", reply_markup=save_or_regenerate_menu())
 
         # Send all documents
         from app.database.models import GeneratedDocument
         docs = db.query(GeneratedDocument).filter(
-            GeneratedDocument.application_id == app.id
+            GeneratedDocument.application_id == app.id,
+            GeneratedDocument.document_type.in_(["cv", "letter", "mail"])
         ).all()
 
+        if not docs:
+            await query.message.reply_text("❌ Documents : Aucun document créé.")
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.error("[ALL] No documents found after generation for app_id=%s", app.id)
+            return
+
+        sent_count = 0
         for doc in docs:
+            # Validate file before sending
+            if not doc.content or len(doc.content.strip()) == 0:
+                if config.DEBUG_TELEGRAM_STEPS:
+                    logger.warning("[ALL] Skipping empty document: %s", doc.document_type)
+                continue
+
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.info("[ALL] Sending %s: %s (%d bytes)", doc.document_type, doc.filename, len(doc.content))
+
             await query.message.reply_document(
                 document=doc.content.encode(),
                 filename=doc.filename
             )
+            sent_count += 1
+
+        if config.DEBUG_TELEGRAM_STEPS:
+            await progress_msg.delete()
+            logger.info("[ALL] All documents sent for app_id=%s (count=%d)", app.id, sent_count)
+
     except Exception as e:
-        logger.error(f"Error generating all: {e}", exc_info=True)
-        await query.answer("Une erreur est survenue. Consultez les logs.")
+        logger.error("[ALL] Error: %s", str(e), exc_info=True)
+        error_msg = f"❌ Documents : Erreur lors de la génération."
+        if config.DEBUG_TELEGRAM_ERRORS:
+            error_msg += f"\n\n{str(e)[:200]}"
+        await query.message.reply_text(error_msg)
+        if progress_msg:
+            try:
+                await progress_msg.delete()
+            except:
+                pass
     finally:
         db.close()
 

@@ -19,6 +19,7 @@ class Config:
     # Telegram
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     DEBUG_TELEGRAM_ERRORS = os.getenv("DEBUG_TELEGRAM_ERRORS", "false").lower() == "true"
+    DEBUG_TELEGRAM_STEPS = os.getenv("DEBUG_TELEGRAM_STEPS", "false").lower() == "true"
 
     # Candidate info
     CANDIDATE_NAME = os.getenv("CANDIDATE_NAME")
