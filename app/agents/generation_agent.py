@@ -371,15 +371,20 @@ class GenerationAgent:
 
         Uses gap analysis to inform tone + bridges.
         """
-        # Get gap analysis for context-aware letter
-        gap_assessment = await GapAnalysisAgent.analyze_gap(analysis, positioning)
+        try:
+            # Get gap analysis for context-aware letter
+            gap_assessment = await GapAnalysisAgent.analyze_gap(analysis, positioning)
 
-        # Generate letter payload (5 paragraphs)
-        letter_payload = await LetterAgent.generate_letter_payload(
-            analysis,
-            positioning,
-            gap_assessment,
-        )
+            # Generate letter payload (5 paragraphs)
+            letter_payload = await LetterAgent.generate_letter_payload(
+                analysis,
+                positioning,
+                gap_assessment,
+            )
+
+        except Exception as e:
+            logger.error(f"Letter generation failed: {e}, using fallback")
+            letter_payload = LetterAgent._build_fallback_letter(analysis)
 
         # Build context for template
         candidate = GenerationAgent._build_candidate_info(db)
