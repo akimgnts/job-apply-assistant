@@ -1,132 +1,98 @@
 # CV Evaluation Framework: 10-Offer Test
 
-## Freeze: No New Code (Except This)
+## Philosophy
 
-MVP is done. Code adds risk now, not value.
+**Best line of code to write: probably no new code.**
 
-**Only** build: evaluation system to measure reality.
+MVP is sophisticated enough. Next gain comes from:
+```
+10 offers → 10 CVs → 10 judgments → Patterns → 1 fix → Re-test
+```
 
----
-
-## 7 Metrics (Checklist + Notes)
-
-### 1. Title
-
-✓ Crédible (recruiter searchs it)
-✗ Synthétique (AI-generated nonsense)
-
-Examples:
-- ✓ Data Engineer, Data Analyst BI, Consultant Analytics
-- ✗ Data Infrastructure Specialist, AI Solutions Expert
-
-**Measure**: Crédible? oui/non
+Not from adding more agents/prompts.
 
 ---
 
-### 2. Summary
+## Primary KPI: Would Send?
 
-Trois questions:
+**One question**:
 
-- Humain? (reads like real person, not template)
-- Crédible? (claims match Sidel facts)
-- Niveau? (junior-mid, not overselling)
+```json
+{
+  "would_send": true
+}
+```
 
-Examples:
-- ✓ "Background in data analysis, reporting, and automation across international teams"
-- ✗ "Seasoned data expert with extensive expertise in enterprise-grade systems"
+or
 
-**Measure**: humain/crédible/niveau → oui/oui/ok or non/non/senior_inflation
+```json
+{
+  "would_send": false,
+  "why_not": [
+    "summary too generic",
+    "projects under-sold",
+    "title not credible"
+  ]
+}
+```
 
----
-
-### 3. Sidel Experience
-
-**Question**: Est-ce que Sidel ressemble à une vraie expérience?
-
-Not: polished, perfect, exaggerated.
-
-Yes: substantial, multi-faceted, evidence of depth.
-
-Check:
-- ✓ 6-7 bullets (not compressed)
-- ✓ Business context preserved (international, B2B)
-- ✓ Multi-dimensional (data + reporting + coordination)
-- ✓ Tools mentioned (SQL, Power BI, Snowflake)
-- ✗ Fake terms (architect, led, managed)
-
-**Measure**: ok/weak/exaggerated
+Binary only. No 8.7/10 scores. A perfect title is worthless if you don't send the CV.
 
 ---
 
-### 4. Projects
+## Secondary Metrics (If NO)
 
-**Question**: Sont-ils sous-vendus ou sur-vendus?
+If `would_send: false`, check:
 
-Check:
-- Elevia: 2 bullets, credible?
-- Job Apply Assistant: 2 bullets, credible?
-- V.I.E Matcher: 1 bullet, sufficient?
-- Total: ≤5 bullets
+### 1. Recognizable?
 
-Avoid:
-- ✗ "Startup-scale solution"
-- ✗ "Reached 1M users"
-- ✗ "Architected platform"
+**Q**: Would someone who knows Akim recognize him in this CV?
 
-Target:
-- ✓ "Built document canonicalization + scoring for job matching"
-- ✓ "Telegram bot integrating OpenAI for CV generation"
+Values: YES / NO
 
-**Measure**: oversold/undersold/ok
+Detects: False identity, over-transformation, exaggeration.
+
+Example: Pelico Team Lead "led initiatives" → NO (he didn't)
 
 ---
 
-### 5. Skills Order
+### 2. Human?
 
-**Question**: L'ordre est-il cohérent avec le positionnement?
+**Q**: Does this read like a real person?
 
-For Data Engineer: Backend + Data + Automation should lead.
-For Marketing: Business + Data + Creative should lead.
+Values: YES / NO
 
-Check:
-- First 3 skill sections match positioning
-- Order makes sense (not random)
-- No weird ranking
+Detects: ChatGPT-ness, template-speak, "Experienced in delivering...", "Skilled in..."
 
-**Measure**: coherent/incoherent
+Example: "Seasoned data expert with extensive expertise" → NO
 
 ---
 
-### 6. Red Flags
+### 3. Career Coherent?
 
-Scan for forbidden words:
+**Q**: Does this tell a credible career story?
 
-- expert
-- architect
-- managed
-- led
-- scalable platform
-- enterprise-grade
-- robust and scalable
-- world-class
-- cutting-edge
-- extensive experience
+Values: YES / NO
 
-**Measure**: red_flags_count (0 = good, 1+ = problem)
+Detects: Fake seniority jumps, implausible skill mix, level gaps.
+
+Example:
+- Ever.t Data Engineer → YES (natural progression)
+- Pelico Team Lead → NO (junior claiming lead)
 
 ---
 
-### 7. The Ultimate Test
+### 4. Technical Details (Secondary)
 
-**Simple question**:
+Only if primary metrics fail, check:
 
-> "Would I actually send this CV to a recruiter?"
+- Title credible?
+- Summary level appropriate?
+- Sidel substantial (6-7 bullets)?
+- Projects credible?
+- Red flags (expert, architect, managed, led)?
 
-No 7.8/10 scores.
-
-Binary:
-- YES (send)
-- NO (rework needed)
+But these matter only if `would_send: true`.
 
 ---
 
@@ -134,51 +100,34 @@ Binary:
 
 ```json
 {
-  "offer_company": "Sopra Steria",
-  "offer_title": "Consultant Analytics & IA",
-  "positioning_generated": "Data & AI Consultant",
-  "confidence_score": 0.78,
+  "offer": {
+    "company": "Sopra Steria",
+    "title": "Consultant Analytics & IA",
+    "date": "2026-06-17"
+  },
   
-  "evaluation": {
-    "title": {
-      "credible": true,
-      "notes": "Data & AI Consultant is real market title"
-    },
-    "summary": {
-      "humain": true,
-      "credible": true,
-      "niveau": "mid",
-      "notes": "No exaggeration, sounds authentic"
-    },
-    "sidel": {
-      "quality": "ok",
-      "bullet_count": 7,
-      "business_context_preserved": true,
-      "multidimensional": true,
-      "notes": "Good balance of data, reporting, coordination"
-    },
-    "projects": {
-      "elevia": 2,
-      "job_apply_assistant": 2,
-      "vie_matcher": 1,
-      "total": 5,
-      "quality": "ok",
-      "notes": "Projects support without overshadowing"
-    },
-    "skills": {
-      "order": "coherent",
-      "matches_positioning": true,
-      "notes": "Data & Analytics leads, reasonable for consultant role"
-    },
-    "red_flags": {
-      "count": 0,
-      "words_found": []
-    },
-    "would_send": true,
-    "notes": "Solid CV. Confident enough to send. Only minor issues if any."
-  }
+  "generated": {
+    "positioning": "Data & AI Consultant",
+    "confidence": 0.78
+  },
+  
+  "primary_kpi": {
+    "would_send": true
+  },
+  
+  "secondary_metrics": {
+    "recognizable": true,
+    "human": true,
+    "career_coherent": true
+  },
+  
+  "why_not": [],
+  
+  "notes": "Solid CV. Could send to recruiter with confidence."
 }
 ```
+
+If `would_send: false`, always fill `why_not` with specific reasons.
 
 ---
 
@@ -186,112 +135,85 @@ Binary:
 
 ### For Each Offer (10 times):
 
-1. Copy offer text/URL
-2. Feed to Job Apply Assistant
-3. Generate CV
-4. **Download HTML**
-5. **Read carefully** (not skim)
-6. **Fill evaluation form** above
-7. **Note issues** in "notes" field
-8. **Judge**: would_send = yes/no
+1. Generate CV
+2. Read carefully (2-3 min, not skim)
+3. Fill template above
+4. Answer: **would_send?** YES/NO
+5. If NO: list **why_not** reasons
 
 ### Then:
 
 Collect 10 evaluations.
 
-Analyze patterns:
-- What keeps failing?
-- What works well?
-- What surprises?
-- Which metrics matter most?
+Count:
+- would_send: YES → count
+- would_send: NO → analyze why_not
 
 ---
 
-## What NOT to Do
+## Expected Pattern Analysis
 
-❌ Add new agents
-❌ Tweak prompts speculatively
-❌ Optimize for metrics
-❌ Add new code features
+### Best Case (8+ YES)
 
-## What to Do
+- Minor issues (maybe 1-2 "projects under-sold")
+- MVP validates
+- Ready for recruiters
 
-✅ Run 10 tests
-✅ Collect honest evaluations
-✅ Spot patterns
-✅ Fix only what's broken
+### Mid Case (5-7 YES)
 
----
+- Clear pattern emerges (e.g., "always exaggerates titles")
+- Fix the pattern
+- Re-test
 
-## Expected Outcomes
+### Worst Case (< 5 YES)
 
-### Best Case
-- 8-10 CVs would send
-- Minor tweaks needed
-- MVP validation complete
-- Ready to show to recruiters
-
-### Worst Case
-- 3-5 CVs would send
-- Major pattern identified (e.g., "always oversells")
-- Clear fix identified
-- Iterate + re-test
-
-### Either way
-You now have **data**, not speculation.
+- System fundamentally broken
+- But at least you **know** what broke
+- Fix and iterate
 
 ---
 
-## Next: Based on Results
+## What's Important: The Insight
 
-Not: "Let's add P2, P3, P4..."
+Your job is not to score 10/10 on every metric.
 
-Yes: "10 tests show pattern X. Fix X. Re-test."
+Your job is to find **why people won't send**.
 
-That's iteration. That's product development.
+Examples:
+- "Summary too generic" → fix summary templates
+- "Recognizable: NO" → you're transforming too much
+- "Projects under-sold" → boost project bullets
+- "Red flags: 2" → OpenAI is hallucinating forbidden words
 
----
-
-## Tool: Evaluation Checklist (Copy-Paste)
-
-```
-Offer: [Company] - [Title]
-Positioning: [Generated title]
-Confidence: [Score]
-
-Title Credible? ☐ yes ☐ no → Notes:
-Summary Human? ☐ yes ☐ no → Notes:
-Summary Credible? ☐ yes ☐ no → Notes:
-Summary Level? ☐ ok ☐ overselling → Notes:
-Sidel Quality? ☐ ok ☐ weak ☐ exaggerated → Notes:
-Projects? ☐ ok ☐ undersold ☐ oversold → Notes:
-Skills Order? ☐ coherent ☐ incoherent → Notes:
-Red Flags? ☐ 0 ☐ 1+ → Count:
-
-Would Send? ☐ YES ☐ NO
-
-Overall Notes:
-```
-
----
-
-## Why This Works
-
-1. **Reality check**: Tests against real offers, not theory
-2. **Human judgment**: What matters to actual humans (send/no-send)
-3. **Pattern detection**: 10 data points reveal what to fix
-4. **No speculation**: You see actual problems, not imagined ones
-5. **Direction**: Results say "fix X, not Y"
+Each insight → 1 targeted fix → Re-test.
 
 ---
 
 ## Timeline
 
-- Day 1: Run 3 tests (Sopra, Ever.t, Pelico)
-- Day 2-3: Run 7 more tests (varied)
-- Day 4: Analyze results
-- Day 5+: Iterate based on patterns
+- **Day 1**: Run 3 tests (Sopra, Ever.t, Pelico)
+  - Quick assessment. Get immediate feedback.
+  
+- **Day 2-3**: Run 7 more (varied roles/levels)
+  - Find patterns across diversity.
+  
+- **Day 4**: Analyze
+  - What's the #1 issue?
+  - Is there a #2?
+  
+- **Day 5+**: Fix + re-test
+  - Not: "implement P2, P3, P4"
+  - Yes: "fix the one thing 10 tests revealed"
 
-Not: "Implement P2, P3, P4 first, then test"
+---
 
-Yes: "Test first. Results tell you what to build next"
+## The Principle
+
+No speculation. No architectural improvements.
+
+Just:
+```
+Data → Pattern → Fix → Repeat
+```
+
+This is how MVPs become real products.
