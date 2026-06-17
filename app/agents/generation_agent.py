@@ -271,6 +271,13 @@ class GenerationAgent:
         logger.info(f"Master CV loaded: {len(master_cv['experiences'])} experiences")
 
         try:
+            # BRIDGE: Reason about why this candidate fits this role
+            from app.agents.bridge_engine import BridgeEngine
+            bridge_reasoning = await BridgeEngine.reason_fit(analysis, positioning)
+            logger.info(f"Bridge reasoning: {bridge_reasoning.get('bridges', [])}")
+            if bridge_reasoning.get('gaps'):
+                logger.info(f"Identified gaps: {bridge_reasoning.get('gaps', [])}")
+
             # ADAPT: Get adaptation JSON (not full CV) with skill profile guidance
             adaptation = await CVAdaptationAgent.adapt_cv(
                 analysis,
