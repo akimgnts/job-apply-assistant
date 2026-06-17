@@ -217,7 +217,7 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             return
 
         documents = await GenerationAgent.generate_documents(
-            db, app.id, analysis, positioning, doc_types, skill_profile
+            db, app.id, analysis, positioning, doc_types, skill_profile, user_id
         )
 
         mark_application_as_generated(db, app.id)
@@ -773,7 +773,7 @@ async def gen_mail_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             logger.info("[MAIL] Starting mail generation for app_id=%s, positioning=%s", app.id, positioning)
 
         # Generate mail (FIX: was calling generate_cv instead of generate_mail)
-        await GenerationAgent.generate_mail(db, app.id, analysis, positioning)
+        await GenerationAgent.generate_mail(db, app.id, analysis, positioning, user_id)
         mark_application_as_generated(db, app.id)
 
         if config.DEBUG_TELEGRAM_STEPS:

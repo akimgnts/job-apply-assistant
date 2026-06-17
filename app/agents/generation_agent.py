@@ -418,6 +418,7 @@ class GenerationAgent:
         application_id: int,
         analysis: dict,
         positioning: str,
+        telegram_user_id: str = None,
     ) -> str:
         """Generate email to recruiter."""
         prompt = get_mail_prompt(analysis, positioning)
@@ -436,6 +437,7 @@ class GenerationAgent:
 
         doc = GeneratedDocument(
             application_id=application_id,
+            telegram_user_id=telegram_user_id or "",
             document_type=DocumentTypeEnum.mail,
             filename=filepath.name,
             content=mail,
@@ -444,7 +446,7 @@ class GenerationAgent:
         db.add(doc)
         db.commit()
 
-        logger.info(f"Generated mail for application {application_id}")
+        logger.info(f"Generated mail for application {application_id} user={telegram_user_id}")
         return mail
 
     @staticmethod
@@ -468,7 +470,7 @@ class GenerationAgent:
         if "letter" in document_types:
             results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning, telegram_user_id)
         if "mail" in document_types:
-            results["mail"] = await GenerationAgent.generate_mail(db, application_id, analysis, positioning)
+            results["mail"] = await GenerationAgent.generate_mail(db, application_id, analysis, positioning, telegram_user_id)
 
         logger.info(f"Generated documents for application {application_id}: {list(results.keys())} with skill_profile={skill_profile} user={telegram_user_id}")
         return results
