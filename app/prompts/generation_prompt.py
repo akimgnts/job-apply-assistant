@@ -42,6 +42,27 @@ Ask: "How can the candidate's existing experiences solve the problems behind thi
 
 The CV must make the recruiter think: "This person already looks like someone working in this role."
 
+WRITING STANDARD — MEMORABLE CANDIDATE
+
+Every bullet must follow this structure: Action verb → concrete result → business impact.
+
+GOOD: "Automated monthly reporting (previously 2–3 days manual work) → reduced to under 2 hours"
+GOOD: "Built 10 dashboards used weekly by 30–40 stakeholders across 3 teams"
+BAD: "Contributed to improving reporting efficiency through automation"
+
+FORBIDDEN words and phrases (never use):
+leveraged, synergized, spearheaded, streamlined, cutting-edge, state-of-the-art,
+value-added, best-in-class, robust, dynamic, proactively, strong communication skills,
+team player, results-oriented, passionate about, contributed to, helped improve,
+participated in, involved in, assisted with.
+
+RULES:
+- Use concrete numbers when they exist in the profile blocks (users, dashboards, customers, time saved, %)
+- Prefer "built and maintained 10 dashboards used by 30–40 stakeholders" over "created reporting tools"
+- Prefer "automated tasks that previously required half a day to several days" over "reduced manual effort"
+- Never soften real impact with vague qualifiers — state it directly
+- Active voice only: "Built", "Automated", "Analyzed", "Delivered", "Led", "Designed"
+
 ---
 
 JOB CONTEXT
@@ -75,10 +96,12 @@ STEP 1: Re-rank experiences
 - Focus on relevance to the job
 
 STEP 2: Rewrite experiences
-- Focus on business impact, KPIs, collaboration, stakeholders
-- Avoid keyword stuffing
-- Use active voice
-- Show decision support and process improvement
+- Every bullet = Action verb + concrete result + business impact
+- Use exact numbers from profile blocks (10 dashboards, 30–40 users, 61 customers, half a day saved, etc.)
+- No buzzwords — direct language only
+- Active voice: "Built", "Automated", "Analyzed", "Delivered", "Led"
+- Show what changed because of this person's work (before → after when data exists)
+- 3 bullets max per experience, each one must stand alone as a proof point
 
 STEP 3: Build output
 - Title: Job-aligned positioning (max 8 words)

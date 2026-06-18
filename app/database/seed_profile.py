@@ -37,21 +37,36 @@ PROFILE_BLOCKS = [
             "internal communication and content support, collaboration with European marketing and commercial teams, "
             "stakeholder presentations, process improvement and documentation. "
             "Tools: Excel, Power BI, Power Query, Python, SQL, Snowflake, Microsoft Dynamics. "
-            "Soft skills: stakeholder communication, cross-functional collaboration, business understanding, "
-            "analytical thinking. "
-            "Impact: Built and maintained around 10 dashboards and reporting tools used by approximately "
-            "30–40 stakeholders across marketing, communication and commercial teams — improved visibility, "
-            "facilitated decision-making and reduced manual reporting effort. "
-            "Automated data extraction and analysis tasks using Python scripts, reducing repetitive manual work "
-            "and improving consistency. "
-            "Analyzed Wines & Spirits installed base across 61 customers and produced commercial action plans "
-            "supporting business prioritization and proactive customer follow-up. "
-            "Worked with international teams across Europe, presented analyses and facilitated meetings."
+            "Soft skills: stakeholder communication, cross-functional collaboration, business understanding, analytical thinking. "
+
+            "REPORTING & BUSINESS VISIBILITY: "
+            "Built and maintained around 10 dashboards and reporting tools covering installed base, events and business KPIs. "
+            "Reports used weekly and monthly by marketing, commercial and management stakeholders — approximately 30–40 users. "
+            "Impact: increased visibility on key business indicators, improved monitoring of activities and priorities, "
+            "facilitated decision-making through structured reporting. "
+
+            "DATA AUTOMATION: "
+            "Automated recurring extraction, cleaning, consolidation and visualization tasks using Python, SQL, Excel and Power BI. "
+            "Previous manual processes could require half a day or even several days depending on the analysis. "
+            "Impact: reduced repetitive work, accelerated reporting activities, improved consistency and reliability of business analyses. "
+
+            "INSTALLED BASE ANALYSIS: "
+            "Analyzed installed base, equipment and service data across 61 customers in the Wines & Spirits sector. "
+            "Produced commercial action plans helping teams prioritize accounts according to machine age, "
+            "installed base evolution and business opportunities. "
+            "Impact: improved customer visibility, supported account prioritization, enabled proactive commercial actions and business monitoring. "
+
+            "INTERNATIONAL COLLABORATION: "
+            "Collaborated with international teams and stakeholders across Europe. "
+            "Presented analyses, action plans and project results in French and English. "
+            "Led meetings and discussions depending on project requirements. "
+            "Impact: improved communication between teams, increased alignment around priorities and business objectives, "
+            "supported cross-functional decision-making."
         ),
         "tags": [
             "data", "reporting", "powerbi", "excel", "sql", "python", "snowflake",
             "dynamics", "kpi", "dashboards", "b2b", "international", "stakeholders",
-            "data_quality", "power_query",
+            "data_quality", "power_query", "automation", "installed_base", "wines_spirits",
         ],
         "truth_level": TruthLevelEnum.verified,
         "priority": 10,
