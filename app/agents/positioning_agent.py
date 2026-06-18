@@ -50,16 +50,21 @@ class PositioningAgent:
                 logger.warning(f"Invalid skill_profile: {skill_profile}, using general_business_data")
                 skill_profile = "general_business_data"
 
+            strategic_brief = result.get("strategic_brief", {})
+
             logger.info(
                 f"Selected positioning={positioning}, "
-                f"skill_profile={skill_profile}"
+                f"skill_profile={skill_profile}, "
+                f"tone={strategic_brief.get('tone', 'N/A')}"
             )
             logger.debug(f"Reasoning: {reasoning}")
+            logger.debug(f"Strategic brief: {strategic_brief}")
 
             return {
                 "positioning": positioning,
                 "skill_profile": skill_profile,
                 "reasoning": reasoning,
+                "strategic_brief": strategic_brief,
             }
 
         except Exception as e:
@@ -68,4 +73,5 @@ class PositioningAgent:
                 "positioning": VALID_ANGLES[0],
                 "skill_profile": "general_business_data",
                 "reasoning": "Fallback due to error",
+                "strategic_brief": {},
             }

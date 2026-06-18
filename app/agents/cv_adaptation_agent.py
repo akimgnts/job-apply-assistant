@@ -23,14 +23,16 @@ class CVAdaptationAgent:
         positioning: str,
         master_cv_data: dict,
         skill_profile: str = "general_business_data",
+        strategic_brief: dict = None,
     ) -> dict:
-        """Adapt Master CV to job offer using skill profile.
+        """Adapt Master CV to job offer using skill profile and strategic brief.
 
         Args:
             analysis: Job analysis (company, skills, missions, etc.)
             positioning: Chosen positioning angle
             master_cv_data: Master CV structure with all content
             skill_profile: Skill profile key for emphasis rules
+            strategic_brief: Optional strategic brief from PositioningAgent
 
         Returns:
             Adaptation JSON:
@@ -51,6 +53,7 @@ class CVAdaptationAgent:
             positioning,
             master_cv_data,
             skill_profile,
+            strategic_brief,
         )
 
         try:

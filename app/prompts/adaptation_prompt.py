@@ -3,6 +3,7 @@ def get_cv_adaptation_prompt(
     positioning: str,
     master_cv: dict,
     skill_profile: str = "general_business_data",
+    strategic_brief: dict = None,
 ) -> str:
     """Prompt to adapt Master CV to job offer.
 
@@ -41,6 +42,41 @@ def get_cv_adaptation_prompt(
             for s in master_cv.get("skills", [])
         ]
     )
+
+    # Build strategic brief section if provided
+    brief_section = ""
+    if strategic_brief and isinstance(strategic_brief, dict) and strategic_brief:
+        narrative = strategic_brief.get("narrative_angle", "")
+        exp_prio = strategic_brief.get("experiences_to_prioritize", [])
+        proofs = strategic_brief.get("quantified_proofs_to_surface", [])
+        emph = strategic_brief.get("skills_to_emphasize", [])
+        reduce = strategic_brief.get("skills_to_reduce", [])
+        tone = strategic_brief.get("tone", "balanced")
+        bullets_hl = strategic_brief.get("bullets_to_highlight", {})
+
+        bullets_hl_text = ""
+        for exp_id_str, themes in bullets_hl.items():
+            bullets_hl_text += f"  Experience {exp_id_str}: {', '.join(themes)}\n"
+
+        brief_section = f"""
+---
+
+STRATEGIC BRIEF (from Positioning Agent — follow this closely)
+
+Narrative angle: {narrative}
+Tone: {tone}
+Experiences to anchor CV on: {exp_prio}
+Key themes to surface per experience:
+{bullets_hl_text or '  (none specified)'}
+Quantified proofs to use: {', '.join(proofs) if proofs else '(use all available)'}
+Skills to lead with: {', '.join(emph) if emph else '(see skill_profile rules)'}
+Skills to de-emphasize: {', '.join(reduce) if reduce else '(see skill_profile rules)'}
+
+Use this brief to make targeted decisions on emphasis and tone.
+Do NOT override ABSOLUTE RULES or invent content.
+
+---
+"""
 
     return f"""ROLE
 
@@ -109,7 +145,7 @@ Skills:
 {skills_text}
 
 ---
-
+{brief_section}
 ---
 
 SKILL PROFILE RULES

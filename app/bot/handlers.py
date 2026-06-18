@@ -132,11 +132,13 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         positioning_result = await PositioningAgent.choose_angle(analysis)
         positioning = positioning_result.get("positioning", "Data Analyst BI")
         skill_profile = positioning_result.get("skill_profile", "general_business_data")
+        strategic_brief = positioning_result.get("strategic_brief", {})
 
-        # Store skill_profile in context for document generation
+        # Store skill_profile + strategic_brief in context for document generation
         if context.user_data is None:
             context.user_data = {}
         context.user_data["skill_profile"] = skill_profile
+        context.user_data["strategic_brief"] = strategic_brief
 
         update_user_session(db, user_id, app.id, state="waiting_for_command")
 
@@ -200,8 +202,8 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             return
 
         positioning = analysis.get("recommended_angle", "Data Analyst BI")
-        # Retrieve skill_profile from context
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+        strategic_brief = context.user_data.get("strategic_brief", {}) if context.user_data else {}
 
         await update.message.chat.send_action("typing")
 
@@ -217,7 +219,8 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             return
 
         documents = await GenerationAgent.generate_documents(
-            db, app.id, analysis, positioning, doc_types, skill_profile
+            db, app.id, analysis, positioning, doc_types, skill_profile,
+            strategic_brief=strategic_brief
         )
 
         mark_application_as_generated(db, app.id)
@@ -435,9 +438,10 @@ async def gen_cv_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         analysis = app.analyses[0].analysis_json if app.analyses else None
         positioning = app.recommended_angle
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+        strategic_brief = context.user_data.get("strategic_brief", {}) if context.user_data else {}
 
         # Generate CV
-        await GenerationAgent.generate_cv(db, app.id, analysis, positioning, skill_profile, user_id)
+        await GenerationAgent.generate_cv(db, app.id, analysis, positioning, skill_profile, user_id, strategic_brief)
         mark_application_as_generated(db, app.id)
 
         # Get document
@@ -676,9 +680,10 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         analysis = app.analyses[0].analysis_json if app.analyses else None
         positioning = app.recommended_angle
         skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+        strategic_brief = context.user_data.get("strategic_brief", {}) if context.user_data else {}
 
         # Generate all documents
-        await GenerationAgent.generate_documents(db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile, user_id)
+        await GenerationAgent.generate_documents(db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile, user_id, strategic_brief)
         mark_application_as_generated(db, app.id)
 
         await query.edit_message_text("✅ Documents générés!", reply_markup=save_or_regenerate_menu())

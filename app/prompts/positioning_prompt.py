@@ -89,15 +89,46 @@ TASK:
 2. Identify PRIMARY ROLE (real market title)
 3. Identify SECONDARY DOMAINS (dimensions, not titles)
 4. Choose skill_profile that maximizes fit clarity
-5. Return positioning that recruiter immediately recognizes
+5. Build a strategic brief for CV generation
+6. Return positioning that recruiter immediately recognizes
 
 Return ONLY valid JSON:
 
 {{
   "positioning": "Real market title from angles above",
   "skill_profile": "Skill profile key that emphasizes role fit",
-  "reasoning": "Business purpose + primary role + why this skill_profile maximizes clarity"
+  "reasoning": "Business purpose + primary role + why this skill_profile maximizes clarity",
+  "strategic_brief": {{
+    "narrative_angle": "1–2 sentence brief: which version of the candidate to show for this role",
+    "experiences_to_prioritize": [0, 1],
+    "bullets_to_highlight": {{
+      "0": ["theme or keyword from Sidel bullets most relevant to this role"],
+      "1": ["theme or keyword from MadeByAkim bullets most relevant"]
+    }},
+    "quantified_proofs_to_surface": [
+      "10 dashboards, 30–40 stakeholders",
+      "61 customers Wines & Spirits",
+      "half a day to several days saved",
+      "100+ documents generated",
+      "45 min → 5 min"
+    ],
+    "skills_to_emphasize": ["Data & Analytics", "Business Systems"],
+    "skills_to_reduce": ["Creative & Delivery"],
+    "tone": "technical" or "business" or "balanced"
+  }}
 }}
+
+STRATEGIC BRIEF RULES:
+
+- narrative_angle: "Pour cette offre, quel Akim montre-t-on?" — one clear sentence
+- experiences_to_prioritize: which experience IDs (0=Sidel, 1=MadeByAkim, 2=Vassard) to anchor the CV on
+- bullets_to_highlight: per experience, which themes/keywords to surface most prominently
+- quantified_proofs_to_surface: exact numbers from candidate data that best serve this role
+- skills_to_emphasize: which skill section labels should lead (high visibility)
+- skills_to_reduce: which skill section labels to de-emphasize (low visibility)
+- tone: "technical" for data/AI roles | "business" for finance/ops | "balanced" for hybrid
+
+---
 
 CRITICAL RULES:
 

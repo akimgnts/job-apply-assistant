@@ -9,6 +9,7 @@ from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, 
 from app.agents.matching_agent import MatchingAgent
 from app.agents.quality_agent import QualityAgent
 from app.agents.cv_adaptation_agent import CVAdaptationAgent
+from app.agents.reviewer_agent import ReviewerAgent
 from app.agents.letter_agent import LetterAgent
 from app.agents.gap_analysis_agent import GapAnalysisAgent
 from app.database.models import GeneratedDocument, DocumentTypeEnum, ProfileBlock, CategoryEnum
@@ -258,15 +259,17 @@ class GenerationAgent:
         positioning: str,
         skill_profile: str = "general_business_data",
         telegram_user_id: str = None,
+        strategic_brief: dict = None,
     ) -> str:
         """Generate CV by adapting Master CV. Never invent content.
 
         Flow:
         1. Load Master CV (source of truth)
-        2. Call CVAdaptationAgent to adapt for job offer using skill_profile
+        2. CVAdaptationAgent adapts for job offer (uses skill_profile + strategic_brief)
         3. Validate adaptation (no new content)
-        4. Render master_cv.html with adaptation payload
-        5. Save to DB + file
+        4. ReviewerAgent checks quality, applies corrections if REVISE (one pass max)
+        5. Render master_cv.html with adaptation payload
+        6. Save to DB + file
         """
         # Load Master CV (fixed, verified content)
         master_cv = load_master_cv()
@@ -287,19 +290,19 @@ class GenerationAgent:
             if bridge_reasoning.get('gaps'):
                 logger.info(f"Identified gaps: {bridge_reasoning.get('gaps', [])}")
 
-            # ADAPT: Get adaptation JSON (not full CV) with skill profile guidance
+            # ADAPT: Get adaptation JSON (not full CV) with skill profile + strategic brief
             adaptation = await CVAdaptationAgent.adapt_cv(
                 analysis,
                 positioning,
                 master_cv,
                 skill_profile,
+                strategic_brief,
             )
 
             # VALIDATE: Ensure no hallucinations in adaptation
             validation_result = validate_adaptation(adaptation, master_cv)
             if not validation_result["is_valid"]:
                 logger.warning(f"Adaptation validation failed: {validation_result['issues']}")
-                # Fallback: use master CV with unchanged title/summary
                 adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
 
             # Ensure all defaults are set
@@ -310,6 +313,28 @@ class GenerationAgent:
                 f"experiences_order={adaptation.get('experience_order', [])}, "
                 f"projects_order={adaptation.get('project_order', [])}"
             )
+
+            # REVIEW: Senior Reviewer validates quality (one correction pass max)
+            try:
+                review_result = await ReviewerAgent.review(
+                    analysis,
+                    positioning,
+                    adaptation,
+                    master_cv,
+                )
+                if review_result["verdict"] == "REVISE" and review_result.get("issues"):
+                    logger.info(
+                        f"Reviewer requested {len(review_result['issues'])} corrections "
+                        f"(score={review_result['score']}): {review_result['global_feedback']}"
+                    )
+                    adaptation = ReviewerAgent.apply_corrections(adaptation, review_result["issues"])
+                else:
+                    logger.info(
+                        f"Reviewer approved CV (score={review_result['score']}): "
+                        f"{review_result['global_feedback']}"
+                    )
+            except Exception as e:
+                logger.warning(f"ReviewerAgent error (non-fatal): {e}")
 
         except Exception as e:
             logger.error(f"CV adaptation failed: {e}, using fallback")
@@ -456,15 +481,16 @@ class GenerationAgent:
         document_types: list[str] = None,
         skill_profile: str = "general_business_data",
         telegram_user_id: str = None,
+        strategic_brief: dict = None,
     ) -> dict[str, str]:
-        """Generate requested documents using skill profile."""
+        """Generate requested documents using skill profile and strategic brief."""
         if document_types is None:
             document_types = ["cv", "letter", "mail"]
 
         results = {}
 
         if "cv" in document_types:
-            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile, telegram_user_id)
+            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile, telegram_user_id, strategic_brief)
         if "letter" in document_types:
             results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning, telegram_user_id)
         if "mail" in document_types:
