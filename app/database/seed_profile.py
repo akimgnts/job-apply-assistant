@@ -15,9 +15,11 @@ PROFILE_BLOCKS = [
             "Core values: curiosity, continuous learning, delivery, experimentation, business value, "
             "simplicity, continuous improvement. "
             "Positioning: AI Builder focused on building practical systems by combining data, "
-            "automation and LLM workflows."
+            "automation and LLM workflows. "
+            "Location: Paris. "
+            "Links: linkedin.com/in/akimguentas — github.com/akimgnts — madebyakim.com"
         ),
-        "tags": ["identity", "positioning", "ai", "data", "automation", "business_value", "delivery"],
+        "tags": ["identity", "positioning", "ai", "data", "automation", "business_value", "delivery", "paris"],
         "truth_level": TruthLevelEnum.verified,
         "priority": 10,
     },
@@ -27,9 +29,9 @@ PROFILE_BLOCKS = [
     # -------------------------------------------------------------------------
     {
         "category": CategoryEnum.experience,
-        "title": "Sidel — Data, Reporting & Business Operations",
+        "title": "Sidel — Data, Marketing & Communication Analyst (Apprenticeship, 2023–2025)",
         "content": (
-            "Data, reporting and business operations experience within an international B2B industrial environment. "
+            "Data, marketing and communication analyst apprenticeship within an international B2B industrial environment (2023–2025). "
             "Responsibilities: customer and installed base analysis, lead tracking and campaign monitoring, "
             "KPI monitoring and dashboard creation, multi-source reporting, data quality and consistency checks, "
             "internal communication and content support, collaboration with European marketing and commercial teams, "
@@ -56,9 +58,9 @@ PROFILE_BLOCKS = [
     },
     {
         "category": CategoryEnum.experience,
-        "title": "Vassard OMB Mobilier — Business Development & Reporting",
+        "title": "Vassard OMB Mobilier — Business Development & Reporting (2022–2023)",
         "content": (
-            "Business development and reporting experience. "
+            "Business development and reporting experience (2022–2023). "
             "Responsibilities: CRM structuring, sales activity reporting, KPI tracking, "
             "customer analysis, commercial process improvement, decision support."
         ),
@@ -68,14 +70,15 @@ PROFILE_BLOCKS = [
     },
     {
         "category": CategoryEnum.experience,
-        "title": "MadeByAkim — Freelance Data, Automation & AI",
+        "title": "MadeByAkim — Freelance Data, Automation & AI (2024–Present)",
         "content": (
-            "Freelance activity and personal systems around data, automation and AI workflows. "
+            "Freelance activity and personal systems around data, automation and AI workflows (2024–Present). "
             "Responsibilities: workflow automation, APIs and webhook integrations, reporting systems, "
             "document generation, CRM workflows, database structuring, AI-assisted systems, "
             "documentation, user support, process improvement. "
             "Stack: Python, SQL, OpenAI, Claude, Gemini, Make, n8n, PostgreSQL, Supabase, Firebase, "
-            "MongoDB, Airtable, Notion, HubSpot, Slack, Teams, Google Sheets, APIs, Webhooks. "
+            "MongoDB, Airtable, Notion, HubSpot, ManyChat, Meta Business Suite, Slack, Teams, "
+            "Google Sheets, APIs, Webhooks. "
             "Soft skills: autonomy, curiosity, delivery, rapid prototyping, communication, continuous learning. "
             "Impact: automated repetitive tasks such as email preparation and meeting-related workflows, "
             "built lightweight operational systems — saved hours of manual work, reduced operational friction "
@@ -84,8 +87,8 @@ PROFILE_BLOCKS = [
         "tags": [
             "automation", "python", "sql", "openai", "claude", "make", "n8n",
             "postgresql", "supabase", "firebase", "mongodb", "airtable", "notion",
-            "hubspot", "apis", "webhooks", "reporting", "document_generation",
-            "crm", "freelance", "ai",
+            "hubspot", "manychat", "meta_business_suite", "apis", "webhooks", "reporting",
+            "document_generation", "crm", "freelance", "ai",
         ],
         "truth_level": TruthLevelEnum.verified,
         "priority": 9,
@@ -101,7 +104,7 @@ PROFILE_BLOCKS = [
             "AI platform dedicated to professional matching and career intelligence. "
             "Domains: CV parsing, skill extraction, canonicalization, matching, scoring, "
             "explainability, document generation, data quality, observability. "
-            "Stack: Python, FastAPI, PostgreSQL, Git, OpenAI, Claude. "
+            "Stack: Python, FastAPI, PostgreSQL, Git, OpenAI, Claude, LangChain. "
             "Concepts: AI agents, structured extraction, pipelines, testing, explainability, "
             "continuous improvement. "
             "Impact: iterated through more than 10 versions of the matching engine, evaluated matching "
@@ -114,7 +117,7 @@ PROFILE_BLOCKS = [
         ),
         "tags": [
             "ai", "matching", "fastapi", "postgresql", "cv_parsing", "skills",
-            "scoring", "explainability", "document_generation", "openai", "claude",
+            "scoring", "explainability", "document_generation", "openai", "claude", "langchain",
             "agents", "pipelines", "data_quality",
         ],
         "truth_level": TruthLevelEnum.in_progress,
@@ -201,28 +204,32 @@ PROFILE_BLOCKS = [
     # -------------------------------------------------------------------------
     {
         "category": CategoryEnum.education,
-        "title": "MSc Business Intelligence & Analytics",
+        "title": "MSc Business Intelligence & Analytics — Eugenia School (2025)",
         "content": (
-            "Master of Science in Business Intelligence & Analytics. "
+            "Master of Science in Business Intelligence & Analytics — Eugenia School, graduated 2025. "
+            "Subtitle: Data Analyst for Marketing. "
             "Specialization: Business Intelligence, Analytics, data analysis, marketing analytics, "
             "business problems."
         ),
-        "tags": ["business_intelligence", "analytics", "data_analysis", "marketing", "msc"],
+        "tags": ["business_intelligence", "analytics", "data_analysis", "marketing", "msc", "eugenia_school"],
         "truth_level": TruthLevelEnum.verified,
         "priority": 8,
     },
     {
         "category": CategoryEnum.education,
-        "title": "Bachelor Business Development & Marketing",
-        "content": "Bachelor in Business Development & Marketing. Business, sales and communication foundations.",
-        "tags": ["business_development", "marketing", "sales", "communication", "bachelor"],
+        "title": "Bachelor Responsable Commerce & Marketing — EM Normandie (2023)",
+        "content": (
+            "Bachelor Responsable Commerce & Marketing — EM Normandie, graduated 2023. "
+            "Business, sales and communication foundations."
+        ),
+        "tags": ["business_development", "marketing", "sales", "communication", "bachelor", "em_normandie"],
         "truth_level": TruthLevelEnum.verified,
         "priority": 6,
     },
     {
         "category": CategoryEnum.education,
-        "title": "BTS Management Commercial Opérationnel",
-        "content": "BTS MCO — Operational and commercial fundamentals.",
+        "title": "BTS Management Commercial Opérationnel (2021)",
+        "content": "BTS MCO — Operational and commercial fundamentals. Graduated 2021.",
         "tags": ["bts", "management", "commercial", "operations"],
         "truth_level": TruthLevelEnum.verified,
         "priority": 5,
@@ -291,9 +298,10 @@ PROFILE_BLOCKS = [
         "title": "Business Systems",
         "content": (
             "HubSpot, Microsoft Dynamics, Notion, Airtable, Slack, Teams, "
-            "Google Sheets, Google Drive, CRM workflows."
+            "Google Sheets, Google Drive, ManyChat, Meta Business Suite, CRM workflows."
         ),
-        "tags": ["hubspot", "dynamics", "notion", "airtable", "slack", "teams", "google_sheets", "crm"],
+        "tags": ["hubspot", "dynamics", "notion", "airtable", "slack", "teams", "google_sheets", "crm",
+                 "manychat", "meta_business_suite"],
         "truth_level": TruthLevelEnum.verified,
         "priority": 8,
     },
@@ -303,11 +311,13 @@ PROFILE_BLOCKS = [
         "content": (
             "Workshops, demos, dashboard presentations, user training, documentation, "
             "process mapping, stakeholder communication, rapid prototyping, product thinking, "
-            "continuous improvement."
+            "continuous improvement. "
+            "Creative tools: Adobe Premiere Pro, After Effects, Canva."
         ),
         "tags": [
             "workshops", "demos", "presentations", "training", "documentation",
             "process_mapping", "stakeholder_communication", "prototyping", "product_thinking",
+            "adobe_premiere", "after_effects", "canva",
         ],
         "truth_level": TruthLevelEnum.verified,
         "priority": 9,
