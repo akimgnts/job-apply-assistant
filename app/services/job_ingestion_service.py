@@ -7,6 +7,12 @@ import trafilatura
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings()
 
+_USER_AGENT = (
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/120.0.0.0 Safari/537.36'
+)
+
 
 def is_url(text: str) -> bool:
     """Check if text is a URL."""
@@ -24,26 +30,14 @@ def clean_job_text(text: str) -> str:
 
     text = text.strip()
 
-    # Remove cookie/footer sections
-    text = re.sub(r'(?i)(cookie|accept all|decline|preferences|privacy policy).*?(?=\n\n|\Z)', '', text)
-
-    # Remove navigation/menu sections
-    text = re.sub(r'(?i)(menu|navigation|skip to|home|about|contact).*?(?=\n\n|\Z)', '', text)
-
-    # Remove social share sections
-    text = re.sub(r'(?i)(share on|follow us|social media|linkedin|facebook|twitter).*?(?=\n\n|\Z)', '', text)
-
-    # Remove legal boilerplate
-    text = re.sub(r'(?i)(copyright|all rights reserved|terms of service|disclaimer).*?(?=\n\n|\Z)', '', text)
+    # Remove cookie/GDPR banners only (standalone lines)
+    text = re.sub(r'(?i)^(accept all cookies?|decline cookies?|cookie preferences?|privacy policy)\s*$', '', text, flags=re.MULTILINE)
 
     # Remove multiple consecutive spaces/newlines
     text = re.sub(r' +', ' ', text)
     text = re.sub(r'\n\n+', '\n\n', text)
 
-    # Clean up whitespace
-    text = text.strip()
-
-    return text
+    return text.strip()
 
 
 async def ingest_job_input(raw_input: str) -> dict:
@@ -77,21 +71,34 @@ async def ingest_job_input(raw_input: str) -> dict:
     # URL input
     url = raw_input
     try:
-        # Fetch URL with User-Agent to avoid blocks
+        # Fetch URL with complete User-Agent to avoid bot-detection blocks
         http = urllib3.PoolManager()
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': _USER_AGENT,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
         }
-        response = http.request('GET', url, headers=headers, timeout=10)
+        response = http.request('GET', url, headers=headers, timeout=15)
         if response.status != 200:
             raise ValueError(f"HTTP {response.status}")
 
-        # Extract text
+        html = response.data
+
+        # Try precision first, fall back to recall when content is sparse
         extracted = trafilatura.extract(
-            response.data,
+            html,
             include_comments=False,
-            favor_precision=True
+            include_tables=True,
+            favor_precision=True,
         )
+        if not extracted or len(extracted.strip()) < 200:
+            extracted = trafilatura.extract(
+                html,
+                include_comments=False,
+                include_tables=True,
+                favor_recall=True,
+            )
+
         if not extracted:
             raise ValueError("Could not extract text from URL")
 
