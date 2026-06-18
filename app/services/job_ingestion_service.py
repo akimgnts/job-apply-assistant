@@ -40,12 +40,52 @@ def clean_job_text(text: str) -> str:
     return text.strip()
 
 
+def _extract_text(html: bytes) -> str:
+    """Try trafilatura extraction with precision, then recall fallback."""
+    extracted = trafilatura.extract(
+        html,
+        include_comments=False,
+        include_tables=True,
+        favor_precision=True,
+    )
+    if not extracted or len(extracted.strip()) < 200:
+        extracted = trafilatura.extract(
+            html,
+            include_comments=False,
+            include_tables=True,
+            favor_recall=True,
+        )
+    return extracted or ""
+
+
+async def _extract_with_playwright(url: str) -> str:
+    """Fallback extraction using a headless browser for JS-rendered pages."""
+    from playwright.async_api import async_playwright
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
+        try:
+            page = await browser.new_page()
+            await page.set_extra_http_headers({
+                "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+            })
+            await page.goto(url, wait_until="networkidle", timeout=20000)
+            html = await page.content()
+        finally:
+            await browser.close()
+
+    return _extract_text(html.encode("utf-8"))
+
+
 async def ingest_job_input(raw_input: str) -> dict:
     """
     Ingest job input: either plain text or URL.
 
-    If URL: extract content using trafilatura
-    If text: return as-is
+    If URL: extract content using trafilatura, with Playwright fallback for JS sites.
+    If text: return as-is.
 
     Returns:
     {
@@ -71,7 +111,7 @@ async def ingest_job_input(raw_input: str) -> dict:
     # URL input
     url = raw_input
     try:
-        # Fetch URL with complete User-Agent to avoid bot-detection blocks
+        # Step 1: static fetch
         http = urllib3.PoolManager()
         headers = {
             'User-Agent': _USER_AGENT,
@@ -82,34 +122,25 @@ async def ingest_job_input(raw_input: str) -> dict:
         if response.status != 200:
             raise ValueError(f"HTTP {response.status}")
 
-        html = response.data
+        extracted = _extract_text(response.data)
 
-        # Try precision first, fall back to recall when content is sparse
-        extracted = trafilatura.extract(
-            html,
-            include_comments=False,
-            include_tables=True,
-            favor_precision=True,
-        )
+        # Step 2: Playwright fallback for JS-rendered pages
         if not extracted or len(extracted.strip()) < 200:
-            extracted = trafilatura.extract(
-                html,
-                include_comments=False,
-                include_tables=True,
-                favor_recall=True,
-            )
+            logger.info(f"URL={url} static extraction sparse, trying Playwright")
+            try:
+                extracted = await _extract_with_playwright(url)
+            except Exception as pw_err:
+                logger.warning(f"URL={url} Playwright fallback failed: {pw_err}")
 
-        if not extracted:
-            raise ValueError("Could not extract text from URL")
+        if not extracted or len(extracted.strip()) < 100:
+            raise ValueError("Extracted text too short or empty (site may require login)")
 
         clean_text = clean_job_text(extracted)
 
         if not clean_text or len(clean_text) < 100:
             raise ValueError("Extracted text too short or empty")
 
-        logger.info(
-            f"URL={url} extraction_success=True length={len(clean_text)}"
-        )
+        logger.info(f"URL={url} extraction_success=True length={len(clean_text)}")
 
         return {
             "source_type": "url",
