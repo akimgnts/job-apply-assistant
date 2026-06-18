@@ -5,13 +5,33 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
+    # Playwright/Chromium dependencies (Debian trixie package names)
+    fonts-unifont \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0t64 \
+    libatk-bridge2.0-0t64 \
+    libcups2t64 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2t64 \
+    libatspi2.0-0t64 \
+    libx11-xcb1 \
+    libxcb-dri3-0 \
+    libdrm2 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright chromium for JS-rendered job sites
-RUN playwright install chromium --with-deps
+# Install Playwright chromium (deps already installed above)
+RUN playwright install chromium
 
 COPY . .
 
