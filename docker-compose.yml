@@ -34,7 +34,7 @@ services:
       - ./outputs:/app/outputs
     command: >
       sh -c "alembic upgrade head &&
-             python -m app.database.seed_profile &&
+             python -m app.database.seed_profile --force &&
              python -m app.bot.telegram_bot"
 
 volumes:
