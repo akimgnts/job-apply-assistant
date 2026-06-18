@@ -35,13 +35,13 @@ def load_master_cv() -> dict:
                 "context": "International B2B industrial environment",
                 "dates": "2023 – 2025",
                 "bullets": [
-                    "Consolidated and analyzed multi-source business data related to customers, installed base, leads, events and marketing activity.",
-                    "Monitored KPIs, lead tracking and business indicators to improve visibility for internal stakeholders.",
-                    "Structured and maintained reporting supports for marketing, communication and commercial teams using Excel, Power BI and Power Query.",
-                    "Supported data quality through cleaning, consistency checks, documentation and structured reporting processes.",
-                    "Coordinated with European marketing, communication and sales stakeholders in an international B2B environment.",
-                    "Presented business insights through dashboards, campaign reporting and communication assets for internal and external stakeholders.",
-                    "Analyzed business data using Python, SQL, Snowflake, Excel and Power BI to support decision-making and operational excellence.",
+                    "Built and maintained around 10 dashboards and reporting tools covering installed base, events and business KPIs — used weekly and monthly by approximately 30–40 stakeholders across marketing, commercial and management teams.",
+                    "Automated recurring extraction, cleaning, consolidation and visualization tasks using Python, SQL and Power BI — reducing processes that previously required half a day to several days of manual work.",
+                    "Analyzed installed base, equipment and service data across 61 customers in the Wines & Spirits sector; produced commercial action plans supporting account prioritization by machine age, installed base evolution and business opportunities.",
+                    "Consolidated multi-source business data (customers, leads, events, campaigns) and monitored KPIs to improve operational visibility for European marketing and commercial teams.",
+                    "Coordinated with international stakeholders across Europe; presented analyses, action plans and business insights in French and English.",
+                    "Supported data quality through structured cleaning, consistency checks and documentation across multi-source reporting processes.",
+                    "Used Python, SQL, Snowflake, Power BI, Power Query and Microsoft Dynamics for data consolidation, reporting and business analysis in a large-scale B2B industrial context.",
                 ]
             },
             {
@@ -51,11 +51,11 @@ def load_master_cv() -> dict:
                 "context": "",
                 "dates": "2024 – Present",
                 "bullets": [
-                    "Built freelance and personal projects around automation, reporting, content production, CRM workflows and digital systems.",
-                    "Worked on workflow automation using APIs, webhooks, Make, n8n, JSON payloads and lightweight Python scripts.",
-                    "Created dashboards, reporting structures, lead generation workflows and operational tracking systems.",
-                    "Used ManyChat, Meta Business Suite, CRM tools, Airtable, Notion, Google Sheets and automation tools to support digital workflows.",
-                    "Produced social media assets, visual identities, presentations and content using Adobe Photoshop, Illustrator, Premiere Pro and After Effects.",
+                    "Automated repetitive operational tasks (email preparation, meeting workflows, lead enrichment) — saving several hours of manual work per workflow across systems used by clients and personal operations.",
+                    "Built workflow automation using APIs, webhooks, Make, n8n, JSON payloads and Python scripts — connecting CRM tools, databases and communication channels.",
+                    "Designed dashboards, reporting structures and operational tracking systems for client and personal use cases.",
+                    "Used ManyChat, Meta Business Suite, HubSpot, Airtable, Notion and Google Sheets to structure CRM workflows and digital operations.",
+                    "Produced social media assets, visual identities and content using Adobe Premiere Pro, After Effects, Photoshop and Illustrator.",
                 ]
             },
             {
@@ -78,7 +78,9 @@ def load_master_cv() -> dict:
                 "stack": "Python · FastAPI · PostgreSQL · OpenAI · LangChain · SQL · APIs",
                 "dates": "",
                 "bullets": [
-                    "Personal project in development around CV parsing, skills extraction, canonicalization, scoring, matching, explainability, data quality, observability and AI-assisted document generation.",
+                    "Designed and iterated through more than 10 versions of a matching engine — evaluated across 30 test profiles and over 1,000 job opportunities, improving recommendation quality and explainability.",
+                    "Generated 100+ AI-assisted application documents (CVs, cover letters, recruiter messages) — reducing preparation time from dozens of minutes to a few seconds.",
+                    "Built a modular architecture of ~10 components across 4 PostgreSQL tables, covering CV parsing, skill extraction, canonicalization, scoring and observability.",
                 ]
             },
             {
@@ -87,7 +89,7 @@ def load_master_cv() -> dict:
                 "stack": "Telegram · OpenAI · PostgreSQL · Jinja2 · SQLAlchemy · Coolify",
                 "dates": "",
                 "bullets": [
-                    "Telegram assistant that analyzes job offers, compares them with a candidate profile, proposes positioning and generates adapted CV, letter and recruiter message.",
+                    "Built a Telegram assistant that analyzes job offers, matches against a candidate profile and generates tailored CV, cover letter and recruiter message — reducing application preparation time from ~45 minutes to ~5 minutes.",
                 ]
             },
             {
