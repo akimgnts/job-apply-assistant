@@ -36,7 +36,15 @@ PROFILE_BLOCKS = [
             "stakeholder presentations, process improvement and documentation. "
             "Tools: Excel, Power BI, Power Query, Python, SQL, Snowflake, Microsoft Dynamics. "
             "Soft skills: stakeholder communication, cross-functional collaboration, business understanding, "
-            "analytical thinking."
+            "analytical thinking. "
+            "Impact: Built and maintained around 10 dashboards and reporting tools used by approximately "
+            "30–40 stakeholders across marketing, communication and commercial teams — improved visibility, "
+            "facilitated decision-making and reduced manual reporting effort. "
+            "Automated data extraction and analysis tasks using Python scripts, reducing repetitive manual work "
+            "and improving consistency. "
+            "Analyzed Wines & Spirits installed base across 61 customers and produced commercial action plans "
+            "supporting business prioritization and proactive customer follow-up. "
+            "Worked with international teams across Europe, presented analyses and facilitated meetings."
         ),
         "tags": [
             "data", "reporting", "powerbi", "excel", "sql", "python", "snowflake",
@@ -68,7 +76,10 @@ PROFILE_BLOCKS = [
             "documentation, user support, process improvement. "
             "Stack: Python, SQL, OpenAI, Claude, Gemini, Make, n8n, PostgreSQL, Supabase, Firebase, "
             "MongoDB, Airtable, Notion, HubSpot, Slack, Teams, Google Sheets, APIs, Webhooks. "
-            "Soft skills: autonomy, curiosity, delivery, rapid prototyping, communication, continuous learning."
+            "Soft skills: autonomy, curiosity, delivery, rapid prototyping, communication, continuous learning. "
+            "Impact: automated repetitive tasks such as email preparation and meeting-related workflows, "
+            "built lightweight operational systems — saved hours of manual work, reduced operational friction "
+            "and improved organization and efficiency."
         ),
         "tags": [
             "automation", "python", "sql", "openai", "claude", "make", "n8n",
@@ -92,7 +103,14 @@ PROFILE_BLOCKS = [
             "explainability, document generation, data quality, observability. "
             "Stack: Python, FastAPI, PostgreSQL, Git, OpenAI, Claude. "
             "Concepts: AI agents, structured extraction, pipelines, testing, explainability, "
-            "continuous improvement."
+            "continuous improvement. "
+            "Impact: iterated through more than 10 versions of the matching engine, evaluated matching "
+            "quality using more than 30 test profiles, processed more than 1,000 job opportunities — "
+            "improved recommendation quality, increased explainability and consistency. "
+            "Generated more than 100 CVs, cover letters and application documents, reducing preparation "
+            "time from dozens of minutes to a few seconds. "
+            "Built a modular architecture of around 10 components, designed approximately 30 workflows "
+            "and pipelines, structured data across 4 PostgreSQL tables."
         ),
         "tags": [
             "ai", "matching", "fastapi", "postgresql", "cv_parsing", "skills",
@@ -109,7 +127,10 @@ PROFILE_BLOCKS = [
             "Telegram assistant automating job applications. "
             "Features: offer analysis, positioning, CV generation, cover letter generation, "
             "recruiter message generation. "
-            "Stack: Telegram, OpenAI, PostgreSQL, SQLAlchemy, Jinja2, Coolify."
+            "Stack: Telegram, OpenAI, PostgreSQL, SQLAlchemy, Jinja2, Coolify. "
+            "Impact: reduced application preparation time from ~45 minutes to ~5 minutes — "
+            "approximately 90% time reduction. Removed repetitive work and improved consistency "
+            "across applications."
         ),
         "tags": [
             "telegram", "openai", "postgresql", "sqlalchemy", "jinja2",
@@ -154,6 +175,25 @@ PROFILE_BLOCKS = [
         "tags": ["make", "mistral", "segmentation", "personalization", "campaign_generation", "hackathon"],
         "truth_level": TruthLevelEnum.verified,
         "priority": 7,
+    },
+
+    {
+        "category": CategoryEnum.skill,
+        "title": "Impact Patterns — Recurring Value Delivered",
+        "content": (
+            "Across all projects and experiences, the most recurrent impact patterns are: "
+            "Time saving — automating repetitive activities, accelerating reporting and document generation, "
+            "reducing manual effort. "
+            "Better visibility — structuring information, creating dashboards and KPIs, improving access "
+            "to insights. "
+            "Better decisions — supporting business actions, increasing explainability, improving confidence "
+            "and consistency. "
+            "Rule: skills tell, projects prove, impact sells. Never fabricate numbers. "
+            "Prefer truthful impact over invented metrics."
+        ),
+        "tags": ["impact", "time_saving", "visibility", "decision_support", "automation", "reporting"],
+        "truth_level": TruthLevelEnum.verified,
+        "priority": 8,
     },
 
     # -------------------------------------------------------------------------
