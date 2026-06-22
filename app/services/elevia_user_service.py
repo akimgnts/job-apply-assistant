@@ -27,37 +27,22 @@ class EleviaUserService:
         telegram_user_id: str,
         elevia_profile_id: str,
     ) -> None:
-        """Store or update user's Elevia profile ID."""
+        """Store or update user's Elevia profile ID (upsert, race-safe)."""
         user_id = str(telegram_user_id)
 
-        # Check if exists
-        existing = (
-            db.query(EleviaUserProfile)
-            .filter_by(telegram_user_id=user_id)
-            .first()
+        # Use merge for atomic upsert (race-safe for concurrent uploads)
+        profile = EleviaUserProfile(
+            telegram_user_id=user_id,
+            elevia_profile_id=elevia_profile_id,
         )
-
-        if existing:
-            existing.elevia_profile_id = elevia_profile_id
-            existing.updated_at = datetime.utcnow()
-            logger.info(
-                "[ELEVIA_USER] Updated profile for user %s: %s",
-                user_id,
-                elevia_profile_id,
-            )
-        else:
-            profile = EleviaUserProfile(
-                telegram_user_id=user_id,
-                elevia_profile_id=elevia_profile_id,
-            )
-            db.add(profile)
-            logger.info(
-                "[ELEVIA_USER] Created profile for user %s: %s",
-                user_id,
-                elevia_profile_id,
-            )
-
+        profile = db.merge(profile)
         db.commit()
+
+        logger.info(
+            "[ELEVIA_USER] Set profile for user %s: %s (merge/upsert)",
+            user_id,
+            elevia_profile_id,
+        )
 
     @staticmethod
     def get_elevia_profile_id(db: Session, telegram_user_id: str) -> str:

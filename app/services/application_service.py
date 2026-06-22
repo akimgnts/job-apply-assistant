@@ -10,10 +10,16 @@ def create_application(
     raw_offer: str,
     source_url: str | None = None,
 ) -> Application:
-    """Create new application record."""
+    """Create new application record.
+
+    Raises ValueError if raw_offer is empty/whitespace.
+    """
+    if not raw_offer or not raw_offer.strip():
+        raise ValueError("raw_offer cannot be empty")
+
     app = Application(
         telegram_user_id=telegram_user_id,
-        raw_offer=raw_offer,
+        raw_offer=raw_offer.strip(),
         source_url=source_url,
     )
     db.add(app)

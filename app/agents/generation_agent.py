@@ -20,11 +20,11 @@ class GenerationAgent:
 
     @staticmethod
     def _build_candidate_info(db: Session) -> dict:
-        """Build candidate contact info from config/database."""
+        """Build candidate contact info from config/database with safe defaults."""
         candidate = {
-            "name": config.CANDIDATE_NAME or "",
-            "email": config.CANDIDATE_EMAIL or "",
-            "phone": config.CANDIDATE_PHONE or "",
+            "name": config.CANDIDATE_NAME or "Candidate",
+            "email": config.CANDIDATE_EMAIL or "email@example.com",
+            "phone": config.CANDIDATE_PHONE or "+33 (0) XX XX XX XX",
             "linkedin": config.CANDIDATE_LINKEDIN or "",
             "github": config.CANDIDATE_GITHUB or "",
             "website": config.CANDIDATE_WEBSITE or "",
@@ -313,7 +313,20 @@ class GenerationAgent:
 
         except Exception as e:
             logger.error(f"CV adaptation failed: {e}, using fallback")
-            adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
+            try:
+                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
+            except Exception as fallback_error:
+                logger.error(f"Fallback adaptation also failed: {fallback_error}, using minimal adaptation")
+                # Absolute fallback: minimal safe adaptation that doesn't need master_cv
+                adaptation = {
+                    "title": positioning,
+                    "summary": "Professional with data analysis and business intelligence expertise.",
+                    "experience_order": [],
+                    "experience_bullets": {},
+                    "project_order": [],
+                    "project_bullets": {},
+                    "ats_keywords": [],
+                }
 
         # Ensure all defaults are set (always, even on success path)
         adaptation = GenerationAgent._ensure_adaptation_defaults(adaptation)

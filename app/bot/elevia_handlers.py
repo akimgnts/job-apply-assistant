@@ -249,6 +249,7 @@ async def upload_profile_command(update: Update, context: ContextTypes.DEFAULT_T
     """Upload and parse user profile from CV/resume file."""
     user_id = str(update.effective_user.id)
     db = SessionLocal()
+    MAX_FILE_SIZE_MB = 20
 
     try:
         # Check if a file was provided
@@ -259,9 +260,34 @@ async def upload_profile_command(update: Update, context: ContextTypes.DEFAULT_T
             )
             return
 
+        # Validate file size
+        file_size_mb = update.message.document.file_size / (1024 * 1024) if update.message.document.file_size else 0
+        if file_size_mb > MAX_FILE_SIZE_MB:
+            await update.message.reply_text(
+                f"❌ Fichier trop gros: {file_size_mb:.1f}MB\n\n"
+                f"Maximum: {MAX_FILE_SIZE_MB}MB"
+            )
+            logger.warning(
+                "[UPLOAD_PROFILE] File too large for user %s: %.1f MB",
+                user_id,
+                file_size_mb,
+            )
+            return
+
         # Download file
         file = await update.message.document.get_file()
         file_bytes = await file.download_as_bytearray()
+
+        # Validate file not empty
+        if not file_bytes or len(file_bytes) == 0:
+            await update.message.reply_text(
+                "❌ Fichier vide. Envoie un CV valide."
+            )
+            logger.warning(
+                "[UPLOAD_PROFILE] Empty file for user %s",
+                user_id,
+            )
+            return
 
         await update.message.reply_text("⏳ Parsing du profil en cours...")
 
