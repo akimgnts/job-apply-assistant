@@ -111,6 +111,58 @@ docker compose up --build
 
 Database automatically migrated + seeded on startup.
 
+## Database Setup
+
+### Using External Database (Coolify, AWS RDS, etc.)
+
+For connecting to a remote PostgreSQL database:
+
+```bash
+# Update .env with remote database URL
+DATABASE_URL=postgresql://username:password@host:5432/database_name
+
+# Run migrations
+alembic upgrade head
+
+# Seed profile
+python -m app.database.seed_profile
+
+# Start bot
+python -m app.bot.telegram_bot
+```
+
+**Troubleshooting**: See [DATABASE_SETUP.md](DATABASE_SETUP.md) for configuration issues.
+
+**For Coolify specifically**: See [COOLIFY_SETUP.md](COOLIFY_SETUP.md) for detailed setup steps and troubleshooting.
+
+**Connection diagnostics**:
+```bash
+python coolify_test.py        # For Coolify-hosted databases
+python test_db_connection.py  # For any PostgreSQL database
+```
+
+### Using Local PostgreSQL
+
+```bash
+# Ensure Docker is installed
+docker compose up -d
+
+# Apply migrations
+alembic upgrade head
+
+# Seed profile
+python -m app.database.seed_profile
+
+# Start bot
+python -m app.bot.telegram_bot
+```
+
+Or use the smart startup script:
+```bash
+chmod +x run.sh
+./run.sh
+```
+
 ## Environment Variables
 
 ```env
