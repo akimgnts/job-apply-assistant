@@ -348,30 +348,93 @@ async def _handle_command_elevia(
     positioning = elevia_positioning or analysis.get("job_title", "Unknown Position")
     skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
-    # Generate documents (ephemeral, no Application record)
-    documents = await GenerationAgent.generate_documents(
-        db,
-        application_id=0,  # Ephemeral
-        analysis=analysis,
-        positioning=positioning,
-        document_types=doc_types,
-        skill_profile=skill_profile,
-        telegram_user_id=user_id,
-    )
+    # Create persistent Application record
+    application_id = 0  # Fallback if creation fails
+    try:
+        # Extract offer details from Elevia context
+        description = offer_context.get_description()
+        company = offer_context.get_company()
+        job_title = offer_context.get_job_title()
+        match_score = offer_context.get_match_score()
 
-    response = "✅ Documents générés (Elevia):\n\n"
-    for doc_type, content in documents.items():
-        response += f"📄 {doc_type.upper()}\n"
+        # Construct source URL: elevia:source_type:offer_id
+        source_url = f"elevia:{offer_context.source_type}:{offer_context.source_offer_id}"
+
+        # Create application
+        app = create_application(
+            db,
+            telegram_user_id=user_id,
+            raw_offer=description,
+            source_url=source_url,
+        )
+
+        # Update with analysis results
+        app = update_application_with_analysis(
+            db,
+            app.id,
+            {
+                "company": company,
+                "job_title": job_title,
+                "recommended_angle": positioning,
+                "match_score": int(match_score) if match_score else None,
+            }
+        )
+
+        application_id = app.id
+        logger.info(
+            "[HANDLE_ELEVIA] Created persistent Application %d for offer %s",
+            application_id,
+            offer_context.source_offer_id,
+        )
+
+        # Update user session
+        update_user_session(db, user_id, application_id, state="documents_generated")
+
+    except Exception as e:
+        logger.warning(
+            "[HANDLE_ELEVIA] Failed to create Application record, using fallback (app_id=0): %s",
+            str(e),
+            exc_info=True,
+        )
+        application_id = 0
+
+    # Generate documents with real application_id (or fallback 0)
+    try:
+        documents = await GenerationAgent.generate_documents(
+            db,
+            application_id=application_id,
+            analysis=analysis,
+            positioning=positioning,
+            document_types=doc_types,
+            skill_profile=skill_profile,
+            telegram_user_id=user_id,
+        )
+
+        response = "✅ Documents générés (Elevia):\n\n"
+        for doc_type, content in documents.items():
+            response += f"📄 {doc_type.upper()}\n"
+
+        # Mark application as generated (only if real application)
+        if application_id > 0:
+            mark_application_as_generated(db, application_id)
+            logger.info(
+                "[HANDLE_ELEVIA] Documents persisted with Application %d",
+                application_id,
+            )
+        else:
+            logger.warning(
+                "[HANDLE_ELEVIA] Documents generated with fallback (ephemeral, not persisted)"
+            )
+
+    except Exception as e:
+        logger.error(
+            "[HANDLE_ELEVIA] Document generation failed: %s",
+            str(e),
+            exc_info=True,
+        )
+        response = f"❌ Erreur lors de la génération: {str(e)[:100]}"
 
     await update.message.reply_text(response)
-
-    # Send generated documents
-    # Note: When application_id=0, documents aren't saved to DB
-    # We need to send content directly or modify GenerationAgent to return content
-    # For now, try to retrieve from temp storage
-    logger.warning(
-        "[HANDLE_ELEVIA] Note: Documents generated but not persisted (application_id=0)"
-    )
 
 def format_analysis_summary(analysis: dict, positioning: str) -> str:
     """Format analysis results for Telegram message."""
