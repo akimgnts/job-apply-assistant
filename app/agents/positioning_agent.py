@@ -18,20 +18,44 @@ class PositioningAgent:
     """Choose best positioning angle + skill profile for the candidate."""
 
     @staticmethod
-    async def choose_angle(analysis: dict) -> dict:
+    async def choose_angle(
+        analysis: dict,
+        matching_signals: dict = None,
+    ) -> dict:
         """Choose positioning angle + skill profile (JSON mode).
+
+        Args:
+            analysis: Job analysis dict with company, job_title, skills, missions
+            matching_signals: Optional Elevia matching signals with:
+                - match_score (0-10)
+                - strengths (list of strong alignment areas)
+                - gaps (list of missing skills/experience)
+                - explanation (text summary)
 
         Returns validated dict with:
         {
             "positioning": angle from VALID_ANGLES,
             "skill_profile": key from SKILL_PROFILES,
-            "reasoning": explanation
+            "reasoning": explanation,
+            "positioning_enriched_by_elevia": bool (if matching_signals used)
         }
         """
         from app.services.openai_service import generate_cv_payload
         from app.config.skill_profiles import validate_skill_profile
 
-        prompt = get_positioning_prompt(analysis)
+        # Use enriched prompt if matching signals available
+        if matching_signals:
+            from app.prompts.positioning_prompt import get_positioning_prompt_enriched_elevia
+            prompt = get_positioning_prompt_enriched_elevia(analysis, matching_signals)
+            enriched = True
+            logger.info(
+                "[POSITIONING] Using Elevia-enriched positioning (score=%.1f)",
+                matching_signals.get("match_score", 0)
+            )
+        else:
+            prompt = get_positioning_prompt(analysis)
+            enriched = False
+            logger.info("[POSITIONING] Using standard positioning")
 
         try:
             result = await generate_cv_payload(prompt)
@@ -52,7 +76,8 @@ class PositioningAgent:
 
             logger.info(
                 f"Selected positioning={positioning}, "
-                f"skill_profile={skill_profile}"
+                f"skill_profile={skill_profile}, "
+                f"enriched_by_elevia={enriched}"
             )
             logger.debug(f"Reasoning: {reasoning}")
 
@@ -60,6 +85,7 @@ class PositioningAgent:
                 "positioning": positioning,
                 "skill_profile": skill_profile,
                 "reasoning": reasoning,
+                "positioning_enriched_by_elevia": enriched,
             }
 
         except Exception as e:
@@ -68,4 +94,5 @@ class PositioningAgent:
                 "positioning": VALID_ANGLES[0],
                 "skill_profile": "general_business_data",
                 "reasoning": "Fallback due to error",
+                "positioning_enriched_by_elevia": enriched if matching_signals else False,
             }

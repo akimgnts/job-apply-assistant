@@ -390,9 +390,42 @@ async def _handle_command_elevia(
         analysis.get("match_score") or 0,
     )
 
-    # Use Elevia positioning or extracted title
-    positioning = elevia_positioning or analysis.get("job_title", "Unknown Position")
-    skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+    # Choose positioning enriched by Elevia matching signals
+    # Extract matching signals from Elevia context
+    from app.services.elevia_analysis_builder import EleviaAnalysisBuilder
+    matching_signals = EleviaAnalysisBuilder._extract_matching_signals(offer_context)
+
+    try:
+        positioning_result = await PositioningAgent.choose_angle(
+            analysis,
+            matching_signals=matching_signals,
+        )
+        positioning = positioning_result.get("positioning", "Data Analyst BI")
+        skill_profile = positioning_result.get("skill_profile", "general_business_data")
+        enriched_by_elevia = positioning_result.get("positioning_enriched_by_elevia", False)
+
+        logger.info(
+            "[HANDLE_ELEVIA] Positioning chosen: %s (skill_profile=%s, enriched=%s)",
+            positioning,
+            skill_profile,
+            enriched_by_elevia,
+        )
+        if matching_signals.get("match_score"):
+            logger.info(
+                "[HANDLE_ELEVIA] Used Elevia signals: score=%.1f, strengths=%d, gaps=%d",
+                matching_signals.get("match_score"),
+                len(matching_signals.get("strengths", [])),
+                len(matching_signals.get("gaps", [])),
+            )
+
+    except Exception as e:
+        logger.error(
+            "[HANDLE_ELEVIA] Positioning selection failed, using fallback: %s",
+            str(e),
+            exc_info=True,
+        )
+        positioning = elevia_positioning or analysis.get("job_title", "Data Analyst BI")
+        skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
 
     # Create persistent Application record
     application_id = 0  # Fallback if creation fails
