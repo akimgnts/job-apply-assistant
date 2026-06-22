@@ -113,7 +113,7 @@ class EleviaGateway:
         return EleviaOfferCatalogEntry(
             offer_id=data.get("id", data.get("offer_id", "")),
             title=data.get("title", data.get("job_title", "")),
-            company=data.get("company", "")),
+            company=data.get("company", ""),
             location=data.get("location", data.get("country", "")),
             description=data.get("description", data.get("summary", "")),
             contract_type=data.get("contract_type", data.get("type", None)),
