@@ -21,6 +21,12 @@ from app.bot.handlers import (
     regenerate_callback,
     save_application_callback,
 )
+from app.bot.elevia_handlers import (
+    elevia_health_command,
+    search_offers_command,
+    load_elevia_offer_command,
+    catalog_command,
+)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -36,6 +42,13 @@ def setup_bot():
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("last", last_command))
+
+    # Elevia commands (if enabled)
+    if config.ELEVIA_ENABLED:
+        app.add_handler(CommandHandler("elevia_health", elevia_health_command))
+        app.add_handler(CommandHandler("search_offers", search_offers_command))
+        app.add_handler(CommandHandler("load_elevia_offer", load_elevia_offer_command))
+        app.add_handler(CommandHandler("catalog", catalog_command))
 
     # Callbacks (buttons) — with and without app_id
     app.add_handler(CallbackQueryHandler(home_callback, pattern="^home$"))
