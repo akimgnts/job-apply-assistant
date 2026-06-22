@@ -26,6 +26,9 @@ from app.bot.elevia_handlers import (
     search_offers_command,
     load_elevia_offer_command,
     catalog_command,
+    upload_profile_command,
+    my_profile_command,
+    clear_profile_command,
 )
 
 logging.basicConfig(
@@ -49,6 +52,11 @@ def setup_bot():
         app.add_handler(CommandHandler("search_offers", search_offers_command))
         app.add_handler(CommandHandler("load_elevia_offer", load_elevia_offer_command))
         app.add_handler(CommandHandler("catalog", catalog_command))
+        app.add_handler(CommandHandler("upload_profile", upload_profile_command))
+        # Also handle document uploads directly
+        app.add_handler(MessageHandler(filters.Document.ALL, upload_profile_command))
+        app.add_handler(CommandHandler("my_profile", my_profile_command))
+        app.add_handler(CommandHandler("clear_profile", clear_profile_command))
 
     # Callbacks (buttons) — with and without app_id
     app.add_handler(CallbackQueryHandler(home_callback, pattern="^home$"))

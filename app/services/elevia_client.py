@@ -154,3 +154,66 @@ class EleviaClient:
         except Exception as e:
             logger.error("[ELEVIA] Match request failed: %s", str(e))
             return {"error": str(e)}
+
+    async def parse_profile_file(
+        self,
+        file_content: bytes,
+        filename: str,
+    ) -> Dict[str, Any]:
+        """Parse user profile from file (CV, resume, etc.).
+
+        Args:
+            file_content: Raw file bytes (PDF, DOCX, TXT, etc.)
+            filename: Original filename (used for type detection)
+
+        Returns:
+        {
+            "profile_id": str or None,
+            "name": str or None,
+            "skills": [list of skills],
+            "experience": [list of experience entries],
+            "explanation": str (parsing summary),
+            "error": str (if failed)
+        }
+        """
+        if not self.enabled:
+            return {"error": "ELEVIA_DISABLED", "profile_id": None}
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout * 2) as client:
+                files = {
+                    "file": (filename, file_content),
+                }
+                resp = await client.post(
+                    f"{self.base_url}/api/profile/parse-file",
+                    files=files,
+                )
+                resp.raise_for_status()
+                result = resp.json()
+
+                logger.info(
+                    "[ELEVIA] Profile parsed: profile_id=%s, skills=%d",
+                    result.get("profile_id"),
+                    len(result.get("skills", [])),
+                )
+                return result
+
+        except httpx.HTTPStatusError as e:
+            error_msg = f"HTTP_{e.response.status_code}"
+            try:
+                error_detail = e.response.json()
+                if isinstance(error_detail, dict) and "error" in error_detail:
+                    error_msg = error_detail["error"]
+            except:
+                pass
+            logger.error("[ELEVIA] Profile parse error %d: %s", e.response.status_code, error_msg)
+            return {
+                "error": error_msg,
+                "profile_id": None,
+            }
+        except Exception as e:
+            logger.error("[ELEVIA] Profile parse request failed: %s", str(e))
+            return {
+                "error": str(e),
+                "profile_id": None,
+            }

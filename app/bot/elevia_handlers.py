@@ -1,4 +1,5 @@
 import logging
+import io
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
@@ -6,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.config import config
 from app.services.elevia_gateway import EleviaGateway
+from app.services.elevia_client import EleviaClient
 from app.services.elevia_user_service import EleviaUserService
 from app.agents.elevia_agent import EleviaAgent
 from app.bot.keyboards import home_menu, offer_extracted_menu
@@ -239,5 +241,205 @@ async def catalog_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     except Exception as e:
         logger.error("[ELEVIA_HANDLER] Error in catalog: %s", str(e), exc_info=True)
         await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+    finally:
+        db.close()
+
+
+async def upload_profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Upload and parse user profile from CV/resume file."""
+    user_id = str(update.effective_user.id)
+    db = SessionLocal()
+
+    try:
+        # Check if a file was provided
+        if not update.message.document:
+            await update.message.reply_text(
+                "📄 Envoie moi ton CV ou resume (PDF, DOCX, TXT, etc.)\n\n"
+                "Usage: Télécharge un fichier ou utilise `/upload_profile` directement avec un document."
+            )
+            return
+
+        # Download file
+        file = await update.message.document.get_file()
+        file_bytes = await file.download_as_bytearray()
+
+        await update.message.reply_text("⏳ Parsing du profil en cours...")
+
+        # Parse file with Elevia API
+        client = EleviaClient()
+        result = await client.parse_profile_file(
+            file_content=bytes(file_bytes),
+            filename=update.message.document.file_name or "profile.pdf",
+        )
+
+        if "error" in result:
+            await update.message.reply_text(
+                f"❌ Erreur lors du parsing:\n{result.get('error', 'Unknown error')}"
+            )
+            logger.error(
+                "[UPLOAD_PROFILE] Parse failed for user %s: %s",
+                user_id,
+                result.get("error"),
+            )
+            return
+
+        profile_id = result.get("profile_id")
+        if not profile_id:
+            await update.message.reply_text(
+                "❌ Profil non créé: l'API n'a pas retourné de profile_id."
+            )
+            logger.error(
+                "[UPLOAD_PROFILE] No profile_id in response for user %s",
+                user_id,
+            )
+            return
+
+        # Check if user already has a profile
+        existing_profile_id = EleviaUserService.get_elevia_profile_id(db, user_id)
+
+        # Store profile_id for user
+        EleviaUserService.set_elevia_profile_id(db, user_id, profile_id)
+
+        response = f"✅ Profil mis à jour:\n\n"
+        response += f"Profile ID: `{profile_id}`\n"
+        response += f"Nom: {result.get('name', 'N/A')}\n"
+        response += f"Compétences: {len(result.get('skills', []))} détectées\n"
+        response += f"Expériences: {len(result.get('experience', []))} détectées\n"
+
+        if existing_profile_id and existing_profile_id != profile_id:
+            response += f"\n(ancien profil: `{existing_profile_id}` remplacé)"
+
+        response += "\n\nTu peux maintenant:"
+        response += "\n• `/search_offers` - chercher des offres"
+        response += "\n• `/catalog` - parcourir le catalogue"
+        response += "\n• `/my_profile` - voir ton profil"
+
+        await update.message.reply_text(response, parse_mode="Markdown")
+
+        logger.info(
+            "[UPLOAD_PROFILE] Profile created/updated for user %s: profile_id=%s, skills=%d",
+            user_id,
+            profile_id,
+            len(result.get("skills", [])),
+        )
+
+    except Exception as e:
+        logger.error(
+            "[UPLOAD_PROFILE] Error: %s",
+            str(e),
+            exc_info=True,
+        )
+        await update.message.reply_text(
+            f"❌ Erreur lors du chargement: {str(e)[:100]}"
+        )
+    finally:
+        db.close()
+
+
+async def my_profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show current user profile."""
+    user_id = str(update.effective_user.id)
+    db = SessionLocal()
+
+    try:
+        profile_id = EleviaUserService.get_elevia_profile_id(db, user_id)
+
+        if not profile_id:
+            await update.message.reply_text(
+                "❌ Aucun profil Elevia actif.\n\n"
+                "Utilise `/upload_profile` pour en créer un."
+            )
+            return
+
+        # Try to fetch profile details from Elevia
+        client = EleviaClient()
+        profile_data = await client.get_profile(profile_id)
+
+        if "error" in profile_data:
+            response = f"⚠️ Profil trouvé mais détails indisponibles:\n\n"
+            response += f"Profile ID: `{profile_id}`\n"
+            response += f"(Erreur: {profile_data.get('error')})"
+        else:
+            response = f"✅ Profil Elevia actif:\n\n"
+            response += f"Profile ID: `{profile_id}`\n"
+
+            if profile_data.get("name"):
+                response += f"Nom: {profile_data.get('name')}\n"
+
+            skills = profile_data.get("skills", [])
+            if skills:
+                response += f"Compétences ({len(skills)}): {', '.join(skills[:5])}"
+                if len(skills) > 5:
+                    response += f", +{len(skills) - 5} autres"
+                response += "\n"
+
+            experience = profile_data.get("experience", [])
+            if experience:
+                response += f"Expériences ({len(experience)})\n"
+
+        response += "\n\nCommandes:"
+        response += "\n• `/upload_profile` - mettre à jour"
+        response += "\n• `/clear_profile` - réinitialiser"
+
+        await update.message.reply_text(response, parse_mode="Markdown")
+
+        logger.info(
+            "[MY_PROFILE] Profile queried for user %s: profile_id=%s",
+            user_id,
+            profile_id,
+        )
+
+    except Exception as e:
+        logger.error(
+            "[MY_PROFILE] Error: %s",
+            str(e),
+            exc_info=True,
+        )
+        await update.message.reply_text(
+            f"❌ Erreur: {str(e)[:100]}"
+        )
+    finally:
+        db.close()
+
+
+async def clear_profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Clear user's Elevia profile."""
+    user_id = str(update.effective_user.id)
+    db = SessionLocal()
+
+    try:
+        profile_id = EleviaUserService.get_elevia_profile_id(db, user_id)
+
+        if not profile_id:
+            await update.message.reply_text(
+                "ℹ️ Aucun profil Elevia à supprimer."
+            )
+            return
+
+        # Clear profile
+        EleviaUserService.clear_elevia_profile_id(db, user_id)
+
+        await update.message.reply_text(
+            f"✅ Profil supprimé.\n\n"
+            f"Ancien profil: `{profile_id}`\n\n"
+            f"Utilise `/upload_profile` pour en charger un nouveau.",
+            parse_mode="Markdown"
+        )
+
+        logger.info(
+            "[CLEAR_PROFILE] Profile cleared for user %s (was: %s)",
+            user_id,
+            profile_id,
+        )
+
+    except Exception as e:
+        logger.error(
+            "[CLEAR_PROFILE] Error: %s",
+            str(e),
+            exc_info=True,
+        )
+        await update.message.reply_text(
+            f"❌ Erreur: {str(e)[:100]}"
+        )
     finally:
         db.close()
