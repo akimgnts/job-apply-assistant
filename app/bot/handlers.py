@@ -73,28 +73,58 @@ def _format_document_generation_response(result: dict, doc_types: list) -> str:
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /start command."""
+    from app.bot.message_formatter import format_home_message
+
+    text, parse_mode = format_home_message()
     await update.message.reply_text(
-        "👋 Bienvenue dans Job Apply Assistant!\n\n"
-        "Analyse tes offres, vérifie ton match et génère CV, lettre et mail en quelques secondes.",
+        text,
+        parse_mode=parse_mode,
         reply_markup=home_menu()
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /help command."""
-    await update.message.reply_text(
-        "📋 Mode d'emploi:\n\n"
-        "1️⃣ Envoie une offre (URL ou texte)\n"
-        "2️⃣ Je vais l'analyser et te proposer un angle\n"
-        "3️⃣ Réponds avec l'une de ces commandes:\n"
-        "   GO — Générer CV + lettre + mail\n"
-        "   CV — Générer seulement le CV\n"
-        "   LETTRE — Générer seulement la lettre\n"
-        "   MAIL — Générer seulement le mail\n\n"
-        "Tips:\n"
-        "• Teste d'abord avec une URL\n"
-        "• Si ça ne marche pas, colle le texte\n"
-        "• Les documents sont sauvegardés"
-    )
+    text = """<b>📖 Comment utiliser?</b>
+
+━━━━━━━━━━━━━━━━━━━━━
+
+<b>Flux standard (URL/texte)</b>
+
+1️⃣ <b>Envoie une offre</b>
+   URL ou texte brut
+
+2️⃣ <b>Je l'analyse</b>
+   Affichage match + recommandations
+
+3️⃣ <b>Génère tes documents</b>
+   <code>GO</code> — CV + lettre + mail
+   <code>CV</code> — CV seulement
+   <code>LETTRE</code> — Lettre seulement
+   <code>MAIL</code> — Mail seulement
+
+━━━━━━━━━━━━━━━━━━━━━
+
+<b>Flux Elevia (profil cloud)</b>
+
+1️⃣ <code>/upload_profile</code> — Envoie ton CV
+2️⃣ <code>/search_offers</code> — Cherche offres (ranked)
+3️⃣ <code>/load_elevia_offer</code> — Charge une offre
+4️⃣ <code>GO</code> — Génère documents
+
+━━━━━━━━━━━━━━━━━━━━━
+
+<b>Commandes utiles</b>
+
+<code>/last</code> — Dernière application
+<code>/my_applications</code> — Toutes les candidatures
+<code>/my_profile</code> — Profil Elevia actif
+<code>/clear_profile</code> — Réinitialiser profil
+
+━━━━━━━━━━━━━━━━━━━━━
+
+💡 <i>Documents sont toujours sauvegardés</i>"""
+
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 async def last_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /last command."""
@@ -103,15 +133,36 @@ async def last_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         user_id = str(update.effective_user.id)
         app = get_last_application(db, user_id)
         if app:
-            await update.message.reply_text(
-                f"📌 Dernière offre:\n"
-                f"Entreprise: {app.company}\n"
-                f"Poste: {app.job_title}\n"
-                f"Angle: {app.recommended_angle}\n"
-                f"Score: {app.match_score}/10"
-            )
+            score = app.match_score or "—"
+            angle = app.recommended_angle or "Non défini"
+
+            text = f"""<b>📌 Dernière candidature</b>
+
+━━━━━━━━━━━━━━━━━━━━━
+
+<b>{app.company}</b>
+{app.job_title}
+
+<b>Angle</b>
+<i>{angle}</i>
+
+<b>Score</b>
+<code>{score} / 10</code>
+
+━━━━━━━━━━━━━━━━━━━━━
+
+📂 Utilise <code>/my_applications</code> pour voir toutes tes candidatures"""
+
+            await update.message.reply_text(text, parse_mode=ParseMode.HTML)
         else:
-            await update.message.reply_text("Aucune offre analysée pour le moment.")
+            text = """<b>📭 Aucune candidature</b>
+
+Envoie une offre pour commencer:
+• URL
+• Texte brut
+• Ou <code>/upload_profile</code> puis <code>/search_offers</code>"""
+
+            await update.message.reply_text(text, parse_mode=ParseMode.HTML)
     finally:
         db.close()
 
