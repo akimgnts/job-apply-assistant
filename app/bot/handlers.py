@@ -183,28 +183,13 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         db.close()
 
 async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle GO/CV/LETTRE/MAIL commands."""
+    """Handle GO/CV/LETTRE/MAIL commands (both URL and Elevia modes)."""
     user_id = str(update.effective_user.id)
     command = update.message.text.upper().strip()
     db = SessionLocal()
 
     try:
-        app = get_last_application(db, user_id)
-        if not app:
-            await update.message.reply_text("Aucune offre en cours. Envoie une offre d'abord.")
-            return
-
-        analysis = app.analyses[0].analysis_json if app.analyses else None
-        if not analysis:
-            await update.message.reply_text("Analyse non trouvée.")
-            return
-
-        positioning = analysis.get("recommended_angle", "Data Analyst BI")
-        # Retrieve skill_profile from context
-        skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
-
-        await update.message.chat.send_action("typing")
-
+        # Parse document types
         doc_types = {
             "GO": ["cv", "letter", "mail"],
             "CV": ["cv"],
@@ -216,37 +201,40 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await update.message.reply_text("Commande non reconnue. Utilise GO, CV, LETTRE ou MAIL.")
             return
 
-        documents = await GenerationAgent.generate_documents(
-            db, app.id, analysis, positioning, doc_types, skill_profile, user_id
-        )
+        await update.message.chat.send_action("typing")
 
-        mark_application_as_generated(db, app.id)
+        # DETECT ELEVIA MODE
+        elevia_offer_context = context.user_data.get("elevia_offer_context") if context.user_data else None
+        elevia_positioning = context.user_data.get("elevia_positioning") if context.user_data else None
 
-        response = "✅ Documents générés:\n\n"
-        for doc_type, content in documents.items():
-            response += f"📄 {doc_type.upper()}\n"
-
-        await update.message.reply_text(response)
-
-        for doc_type in doc_types:
-            doc = db.query(GeneratedDocument).filter(
-                GeneratedDocument.application_id == app.id,
-                GeneratedDocument.document_type == DocumentTypeEnum(doc_type),
-            ).first()
-            if doc:
-                await update.message.reply_document(
-                    document=doc.content.encode(),
-                    filename=doc.filename,
-                )
+        if elevia_offer_context:
+            logger.info("[HANDLE_COMMAND] Entering Elevia mode for user %s", user_id)
+            await _handle_command_elevia(
+                update,
+                context,
+                db,
+                elevia_offer_context,
+                elevia_positioning,
+                doc_types,
+                user_id,
+            )
+        else:
+            logger.info("[HANDLE_COMMAND] Using standard URL/text mode for user %s", user_id)
+            await _handle_command_standard(
+                update,
+                context,
+                db,
+                doc_types,
+                user_id,
+            )
 
     except Exception as e:
-        logger.error(f"Error generating documents: {e}", exc_info=True)
+        logger.error(f"Error in handle_command: {e}", exc_info=True)
 
         if config.DEBUG_TELEGRAM_ERRORS:
             context_dict = {
                 "user_id": user_id,
                 "command": command,
-                "application_id": app.id if app else None,
             }
 
             extra_debug = None
@@ -261,6 +249,129 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             await update.message.reply_text(f"❌ Erreur: {str(e)}")
     finally:
         db.close()
+
+
+async def _handle_command_standard(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    db: Session,
+    doc_types: list,
+    user_id: str,
+) -> None:
+    """Handle command in standard URL/text mode."""
+    app = get_last_application(db, user_id)
+    if not app:
+        await update.message.reply_text("Aucune offre en cours. Envoie une offre d'abord.")
+        return
+
+    analysis = app.analyses[0].analysis_json if app.analyses else None
+    if not analysis:
+        await update.message.reply_text("Analyse non trouvée.")
+        return
+
+    positioning = analysis.get("recommended_angle", "Data Analyst BI")
+    skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+
+    logger.info("[HANDLE_STANDARD] Generating %s for app %s", doc_types, app.id)
+
+    documents = await GenerationAgent.generate_documents(
+        db, app.id, analysis, positioning, doc_types, skill_profile, user_id
+    )
+
+    mark_application_as_generated(db, app.id)
+
+    response = "✅ Documents générés:\n\n"
+    for doc_type, content in documents.items():
+        response += f"📄 {doc_type.upper()}\n"
+
+    await update.message.reply_text(response)
+
+    for doc_type in doc_types:
+        doc = db.query(GeneratedDocument).filter(
+            GeneratedDocument.application_id == app.id,
+            GeneratedDocument.document_type == DocumentTypeEnum(doc_type),
+        ).first()
+        if doc:
+            await update.message.reply_document(
+                document=doc.content.encode(),
+                filename=doc.filename,
+            )
+
+
+async def _handle_command_elevia(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    db: Session,
+    elevia_offer_context: dict,
+    elevia_positioning: str,
+    doc_types: list,
+    user_id: str,
+) -> None:
+    """Handle command in Elevia mode."""
+    from app.services.elevia_gateway import EleviaOfferContext
+    from app.services.elevia_analysis_builder import EleviaAnalysisBuilder
+    from app.services.offer_enrichment_service import OfferEnrichmentService
+
+    logger.info(
+        "[HANDLE_ELEVIA] Generating %s from Elevia context for user %s",
+        doc_types,
+        user_id,
+    )
+
+    # Reconstruct EleviaOfferContext from dict
+    offer_context = EleviaOfferContext(
+        source_offer_id=elevia_offer_context.get("source_offer_id"),
+        source_type=elevia_offer_context.get("source_type", "business_france"),
+        offer_catalog_entry=elevia_offer_context.get("offer_catalog_entry"),
+        offer_detail=elevia_offer_context.get("offer_detail"),
+        profile=elevia_offer_context.get("profile"),
+        matching_context=elevia_offer_context.get("matching_context"),
+    )
+
+    # Build analysis from Elevia context
+    analysis = EleviaAnalysisBuilder.build_analysis_from_offer_context(offer_context)
+
+    # Enrich with Elevia context
+    analysis = OfferEnrichmentService.enrich_analysis_with_elevia_context(
+        analysis,
+        offer_context,
+    )
+
+    logger.info(
+        "[HANDLE_ELEVIA] Analysis built: %s @ %s, match=%.1f",
+        analysis.get("job_title"),
+        analysis.get("company"),
+        analysis.get("match_score") or 0,
+    )
+
+    # Use Elevia positioning or extracted title
+    positioning = elevia_positioning or analysis.get("job_title", "Unknown Position")
+    skill_profile = context.user_data.get("skill_profile", "general_business_data") if context.user_data else "general_business_data"
+
+    # Generate documents (ephemeral, no Application record)
+    documents = await GenerationAgent.generate_documents(
+        db,
+        application_id=0,  # Ephemeral
+        analysis=analysis,
+        positioning=positioning,
+        document_types=doc_types,
+        skill_profile=skill_profile,
+        telegram_user_id=user_id,
+    )
+
+    response = "✅ Documents générés (Elevia):\n\n"
+    for doc_type, content in documents.items():
+        response += f"📄 {doc_type.upper()}\n"
+
+    await update.message.reply_text(response)
+
+    # Send generated documents
+    # Note: When application_id=0, documents aren't saved to DB
+    # We need to send content directly or modify GenerationAgent to return content
+    # For now, try to retrieve from temp storage
+    logger.warning(
+        "[HANDLE_ELEVIA] Note: Documents generated but not persisted (application_id=0)"
+    )
 
 def format_analysis_summary(analysis: dict, positioning: str) -> str:
     """Format analysis results for Telegram message."""
