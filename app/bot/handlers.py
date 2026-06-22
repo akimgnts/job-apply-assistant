@@ -36,6 +36,41 @@ from app.bot.message_formatter import (
 
 logger = logging.getLogger(__name__)
 
+
+def _format_document_generation_response(result: dict, doc_types: list) -> str:
+    """Format document generation result for user message.
+
+    Handles full_success, partial_success, and full_failure cases.
+    """
+    status = result.get("status", "full_failure")
+    documents = result.get("documents", {})
+    errors = result.get("errors", {})
+
+    if status == "full_success":
+        response = "✅ Documents générés:\n\n"
+        for doc_type in doc_types:
+            if doc_type in documents and documents[doc_type]:
+                response += f"📄 {doc_type.upper()}\n"
+
+    elif status == "partial_success":
+        response = "⚠️ Génération partielle:\n\n"
+        for doc_type in doc_types:
+            if doc_type in documents and documents[doc_type]:
+                response += f"✅ {doc_type.upper()}\n"
+            elif doc_type in errors and errors[doc_type]:
+                error_msg = errors[doc_type][:50] + ("..." if len(errors[doc_type]) > 50 else "")
+                response += f"❌ {doc_type.upper()}: {error_msg}\n"
+
+    else:  # full_failure
+        response = "❌ Échec de la génération:\n\n"
+        for doc_type in doc_types:
+            if doc_type in errors and errors[doc_type]:
+                error_msg = errors[doc_type][:50] + ("..." if len(errors[doc_type]) > 50 else "")
+                response += f"• {doc_type.upper()}: {error_msg}\n"
+
+    return response
+
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /start command."""
     await update.message.reply_text(
@@ -258,7 +293,7 @@ async def _handle_command_standard(
     doc_types: list,
     user_id: str,
 ) -> None:
-    """Handle command in standard URL/text mode."""
+    """Handle command in standard URL/text mode with graceful degradation."""
     app = get_last_application(db, user_id)
     if not app:
         await update.message.reply_text("Aucune offre en cours. Envoie une offre d'abord.")
@@ -274,28 +309,39 @@ async def _handle_command_standard(
 
     logger.info("[HANDLE_STANDARD] Generating %s for app %s", doc_types, app.id)
 
-    documents = await GenerationAgent.generate_documents(
+    result = await GenerationAgent.generate_documents(
         db, app.id, analysis, positioning, doc_types, skill_profile, user_id
     )
 
-    mark_application_as_generated(db, app.id)
+    # Mark application as generated regardless of partial success
+    if result.get("status") in ("full_success", "partial_success"):
+        mark_application_as_generated(db, app.id)
 
-    response = "✅ Documents générés:\n\n"
-    for doc_type, content in documents.items():
-        response += f"📄 {doc_type.upper()}\n"
-
+    # Format response based on generation status
+    response = _format_document_generation_response(result, doc_types)
     await update.message.reply_text(response)
 
+    # Send generated documents (only those that succeeded)
+    generated_docs = result.get("documents", {})
     for doc_type in doc_types:
-        doc = db.query(GeneratedDocument).filter(
-            GeneratedDocument.application_id == app.id,
-            GeneratedDocument.document_type == DocumentTypeEnum(doc_type),
-        ).first()
-        if doc:
-            await update.message.reply_document(
-                document=doc.content.encode(),
-                filename=doc.filename,
-            )
+        if doc_type in generated_docs and generated_docs[doc_type]:
+            # Document was successfully generated, fetch from DB
+            doc = db.query(GeneratedDocument).filter(
+                GeneratedDocument.application_id == app.id,
+                GeneratedDocument.document_type == DocumentTypeEnum(doc_type),
+            ).first()
+            if doc:
+                await update.message.reply_document(
+                    document=doc.content.encode(),
+                    filename=doc.filename,
+                )
+            else:
+                logger.warning(f"Generated document {doc_type} not found in DB for app {app.id}")
+        else:
+            # Document failed to generate, show error
+            error = result.get("errors", {}).get(doc_type)
+            if error:
+                await update.message.reply_text(f"❌ {doc_type.upper()}: {error}")
 
 
 async def _handle_command_elevia(
@@ -399,42 +445,56 @@ async def _handle_command_elevia(
         application_id = 0
 
     # Generate documents with real application_id (or fallback 0)
-    try:
-        documents = await GenerationAgent.generate_documents(
-            db,
-            application_id=application_id,
-            analysis=analysis,
-            positioning=positioning,
-            document_types=doc_types,
-            skill_profile=skill_profile,
-            telegram_user_id=user_id,
+    result = await GenerationAgent.generate_documents(
+        db,
+        application_id=application_id,
+        analysis=analysis,
+        positioning=positioning,
+        document_types=doc_types,
+        skill_profile=skill_profile,
+        telegram_user_id=user_id,
+    )
+
+    # Mark application as generated if real application and at least partial success
+    if application_id > 0 and result.get("status") in ("full_success", "partial_success"):
+        mark_application_as_generated(db, application_id)
+        logger.info(
+            "[HANDLE_ELEVIA] Documents persisted with Application %d (status=%s)",
+            application_id,
+            result.get("status"),
+        )
+    elif application_id == 0:
+        logger.warning(
+            "[HANDLE_ELEVIA] Documents generated with fallback (ephemeral, not persisted)"
         )
 
-        response = "✅ Documents générés (Elevia):\n\n"
-        for doc_type, content in documents.items():
-            response += f"📄 {doc_type.upper()}\n"
-
-        # Mark application as generated (only if real application)
-        if application_id > 0:
-            mark_application_as_generated(db, application_id)
-            logger.info(
-                "[HANDLE_ELEVIA] Documents persisted with Application %d",
-                application_id,
-            )
-        else:
-            logger.warning(
-                "[HANDLE_ELEVIA] Documents generated with fallback (ephemeral, not persisted)"
-            )
-
-    except Exception as e:
-        logger.error(
-            "[HANDLE_ELEVIA] Document generation failed: %s",
-            str(e),
-            exc_info=True,
-        )
-        response = f"❌ Erreur lors de la génération: {str(e)[:100]}"
-
+    # Format response
+    response = _format_document_generation_response(result, doc_types)
     await update.message.reply_text(response)
+
+    # Send generated documents (only those that succeeded)
+    generated_docs = result.get("documents", {})
+    errors = result.get("errors", {})
+    for doc_type in doc_types:
+        if doc_type in generated_docs and generated_docs[doc_type]:
+            if application_id > 0:
+                # Document persisted, fetch from DB
+                doc = db.query(GeneratedDocument).filter(
+                    GeneratedDocument.application_id == application_id,
+                    GeneratedDocument.document_type == DocumentTypeEnum(doc_type),
+                ).first()
+                if doc:
+                    await update.message.reply_document(
+                        document=doc.content.encode(),
+                        filename=doc.filename,
+                    )
+                else:
+                    logger.warning(f"Generated document {doc_type} not found in DB for app {application_id}")
+            else:
+                # Document generated but not persisted (app_id=0), show content directly
+                logger.info(f"[HANDLE_ELEVIA] {doc_type} generated ephemeral (app_id=0)")
+        elif doc_type in errors and errors[doc_type]:
+            logger.error(f"[HANDLE_ELEVIA] {doc_type} generation failed: {errors[doc_type]}")
 
 def format_analysis_summary(analysis: dict, positioning: str) -> str:
     """Format analysis results for Telegram message."""
@@ -1060,31 +1120,43 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await progress_msg.edit_text("Documents : génération du CV...")
             logger.info("[ALL] Starting documents generation for app_id=%s", app.id)
 
-        # Generate all documents
-        await GenerationAgent.generate_documents(
+        # Generate all documents (with graceful degradation)
+        result = await GenerationAgent.generate_documents(
             db, app.id, analysis, positioning, ["cv", "letter", "mail"], skill_profile, user_id
         )
-        mark_application_as_generated(db, app.id)
+
+        # Mark application as generated if at least partial success
+        if result.get("status") in ("full_success", "partial_success"):
+            mark_application_as_generated(db, app.id)
+            if config.DEBUG_TELEGRAM_STEPS:
+                logger.info("[ALL] Application marked as generated (status=%s)", result.get("status"))
 
         if config.DEBUG_TELEGRAM_STEPS:
             await progress_msg.edit_text("Documents : envoi des fichiers...")
-            logger.info("[ALL] All documents generated, retrieving for send")
+            logger.info("[ALL] Documents generation complete (status=%s)", result.get("status"))
 
-        await query.edit_message_text("✅ Documents générés!", reply_markup=save_or_regenerate_menu())
+        # Format response based on generation status
+        response_text = _format_document_generation_response(result, ["cv", "letter", "mail"])
+        await query.edit_message_text(response_text, reply_markup=save_or_regenerate_menu())
 
-        # Send all documents
+        # Send all successfully generated documents
         docs = db.query(GeneratedDocument).filter(
             GeneratedDocument.application_id == app.id,
             GeneratedDocument.document_type.in_([DocumentTypeEnum.cv, DocumentTypeEnum.letter, DocumentTypeEnum.mail])
         ).all()
 
-        if not docs:
+        if not docs and result.get("status") == "full_failure":
             await query.message.reply_text("❌ Documents : Aucun document créé.")
             if config.DEBUG_TELEGRAM_STEPS:
                 logger.error("[ALL] No documents found after generation for app_id=%s", app.id)
             return
 
         sent_count = 0
+        failed_docs = {}
+        for doc_type in ["cv", "letter", "mail"]:
+            if result.get("errors", {}).get(doc_type):
+                failed_docs[doc_type] = result["errors"][doc_type]
+
         for doc in docs:
             # Validate file before sending
             if not doc.content or len(doc.content.strip()) == 0:
@@ -1101,9 +1173,13 @@ async def gen_all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             )
             sent_count += 1
 
+        # Send error messages for failed documents
+        for doc_type, error in failed_docs.items():
+            await query.message.reply_text(f"❌ {doc_type.upper()}: {error[:100]}")
+
         if config.DEBUG_TELEGRAM_STEPS:
             await progress_msg.delete()
-            logger.info("[ALL] All documents sent for app_id=%s (count=%d)", app.id, sent_count)
+            logger.info("[ALL] All documents sent for app_id=%s (sent=%d, failed=%d)", app.id, sent_count, len(failed_docs))
 
     except Exception as e:
         logger.error("[ALL] Error: %s", str(e), exc_info=True)

@@ -93,8 +93,8 @@ class EleviaAgent:
                     positioning,
                 )
 
-                # Generate documents
-                documents = await GenerationAgent.generate_documents(
+                # Generate documents (with graceful degradation)
+                gen_result = await GenerationAgent.generate_documents(
                     db,
                     application_id=0,  # Temporary ID for Elevia-only flow
                     analysis=generation_context,
@@ -103,9 +103,15 @@ class EleviaAgent:
                     telegram_user_id=str(telegram_user_id),
                 )
 
+                # Extract documents and errors
+                documents = gen_result.get("documents", {})
+                errors = gen_result.get("errors", {})
+
                 logger.info(
-                    "[ELEVIA_AGENT] Documents generated: %s",
+                    "[ELEVIA_AGENT] Documents generated: status=%s, docs=%s, errors=%s",
+                    gen_result.get("status"),
                     list(documents.keys()),
+                    [k for k, v in errors.items() if v],
                 )
 
             return {

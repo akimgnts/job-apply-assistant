@@ -463,19 +463,97 @@ class GenerationAgent:
         document_types: list[str] = None,
         skill_profile: str = "general_business_data",
         telegram_user_id: str = None,
-    ) -> dict[str, str]:
-        """Generate requested documents using skill profile."""
+    ) -> dict:
+        """Generate requested documents with graceful degradation per artifact.
+
+        Returns:
+        {
+            "documents": {
+                "cv": content or None,
+                "letter": content or None,
+                "mail": content or None,
+            },
+            "errors": {
+                "cv": error_str or None,
+                "letter": error_str or None,
+                "mail": error_str or None,
+            },
+            "status": "full_success" | "partial_success" | "full_failure",
+        }
+        """
         if document_types is None:
             document_types = ["cv", "letter", "mail"]
 
-        results = {}
+        results = {
+            "documents": {},
+            "errors": {},
+            "status": "full_success",
+        }
 
+        generated_count = 0
+        failed_count = 0
+
+        # Generate CV (independent)
         if "cv" in document_types:
-            results["cv"] = await GenerationAgent.generate_cv(db, application_id, analysis, positioning, skill_profile, telegram_user_id)
-        if "letter" in document_types:
-            results["letter"] = await GenerationAgent.generate_letter(db, application_id, analysis, positioning, telegram_user_id)
-        if "mail" in document_types:
-            results["mail"] = await GenerationAgent.generate_mail(db, application_id, analysis, positioning, telegram_user_id)
+            try:
+                cv_content = await GenerationAgent.generate_cv(
+                    db, application_id, analysis, positioning, skill_profile, telegram_user_id
+                )
+                results["documents"]["cv"] = cv_content
+                results["errors"]["cv"] = None
+                generated_count += 1
+                logger.info(f"CV generated successfully for application {application_id}")
+            except Exception as e:
+                results["documents"]["cv"] = None
+                results["errors"]["cv"] = str(e)[:200]
+                failed_count += 1
+                logger.error(f"CV generation failed for application {application_id}: {str(e)}", exc_info=True)
 
-        logger.info(f"Generated documents for application {application_id}: {list(results.keys())} with skill_profile={skill_profile} user={telegram_user_id}")
+        # Generate Letter (independent)
+        if "letter" in document_types:
+            try:
+                letter_content = await GenerationAgent.generate_letter(
+                    db, application_id, analysis, positioning, telegram_user_id
+                )
+                results["documents"]["letter"] = letter_content
+                results["errors"]["letter"] = None
+                generated_count += 1
+                logger.info(f"Letter generated successfully for application {application_id}")
+            except Exception as e:
+                results["documents"]["letter"] = None
+                results["errors"]["letter"] = str(e)[:200]
+                failed_count += 1
+                logger.error(f"Letter generation failed for application {application_id}: {str(e)}", exc_info=True)
+
+        # Generate Mail (independent)
+        if "mail" in document_types:
+            try:
+                mail_content = await GenerationAgent.generate_mail(
+                    db, application_id, analysis, positioning, telegram_user_id
+                )
+                results["documents"]["mail"] = mail_content
+                results["errors"]["mail"] = None
+                generated_count += 1
+                logger.info(f"Mail generated successfully for application {application_id}")
+            except Exception as e:
+                results["documents"]["mail"] = None
+                results["errors"]["mail"] = str(e)[:200]
+                failed_count += 1
+                logger.error(f"Mail generation failed for application {application_id}: {str(e)}", exc_info=True)
+
+        # Determine overall status
+        total_requested = len(document_types)
+        if generated_count == total_requested:
+            results["status"] = "full_success"
+        elif generated_count > 0:
+            results["status"] = "partial_success"
+        else:
+            results["status"] = "full_failure"
+
+        logger.info(
+            f"Generated documents for application {application_id}: "
+            f"generated={generated_count}, failed={failed_count}, "
+            f"status={results['status']}, skill_profile={skill_profile}, user={telegram_user_id}"
+        )
+
         return results
