@@ -12,6 +12,7 @@ def home_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🔍 Analyser une offre", callback_data="analyze_offer")],
         [InlineKeyboardButton("📂 Mes candidatures", callback_data="my_applications")],
         [InlineKeyboardButton("📄 Mon Master CV", callback_data="view_master_cv")],
+        [InlineKeyboardButton("💬 Agent Intelligence", callback_data="intelligence_menu")],
         [InlineKeyboardButton("⚙️ Mon profil", callback_data="view_profile")],
     ]
     return InlineKeyboardMarkup(keyboard)
