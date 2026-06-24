@@ -34,9 +34,9 @@ RUN playwright install chromium || echo "Playwright chromium install skipped (ne
 
 COPY . .
 
-RUN mkdir -p outputs
+RUN mkdir -p outputs && chmod +x entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1
 ENV APP_ENV=production
 
-CMD ["python", "-m", "app.bot.telegram_bot"]
+CMD ["./entrypoint.sh"]
