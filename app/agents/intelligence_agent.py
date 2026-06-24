@@ -4,7 +4,7 @@ import json
 from sqlalchemy.orm import Session
 from app.services.openai_service import call_openai
 from app.services.database_intelligence_service import DatabaseIntelligenceService
-from app.database.models import ProfileBlock, BlockCategoryEnum
+from app.database.models import ProfileBlock, CategoryEnum
 
 
 class IntelligenceAgent:
@@ -22,7 +22,7 @@ class IntelligenceAgent:
         # Get candidate skills from profile blocks if not provided
         if not candidate_skills:
             blocks = db.query(ProfileBlock).filter(
-                ProfileBlock.category.in_([BlockCategoryEnum.skill, BlockCategoryEnum.tool])
+                ProfileBlock.category.in_([CategoryEnum.skill, CategoryEnum.tool])
             ).all()
             candidate_skills = [block.title.lower() for block in blocks]
 
@@ -78,7 +78,7 @@ Réponds en français, de manière naturelle et utile."""
 
         elif insight_type == "gaps":
             blocks = db.query(ProfileBlock).filter(
-                ProfileBlock.category.in_([BlockCategoryEnum.skill, BlockCategoryEnum.tool])
+                ProfileBlock.category.in_([CategoryEnum.skill, CategoryEnum.tool])
             ).all()
             candidate_skills = [block.title.lower() for block in blocks]
             gaps = DatabaseIntelligenceService.get_skill_gaps(db, user_id, candidate_skills)
