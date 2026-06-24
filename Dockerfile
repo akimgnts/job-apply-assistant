@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --force-reinstall psycopg2-binary
 
 # Install Playwright chromium (best-effort: falls back to trafilatura if binary unavailable)
 RUN playwright install chromium || echo "Playwright chromium install skipped (network restricted)"
