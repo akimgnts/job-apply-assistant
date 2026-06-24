@@ -1,11 +1,11 @@
 import json
 import logging
-from openai import OpenAI
+from openai import AsyncOpenAI
 from app.config import config
 
 logger = logging.getLogger(__name__)
 
-client = OpenAI(api_key=config.OPENAI_API_KEY)
+client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
 
 async def call_openai(prompt: str, json_mode: bool = False) -> str:
     try:
@@ -13,12 +13,13 @@ async def call_openai(prompt: str, json_mode: bool = False) -> str:
             "model": config.OPENAI_MODEL,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7,
+            "timeout": config.OPENAI_TIMEOUT_SECONDS,
         }
 
         if json_mode:
             kwargs["response_format"] = {"type": "json_object"}
 
-        response = client.chat.completions.create(**kwargs)
+        response = await client.chat.completions.create(**kwargs)
         return response.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"OpenAI API error: {e}")

@@ -1,6 +1,9 @@
 import logging
+
+from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 from app.config import config
+from app.bot.observability import error_handler, log_update_probe
 from app.bot.handlers import (
     start_command,
     help_command,
@@ -37,9 +40,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+ALLOWED_POLLING_UPDATES = [
+    "message",
+    "edited_message",
+    "channel_post",
+    "edited_channel_post",
+    "callback_query",
+]
+
+for optional_update_type in (
+    "business_message",
+    "edited_business_message",
+    "guest_message",
+):
+    if hasattr(Update, optional_update_type.upper()):
+        ALLOWED_POLLING_UPDATES.append(optional_update_type)
+
+
 def setup_bot():
     """Configure bot handlers and filters."""
     app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+    app.add_error_handler(error_handler)
+    app.add_handler(MessageHandler(filters.ALL, log_update_probe), group=-1)
+    app.add_handler(CallbackQueryHandler(log_update_probe), group=-1)
 
     # Commands
     app.add_handler(CommandHandler("start", start_command))
@@ -92,11 +115,12 @@ def setup_bot():
 
     return app
 
+
 def main():
     """Start the bot."""
     logger.info("Starting Job Apply Assistant bot...")
     app = setup_bot()
-    app.run_polling(allowed_updates=[])
+    app.run_polling(allowed_updates=ALLOWED_POLLING_UPDATES)
 
 if __name__ == "__main__":
     main()

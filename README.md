@@ -183,6 +183,28 @@ LOG_LEVEL=INFO                     # Logging level
 - `/help` - Detailed help
 - `/last` - Show last analyzed offer
 
+## Telegram Troubleshooting
+
+Use this when the bot starts but does not answer Telegram messages:
+
+```bash
+LOG_LEVEL=INFO python -m app.bot.telegram_bot
+```
+
+Then send `/start` and check the logs:
+
+- `[telegram.update] user_id=... message=/start` confirms Telegram updates are reaching the process.
+- `start_command.enter user_id=...` and `start_command.reply_sent user_id=...` confirm the `/start` handler ran and sent a reply.
+- `[telegram.error] ...` is the application's runtime error path; it can report handler exceptions or polling/runtime failures.
+
+Quick diagnosis:
+
+- Missing `[telegram.update]`: investigate bot token, polling startup, or Telegram delivery.
+- Present `[telegram.update]` but missing `start_command...`: investigate handler registration or filters.
+- Present `start_command...` but no Telegram reply: inspect `[telegram.error]` output and downstream service failures.
+- `[telegram.error] ... Conflict: terminated by other getUpdates request`: another bot instance is already polling this token.
+- Verified in the startup smoke check for this repo: bot startup logs were emitted and the `409 Conflict` case above was observed; the `/start` flow itself was not exercised live in this session.
+
 ### Document Generation
 
 After offer analysis, reply with:

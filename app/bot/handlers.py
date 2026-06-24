@@ -75,15 +75,20 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     """Handle /start command."""
     from app.bot.message_formatter import format_home_message
 
+    user_id = getattr(getattr(update, "effective_user", None), "id", None)
+    logger.info("start_command.enter user_id=%s", user_id)
     text, parse_mode = format_home_message()
     await update.message.reply_text(
         text,
         parse_mode=parse_mode,
         reply_markup=home_menu()
     )
+    logger.info("start_command.reply_sent user_id=%s", user_id)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /help command."""
+    user_id = getattr(getattr(update, "effective_user", None), "id", None)
+    logger.info("help_command.enter user_id=%s", user_id)
     text = """<b>📖 Comment utiliser?</b>
 
 ━━━━━━━━━━━━━━━━━━━━━
@@ -125,6 +130,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 💡 <i>Documents sont toujours sauvegardés</i>"""
 
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+    logger.info("help_command.reply_sent user_id=%s", user_id)
 
 async def last_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /last command."""
@@ -171,21 +177,39 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     user_id = str(update.effective_user.id)
     raw_input = update.message.text
     db = SessionLocal()
+    logger.info(
+        "handle_offer.enter user_id=%s text_length=%s",
+        user_id,
+        len(raw_input) if raw_input is not None else 0,
+    )
 
     try:
         # Check if input is URL
         from app.services.job_ingestion_service import is_url
-        if is_url(raw_input):
+        input_is_url = is_url(raw_input)
+        logger.info("handle_offer.input_classified user_id=%s is_url=%s", user_id, input_is_url)
+        if input_is_url:
             await update.message.reply_text("🔎 Lien reçu. Extraction en cours...")
 
         await update.message.chat.send_action("typing")
 
         # Use async InputAgent
         offer_text, metadata = await InputAgent.process(raw_input)
+        logger.info(
+            "handle_offer.input_processed user_id=%s source_type=%s extracted=%s",
+            user_id,
+            metadata.get("source_type"),
+            offer_text is not None,
+        )
 
         # Handle extraction failure
         if offer_text is None:
             error_detail = metadata.get("error_detail", "")
+            logger.info(
+                "handle_offer.extraction_failed user_id=%s has_error_detail=%s",
+                user_id,
+                bool(error_detail),
+            )
             if config.DEBUG_TELEGRAM_ERRORS and error_detail:
                 await update.message.reply_text(
                     f"❌ Impossible de lire automatiquement cette offre.\n\n"
@@ -206,8 +230,15 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await update.message.reply_text("🔍 Analyse en cours...")
 
         app = create_application(db, user_id, offer_text, metadata.get("source_url"))
+        logger.info("handle_offer.application_created user_id=%s application_id=%s", user_id, app.id)
 
         analysis = await AnalysisAgent.analyze(db, offer_text)
+        logger.info(
+            "handle_offer.analysis_completed user_id=%s job_title=%s company=%s",
+            user_id,
+            analysis.get("job_title", ""),
+            analysis.get("company", ""),
+        )
 
         analysis = MatchingAgent.enrich_analysis(analysis, db)
 
@@ -218,6 +249,13 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         positioning_result = await PositioningAgent.choose_angle(analysis)
         positioning = positioning_result.get("positioning", "Data Analyst BI")
         skill_profile = positioning_result.get("skill_profile", "general_business_data")
+        logger.info(
+            "handle_offer.positioning_selected user_id=%s application_id=%s positioning=%s skill_profile=%s",
+            user_id,
+            app.id,
+            positioning,
+            skill_profile,
+        )
 
         # Store skill_profile in context for document generation
         if context.user_data is None:
@@ -241,6 +279,7 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             parse_mode=parse_mode,
             reply_markup=offer_extracted_menu(app.id)
         )
+        logger.info("handle_offer.reply_sent user_id=%s application_id=%s", user_id, app.id)
 
     except Exception as e:
         logger.error(f"Error processing offer: {e}", exc_info=True)
@@ -267,6 +306,7 @@ async def handle_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             )
     finally:
         db.close()
+        logger.info("handle_offer.exit user_id=%s", user_id)
 
 async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle GO/CV/LETTRE/MAIL commands (both URL and Elevia modes)."""
