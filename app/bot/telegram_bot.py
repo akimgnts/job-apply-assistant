@@ -33,6 +33,18 @@ if config.ELEVIA_ENABLED:
         elevia_get_profile,
     )
 
+# Career intelligence handlers
+from app.bot.career_intelligence_handlers import (
+    career_intelligence_summary,
+    skill_gaps_analysis,
+    project_recommendations,
+    role_family_analysis,
+    top_requested_skills,
+    most_frequent_gaps,
+    strongest_skills,
+    save_intelligence_snapshot,
+)
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=getattr(logging, config.LOG_LEVEL),
@@ -56,6 +68,16 @@ def setup_bot():
         app.add_handler(CommandHandler("load_elevia_offer", elevia_load_offer))
         app.add_handler(CommandHandler("upload_profile", elevia_upload_profile))
         app.add_handler(CommandHandler("get_profile", elevia_get_profile))
+
+    # Career intelligence commands
+    app.add_handler(CommandHandler("intelligence", career_intelligence_summary))
+    app.add_handler(CommandHandler("gaps", skill_gaps_analysis))
+    app.add_handler(CommandHandler("projects", project_recommendations))
+    app.add_handler(CommandHandler("roles", role_family_analysis))
+    app.add_handler(CommandHandler("top_skills", top_requested_skills))
+    app.add_handler(CommandHandler("gaps_most", most_frequent_gaps))
+    app.add_handler(CommandHandler("strengths", strongest_skills))
+    app.add_handler(CommandHandler("save_intelligence", save_intelligence_snapshot))
 
     # Callbacks (buttons) — with and without app_id
     app.add_handler(CallbackQueryHandler(home_callback, pattern="^home$"))
