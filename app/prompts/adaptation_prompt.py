@@ -187,35 +187,30 @@ CRITICAL VOCABULARY RULES (ENFORCED):
 
 NEVER USE (hard forbidden):
   • experienced in delivering
-  • enterprise clients
-  • enterprise-grade
-  • managed
-  • led
-  • mentored
-  • architected
-  • owned
-  • expert
-  • extensive experience
-  • robust and scalable
-  • advanced expertise
-  • seasoned
-  • specialist in
-  • driving
-  • spearheaded
+  • enterprise clients / enterprise-grade
+  • expert / seasoned / specialist in / extensive experience
+  • robust and scalable / advanced expertise
+  • mentored / architected / owned
+  • driving / spearheading / leveraging / streamlining
+  • contributed to / helped improve / participated in / involved in
+  • assisted with / supported the team / helped deliver
+  • passionate about / results-oriented / team player
 
-ALWAYS USE (preferred):
-  • background in
-  • exposure to
-  • worked on
-  • contributed to
-  • supported
-  • experience across
-  • combining
-  • focused on
-  • collaborated with
-  • helped deliver
-  • involved in
-  • participated in
+PREFER specific, grounded language:
+  • "Built and maintained 10 dashboards used by 30–40 stakeholders" (not "created reporting tools")
+  • "Automated tasks that previously required half a day to several days" (not "reduced manual effort")
+  • "Analyzed 61 customer accounts" (not "performed customer analysis")
+  • "Iterated through 10+ versions of the matching engine" (not "developed an AI system")
+
+EVIDENCE-FIRST BULLET RULE:
+Every bullet must contain at least one of:
+  ✓ A concrete number (10 dashboards, 30–40 users, 61 customers, half a day saved)
+  ✓ An operational before/after (previously X days → now Y hours)
+  ✓ A specific stakeholder scope (marketing, commercial and management teams)
+  ✓ A measurable output (100+ documents generated, 1,000+ opportunities processed)
+
+If no number is available in the source data, use truthful qualitative specificity.
+Never invent numbers. Never use vague percentages. Never use "significantly" or "greatly".
 
 SENIORITY INDEPENDENCE RULE:
 Never infer seniority from offer.
@@ -253,17 +248,21 @@ PHILOSOPHY:
 - Strong bullets amplify
 
 BULLET STRUCTURE:
-ACTION + PURPOSE + STAKEHOLDERS + CONTEXT
+ACTION + EVIDENCE + IMPACT
 
-Avoid:
-  Analyzed data. Developed dashboards. Monitored KPIs.
+Prefer (evidence-first, numbers anchored, direct):
+  "Built and maintained around 10 dashboards covering installed base, events and KPIs — used weekly by ~30–40 stakeholders across marketing, commercial and management teams."
+  "Automated extraction, cleaning and visualization tasks — reducing processes that previously required half a day to several days of manual work."
+  "Analyzed 61 customer accounts in the Wines & Spirits sector and produced commercial action plans supporting account prioritization by machine age and business opportunity."
 
-Prefer:
-  Consolidated and analyzed multi-source business data to improve
-  visibility on customer and market performance across international stakeholders.
+Avoid (generic, tool-heavy, no evidence):
+  "Analyzed data. Developed dashboards. Monitored KPIs."
+  "Used Power BI to support business decisions."
+  "Contributed to improving reporting efficiency."
 
 Tools support narrative. Tools are NOT the narrative.
-Business understanding > keyword density.
+Evidence > adjectives. Numbers > vague qualifiers.
+Business impact > process description.
 
 SIDEL EXPERIENCE (Experience #0) — FLAGSHIP ANCHOR
 

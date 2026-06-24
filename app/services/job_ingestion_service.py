@@ -7,6 +7,12 @@ import trafilatura
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings()
 
+_USER_AGENT = (
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/120.0.0.0 Safari/537.36'
+)
+
 
 def is_url(text: str) -> bool:
     """Check if text is a URL."""
@@ -24,34 +30,62 @@ def clean_job_text(text: str) -> str:
 
     text = text.strip()
 
-    # Remove cookie/footer sections
-    text = re.sub(r'(?i)(cookie|accept all|decline|preferences|privacy policy).*?(?=\n\n|\Z)', '', text)
-
-    # Remove navigation/menu sections
-    text = re.sub(r'(?i)(menu|navigation|skip to|home|about|contact).*?(?=\n\n|\Z)', '', text)
-
-    # Remove social share sections
-    text = re.sub(r'(?i)(share on|follow us|social media|linkedin|facebook|twitter).*?(?=\n\n|\Z)', '', text)
-
-    # Remove legal boilerplate
-    text = re.sub(r'(?i)(copyright|all rights reserved|terms of service|disclaimer).*?(?=\n\n|\Z)', '', text)
+    # Remove cookie/GDPR banners only (standalone lines)
+    text = re.sub(r'(?i)^(accept all cookies?|decline cookies?|cookie preferences?|privacy policy)\s*$', '', text, flags=re.MULTILINE)
 
     # Remove multiple consecutive spaces/newlines
     text = re.sub(r' +', ' ', text)
     text = re.sub(r'\n\n+', '\n\n', text)
 
-    # Clean up whitespace
-    text = text.strip()
+    return text.strip()
 
-    return text
+
+def _extract_text(html: bytes) -> str:
+    """Try trafilatura extraction with precision, then recall fallback."""
+    extracted = trafilatura.extract(
+        html,
+        include_comments=False,
+        include_tables=True,
+        favor_precision=True,
+    )
+    if not extracted or len(extracted.strip()) < 200:
+        extracted = trafilatura.extract(
+            html,
+            include_comments=False,
+            include_tables=True,
+            favor_recall=True,
+        )
+    return extracted or ""
+
+
+async def _extract_with_playwright(url: str) -> str:
+    """Fallback extraction using a headless browser for JS-rendered pages."""
+    from playwright.async_api import async_playwright
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"],
+        )
+        try:
+            page = await browser.new_page()
+            await page.set_extra_http_headers({
+                "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+            })
+            await page.goto(url, wait_until="networkidle", timeout=20000)
+            html = await page.content()
+        finally:
+            await browser.close()
+
+    return _extract_text(html.encode("utf-8"))
 
 
 async def ingest_job_input(raw_input: str) -> dict:
     """
     Ingest job input: either plain text or URL.
 
-    If URL: extract content using trafilatura
-    If text: return as-is
+    If URL: extract content using trafilatura, with Playwright fallback for JS sites.
+    If text: return as-is.
 
     Returns:
     {
@@ -77,32 +111,36 @@ async def ingest_job_input(raw_input: str) -> dict:
     # URL input
     url = raw_input
     try:
-        # Fetch URL with User-Agent to avoid blocks
+        # Step 1: static fetch
         http = urllib3.PoolManager()
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': _USER_AGENT,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
         }
-        response = http.request('GET', url, headers=headers, timeout=10)
+        response = http.request('GET', url, headers=headers, timeout=15)
         if response.status != 200:
             raise ValueError(f"HTTP {response.status}")
 
-        # Extract text
-        extracted = trafilatura.extract(
-            response.data,
-            include_comments=False,
-            favor_precision=True
-        )
-        if not extracted:
-            raise ValueError("Could not extract text from URL")
+        extracted = _extract_text(response.data)
+
+        # Step 2: Playwright fallback for JS-rendered pages
+        if not extracted or len(extracted.strip()) < 200:
+            logger.info(f"URL={url} static extraction sparse, trying Playwright")
+            try:
+                extracted = await _extract_with_playwright(url)
+            except Exception as pw_err:
+                logger.warning(f"URL={url} Playwright fallback failed: {pw_err}")
+
+        if not extracted or len(extracted.strip()) < 100:
+            raise ValueError("Extracted text too short or empty (site may require login)")
 
         clean_text = clean_job_text(extracted)
 
         if not clean_text or len(clean_text) < 100:
             raise ValueError("Extracted text too short or empty")
 
-        logger.info(
-            f"URL={url} extraction_success=True length={len(clean_text)}"
-        )
+        logger.info(f"URL={url} extraction_success=True length={len(clean_text)}")
 
         return {
             "source_type": "url",
