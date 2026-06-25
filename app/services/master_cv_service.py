@@ -36,12 +36,12 @@ def load_master_cv() -> dict:
                 "dates": "2023 – 2025",
                 "bullets": [
                     "Built and maintained around 10 dashboards and reporting tools covering installed base, events and business KPIs — used weekly and monthly by approximately 30–40 stakeholders across marketing, commercial and management teams.",
-                    "Automated recurring extraction, cleaning, consolidation and visualization tasks using Python, SQL and Power BI — reducing processes that previously required half a day to several days of manual work.",
+                    "Automated recurring extraction, cleaning, consolidation and visualization tasks using Python, SQL, Snowflake and Power BI — reducing processes that previously required half a day to several days of manual work.",
                     "Analyzed installed base, equipment and service data across 61 customers in the Wines & Spirits sector; produced commercial action plans supporting account prioritization by machine age, installed base evolution and business opportunities.",
-                    "Consolidated multi-source business data (customers, leads, events, campaigns) and monitored KPIs to improve operational visibility for European marketing and commercial teams.",
+                    "Produced Installed Base analysis for Benelux accounts — mapping equipment age, service history and commercial potential across the region to support prioritization decisions by the local commercial team.",
+                    "Consolidated multi-source business data from Microsoft Dynamics, CRM and marketing platforms (customers, leads, events, campaigns) — monitored KPIs to improve operational visibility for European marketing and commercial teams.",
                     "Coordinated with international stakeholders across Europe; presented analyses, action plans and business insights in French and English.",
-                    "Supported data quality through structured cleaning, consistency checks and documentation across multi-source reporting processes.",
-                    "Used Python, SQL, Snowflake, Power BI, Power Query and Microsoft Dynamics for data consolidation, reporting and business analysis in a large-scale B2B industrial context.",
+                    "Maintained data quality through systematic cleaning, consistency checks and cross-source documentation across Power BI, Snowflake and CRM data flows.",
                 ]
             },
             {
@@ -54,7 +54,8 @@ def load_master_cv() -> dict:
                     "Automated repetitive operational tasks (email preparation, meeting workflows, lead enrichment) — saving several hours of manual work per workflow across systems used by clients and personal operations.",
                     "Built workflow automation using APIs, webhooks, Make, n8n, JSON payloads and Python scripts — connecting CRM tools, databases and communication channels.",
                     "Designed dashboards, reporting structures and operational tracking systems for client and personal use cases.",
-                    "Used ManyChat, Meta Business Suite, HubSpot, Airtable, Notion and Google Sheets to structure CRM workflows and digital operations.",
+                    "Built and iterated AI-powered prototypes and automation workflows using OpenAI, Claude and FastAPI — covering document generation pipelines, AI-assisted content extraction and personal productivity systems backed by PostgreSQL.",
+                    "Managed client-facing CRM workflows and digital operations using HubSpot, Airtable and ManyChat — structuring customer data, lead tracking and communication channels for SMB clients.",
                     "Produced social media assets, visual identities and content using Adobe Premiere Pro, After Effects, Photoshop and Illustrator.",
                 ]
             },
@@ -80,16 +81,17 @@ def load_master_cv() -> dict:
                 "bullets": [
                     "Designed and iterated through more than 10 versions of a matching engine — evaluated across 30 test profiles and over 1,000 job opportunities, improving recommendation quality and explainability.",
                     "Generated 100+ AI-assisted application documents (CVs, cover letters, recruiter messages) — reducing preparation time from dozens of minutes to a few seconds.",
-                    "Built a modular architecture of ~10 components across 4 PostgreSQL tables, covering CV parsing, skill extraction, canonicalization, scoring and observability.",
+                    "Built a modular FastAPI backend with ~10 components across 4 PostgreSQL tables — covering CV parsing, skill extraction, canonicalization, scoring and observability, with technical documentation maintained throughout.",
                 ]
             },
             {
                 "id": 1,
                 "title": "Job Apply Assistant",
-                "stack": "Telegram · OpenAI · PostgreSQL · Jinja2 · SQLAlchemy · Coolify",
+                "stack": "Telegram · FastAPI · OpenAI · PostgreSQL · SQLAlchemy · Jinja2 · Coolify",
                 "dates": "",
                 "bullets": [
                     "Built a Telegram assistant that analyzes job offers, matches against a candidate profile and generates tailored CV, cover letter and recruiter message — reducing application preparation time from ~45 minutes to ~5 minutes.",
+                    "Designed the full backend using FastAPI, PostgreSQL, OpenAI and SQLAlchemy — with a Jinja2 template rendering pipeline producing format-ready documents from a structured candidate profile and job analysis.",
                 ]
             },
             {
@@ -122,7 +124,7 @@ def load_master_cv() -> dict:
             },
             {
                 "label": "AI & LLM Workflows",
-                "content": "OpenAI API, Claude, Gemini, Prompt Engineering, Structured Extraction, RAG Concepts, AI Agents, Knowledge Bases, LLM Workflows, LangChain."
+                "content": "OpenAI API, Claude, Gemini, Prompt Engineering, Structured Extraction, RAG Concepts, AI Agents, Knowledge Bases, LLM Workflows, LangChain, MCP, Function Calling."
             },
             {
                 "label": "Backend & Data Systems",
@@ -173,10 +175,14 @@ def load_master_cv() -> dict:
     return data
 
 
-def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
+def validate_adaptation(adaptation: dict, master_cv: dict, compact: bool = False) -> dict:
     """Validate adaptation against master CV.
 
     Philosophy: Truth is immutable. Narrative is flexible.
+
+    Args:
+        compact: If True, relaxes Sidel bullet minimum to 3 (single-page mode).
+                 If False, requires minimum 5 bullets for Sidel (full mode).
 
     Ensure:
     - Experience order is FIXED: [0, 1, 2]
@@ -195,21 +201,22 @@ def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:
 
     # Check bullets exist for each experience (facts preserved, wording flexible)
     exp_bullets = adaptation.get("experience_bullets", {})
+    sidel_min_bullets = 3 if compact else 5
     for exp_id in [0, 1, 2]:
         exp_id_str = str(exp_id)
-        master_bullets = master_cv["experiences"][exp_id].get("bullets", [])
         actual_bullets = exp_bullets.get(exp_id_str, [])
 
-        # Sidel (exp_id 0) is flagship: MINIMUM 5 bullets
+        # Sidel (exp_id 0) is flagship — minimum varies by mode
         if exp_id == 0:
-            if len(actual_bullets) < 5:
-                issues.append(f"Sidel experience: Minimum 5 bullets required. Got {len(actual_bullets)}.")
+            if len(actual_bullets) < sidel_min_bullets:
+                issues.append(
+                    f"Sidel experience: Minimum {sidel_min_bullets} bullets required "
+                    f"({'compact' if compact else 'full'} mode). Got {len(actual_bullets)}."
+                )
         else:
-            # Other experiences: at least one bullet required
             if not actual_bullets:
                 issues.append(f"Experience {exp_id}: At least one bullet required.")
 
-        # Check no fabricated content in bullets (basic heuristic)
         for bullet in actual_bullets:
             if not isinstance(bullet, str) or len(bullet) == 0:
                 issues.append(f"Experience {exp_id}: Invalid bullet format.")

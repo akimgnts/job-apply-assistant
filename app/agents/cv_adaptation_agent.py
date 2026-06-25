@@ -23,6 +23,7 @@ class CVAdaptationAgent:
         positioning: str,
         master_cv_data: dict,
         skill_profile: str = "general_business_data",
+        page_target: str = "single_page",
     ) -> dict:
         """Adapt Master CV to job offer using skill profile.
 
@@ -31,6 +32,7 @@ class CVAdaptationAgent:
             positioning: Chosen positioning angle
             master_cv_data: Master CV structure with all content
             skill_profile: Skill profile key for emphasis rules
+            page_target: "single_page" (compact, 1-page A4) or "full" (no constraint)
 
         Returns:
             Adaptation JSON:
@@ -51,13 +53,14 @@ class CVAdaptationAgent:
             positioning,
             master_cv_data,
             skill_profile,
+            page_target,
         )
 
         try:
             adaptation = await generate_cv_payload(prompt)
             logger.info(
                 f"CV adapted: title={adaptation.get('title', 'N/A')}, "
-                f"skill_profile={skill_profile}, "
+                f"skill_profile={skill_profile}, page_target={page_target}, "
                 f"experiences_ordered={len(adaptation.get('experience_order', []))}, "
                 f"projects_ordered={len(adaptation.get('project_order', []))}"
             )

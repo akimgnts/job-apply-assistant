@@ -3,6 +3,7 @@ def get_cv_adaptation_prompt(
     positioning: str,
     master_cv: dict,
     skill_profile: str = "general_business_data",
+    page_target: str = "single_page",
 ) -> str:
     """Prompt to adapt Master CV to job offer.
 
@@ -42,9 +43,41 @@ def get_cv_adaptation_prompt(
         ]
     )
 
+    # Build density budget block
+    if page_target == "single_page":
+        density_block = """PAGE TARGET: SINGLE PAGE A4 (STRICT)
+
+DENSITY BUDGET — enforced before any other rule:
+The final CV must fit on exactly one A4 page.
+A second page is only acceptable if it is at least 70% full — never generate a page with only a few lines.
+
+To fit one page, apply these hard limits:
+  • Summary: max 40 words (leave empty "" if it won't fit cleanly)
+  • Sidel: select the 4–5 strongest bullets only (not 6–7)
+  • MadeByAkim: 2–3 bullets maximum
+  • Vassard: 1–2 bullets maximum
+  • Each project: 1 bullet maximum (the most impactful one)
+  • Prefer concise bullet phrasing: one clear sentence beats two long ones
+
+Selection logic for Sidel bullets when space is limited:
+  1. Dashboards + stakeholder scope (always keep — most impactful evidence)
+  2. Automation + time saved (always keep — strongest before/after proof)
+  3. Role-relevant analysis bullet (keep if matches job context)
+  4. International / coordination (keep if role has stakeholder dimension)
+  5. Data quality / tools context (drop first if space is tight)
+
+For projects: keep the one bullet that best positions the project for THIS role.
+
+This budget is non-negotiable. Do not add content that will cause overflow."""
+    else:
+        density_block = "PAGE TARGET: FULL (no page constraint — include all relevant content)"
+
     return f"""ROLE
 
 You are a premium CV positioning specialist.
+
+{density_block}
+
 
 Your task: Adapt Master CV to position the candidate for THIS role.
 Use the skill_profile to reduce noise and emphasize relevant skills.
@@ -267,8 +300,10 @@ Business impact > process description.
 SIDEL EXPERIENCE (Experience #0) — FLAGSHIP ANCHOR
 
 Sidel = strongest experience (2-year international B2B apprenticeship).
-PREMIUM bullet density: 6-7 bullets (not fewer, not 3-4).
-Represents 40-50% of experience section (typically 15-20 lines in CV).
+Bullet count depends on page_target:
+  • single_page: 4–5 bullets (best selection, no overflow)
+  • full: 6–7 bullets (premium density)
+Represents 40-50% of experience section.
 Reader understands in <20 seconds why it matters.
 
 PRESERVE IDENTITY RULE:
@@ -324,7 +359,7 @@ BULLET QUALITY > quantity.
 Clarity > complexity.
 Substance > brevity.
 
-Return: 6-7 bullets for Sidel (flagship density).
+Return: 4–5 bullets for Sidel in single_page mode, 6–7 in full mode.
 
 STEP 5: Project Order
 - Default order: [0, 1, 2] (Elevia, Job Apply Assistant, V.I.E Matcher)
@@ -425,7 +460,7 @@ MUST HAVE:
 - Confidence without exaggeration
 
 FLAGSHIP EXPERIENCE CHECKLIST:
-✓ 6-7 bullets (premium density)
+✓ 4–5 bullets (single_page) or 6–7 bullets (full)
 ✓ Represents 40-50% of experience section
 ✓ Business context preserved
 ✓ Stakeholder scope clear

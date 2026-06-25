@@ -258,15 +258,21 @@ class GenerationAgent:
         positioning: str,
         skill_profile: str = "general_business_data",
         telegram_user_id: str = None,
+        page_target: str = "single_page",
     ) -> str:
         """Generate CV by adapting Master CV. Never invent content.
 
         Flow:
         1. Load Master CV (source of truth)
-        2. Call CVAdaptationAgent to adapt for job offer using skill_profile
-        3. Validate adaptation (no new content)
-        4. Render master_cv.html with adaptation payload
-        5. Save to DB + file
+        2. Gap analysis + Bridge Engine for fit reasoning
+        3. Call CVAdaptationAgent to adapt for job offer using skill_profile + page_target
+        4. Validate adaptation (no new content)
+        5. Render master_cv.html with adaptation payload
+        6. Save to DB + file
+
+        Args:
+            page_target: "single_page" (strict 1-page A4) or "full" (no constraint).
+                         Defaults to "single_page".
         """
         # Load Master CV (fixed, verified content)
         master_cv = load_master_cv()
@@ -287,16 +293,18 @@ class GenerationAgent:
             if bridge_reasoning.get('gaps'):
                 logger.info(f"Identified gaps: {bridge_reasoning.get('gaps', [])}")
 
-            # ADAPT: Get adaptation JSON (not full CV) with skill profile guidance
+            # ADAPT: Get adaptation JSON (not full CV) with skill profile + page guidance
             adaptation = await CVAdaptationAgent.adapt_cv(
                 analysis,
                 positioning,
                 master_cv,
                 skill_profile,
+                page_target,
             )
 
             # VALIDATE: Ensure no hallucinations in adaptation
-            validation_result = validate_adaptation(adaptation, master_cv)
+            compact = page_target == "single_page"
+            validation_result = validate_adaptation(adaptation, master_cv, compact=compact)
             if not validation_result["is_valid"]:
                 logger.warning(f"Adaptation validation failed: {validation_result['issues']}")
                 # Fallback: use master CV with unchanged title/summary
@@ -476,6 +484,7 @@ class GenerationAgent:
         document_types: list[str] = None,
         skill_profile: str = "general_business_data",
         telegram_user_id: str = None,
+        page_target: str = "single_page",
     ) -> dict:
         """Generate requested documents with graceful degradation per artifact.
 
@@ -510,7 +519,7 @@ class GenerationAgent:
         if "cv" in document_types:
             try:
                 cv_content = await GenerationAgent.generate_cv(
-                    db, application_id, analysis, positioning, skill_profile, telegram_user_id
+                    db, application_id, analysis, positioning, skill_profile, telegram_user_id, page_target
                 )
                 results["documents"]["cv"] = cv_content
                 results["errors"]["cv"] = None
@@ -566,7 +575,8 @@ class GenerationAgent:
         logger.info(
             f"Generated documents for application {application_id}: "
             f"generated={generated_count}, failed={failed_count}, "
-            f"status={results['status']}, skill_profile={skill_profile}, user={telegram_user_id}"
+            f"status={results['status']}, skill_profile={skill_profile}, "
+            f"page_target={page_target}, user={telegram_user_id}"
         )
 
         return results
