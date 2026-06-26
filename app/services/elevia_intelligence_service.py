@@ -48,7 +48,7 @@ class EleviaIntelligenceService:
     async def get_ingestion_status(self) -> Dict[str, Any]:
         """Get latest ingestion run metadata."""
         try:
-            result = await self.client.search_offers()  # Using search as proxy for ingestion status
+            result = await self.client.get_ingestion_status()
             return result if result else {}
         except Exception as e:
             logger.error("[ELEVIA_INTEL] Failed to get ingestion status: %s", str(e))

@@ -30,45 +30,33 @@ class EleviaClient:
             logger.warning(f"Elevia health check failed: {e}")
             return False
 
-    async def search_offers(
-        self,
-        query: Optional[str] = None,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10,
-    ) -> Dict[str, Any]:
-        """Search offers using inbox (recommended entry point)."""
+    async def get_ingestion_status(self) -> Dict[str, Any]:
+        """Get latest ingestion run metadata."""
         try:
-            payload = {
-                "query": query or "",
-                "filters": filters or {},
-                "limit": limit,
-            }
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-                response = await client.post(
-                    f"{self.base_url}/api/inbox",
-                    json=payload,
+                response = await client.get(
+                    f"{self.base_url}/api/ingestion/latest",
                     headers=self.headers,
                 )
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPError as e:
-            logger.error(f"Elevia search failed: {e}")
+            logger.error(f"Elevia ingestion status failed: {e}")
             raise
         except Exception as e:
-            logger.error(f"Elevia search error: {e}")
+            logger.error(f"Elevia ingestion status error: {e}")
             raise
 
     async def get_offers_catalog(
         self,
-        skip: int = 0,
         limit: int = 50,
     ) -> Dict[str, Any]:
-        """Get offers catalog (fallback or browse mode)."""
+        """Get recent active offers."""
         try:
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
-                    f"{self.base_url}/api/offers/catalog",
-                    params={"skip": skip, "limit": limit},
+                    f"{self.base_url}/api/offers/recent",
+                    params={"limit": limit},
                     headers=self.headers,
                 )
                 response.raise_for_status()
@@ -85,7 +73,7 @@ class EleviaClient:
         try:
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
-                    f"{self.base_url}/api/offers/{offer_id}/detail",
+                    f"{self.base_url}/api/offers/{offer_id}",
                     headers=self.headers,
                 )
                 response.raise_for_status()
