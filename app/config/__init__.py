@@ -38,9 +38,10 @@ class Config:
     # Document delivery
     ENABLE_PDF_EXPORT = os.getenv("ENABLE_PDF_EXPORT", "false").lower() == "true"
 
-    # Elevia API
-    ELEVIA_BASE_URL = os.getenv("ELEVIA_BASE_URL", "https://api.elevia.dev")
-    ELEVIA_API_KEY = os.getenv("ELEVIA_API_KEY", "")
+    # Elevia API Integration
     ELEVIA_ENABLED = os.getenv("ELEVIA_ENABLED", "false").lower() == "true"
+    ELEVIA_BASE_URL = os.getenv("ELEVIA_BASE_URL", "https://elevia.com.br")
+    ELEVIA_API_KEY = os.getenv("ELEVIA_API_KEY", "")
+    ELEVIA_REQUEST_TIMEOUT_MS = int(os.getenv("ELEVIA_REQUEST_TIMEOUT_MS", "20000"))
 
 config = Config()

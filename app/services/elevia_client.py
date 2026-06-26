@@ -20,7 +20,7 @@ class EleviaClient:
     async def health_check(self) -> bool:
         """Check if Elevia API is healthy."""
         try:
-            async with httpx.AsyncClient(timeout=5) as client:
+            async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
                 response = await client.get(
                     f"{self.base_url}/api/health",
                     headers=self.headers,
@@ -43,7 +43,7 @@ class EleviaClient:
                 "filters": filters or {},
                 "limit": limit,
             }
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.post(
                     f"{self.base_url}/api/inbox",
                     json=payload,
@@ -65,7 +65,7 @@ class EleviaClient:
     ) -> Dict[str, Any]:
         """Get offers catalog (fallback or browse mode)."""
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
                     f"{self.base_url}/api/offers/catalog",
                     params={"skip": skip, "limit": limit},
@@ -83,7 +83,7 @@ class EleviaClient:
     async def get_offer_detail(self, offer_id: str) -> Dict[str, Any]:
         """Get detailed information about a specific offer."""
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
                     f"{self.base_url}/api/offers/{offer_id}/detail",
                     headers=self.headers,
@@ -103,7 +103,7 @@ class EleviaClient:
     async def upload_profile(self, file_content: bytes, filename: str) -> Dict[str, Any]:
         """Upload and parse a profile file."""
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 files = {"file": (filename, file_content)}
                 response = await client.post(
                     f"{self.base_url}/api/profile/parse-file",
@@ -122,7 +122,7 @@ class EleviaClient:
     async def get_profile(self, profile_id: str) -> Dict[str, Any]:
         """Get profile information by ID."""
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
                     f"{self.base_url}/api/profiles/{profile_id}",
                     headers=self.headers,
@@ -150,7 +150,7 @@ class EleviaClient:
                 "profile_id": profile_id,
                 "offer_id": offer_id,
             }
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.post(
                     f"{self.base_url}/api/v1/match",
                     json=payload,
