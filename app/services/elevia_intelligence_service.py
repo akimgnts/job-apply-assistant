@@ -4,6 +4,7 @@ import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 from collections import Counter
+from app.config import config
 from app.services.elevia_client import EleviaClient
 from app.services.database_intelligence_service import DatabaseIntelligenceService
 from sqlalchemy.orm import Session
@@ -15,7 +16,10 @@ class EleviaIntelligenceService:
     """Service to query and analyze live offers from Elevia API V1."""
 
     def __init__(self, elevia_client: Optional[EleviaClient] = None):
-        self.client = elevia_client or EleviaClient()
+        self.client = elevia_client or EleviaClient(
+            base_url=config.ELEVIA_BASE_URL,
+            api_key=config.ELEVIA_API_KEY
+        )
 
     async def get_recent_offers(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get recent active offers from Elevia."""
