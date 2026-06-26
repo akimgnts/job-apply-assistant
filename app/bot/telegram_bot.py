@@ -1,5 +1,5 @@
 import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters
 from app.config import config
 from app.bot.handlers import (
     start_command,
@@ -43,6 +43,16 @@ from app.bot.career_intelligence_handlers import (
     most_frequent_gaps,
     strongest_skills,
     save_intelligence_snapshot,
+)
+
+# Intelligence Agent handlers (conversational)
+from app.bot.intelligence_handlers import (
+    intelligence_menu_callback,
+    handle_intelligence_insight,
+    handle_free_question,
+    cancel_intelligence,
+    INTELLIGENCE_MENU,
+    ASKING_QUESTION,
 )
 
 logging.basicConfig(
@@ -106,6 +116,22 @@ def setup_bot():
 
     # Save Application: with or without app_id
     app.add_handler(CallbackQueryHandler(save_application_callback, pattern="^save_application(:[0-9]+)?$"))
+
+    # Intelligence Agent conversation handler
+    intelligence_conv_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(intelligence_menu_callback, pattern="^intelligence_menu$")],
+        states={
+            INTELLIGENCE_MENU: [
+                CallbackQueryHandler(handle_intelligence_insight, pattern="^intel_"),
+            ],
+            ASKING_QUESTION: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_free_question),
+                CallbackQueryHandler(intelligence_menu_callback, pattern="^intelligence_menu$"),
+            ],
+        },
+        fallbacks=[CallbackQueryHandler(cancel_intelligence, pattern="^home$")],
+    )
+    app.add_handler(intelligence_conv_handler)
 
     # Text messages
     app.add_handler(MessageHandler(filters.Regex("^(GO|CV|LETTRE|MAIL)$"), handle_command))
