@@ -35,7 +35,7 @@ class EleviaClient:
         try:
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
-                    f"{self.base_url}/api/ingestion/latest",
+                    f"{self.base_url}/ingestion/latest",
                     headers=self.headers,
                 )
                 response.raise_for_status()
@@ -55,7 +55,7 @@ class EleviaClient:
         try:
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
-                    f"{self.base_url}/api/offers/recent",
+                    f"{self.base_url}/offers/recent",
                     params={"limit": limit},
                     headers=self.headers,
                 )
@@ -73,7 +73,7 @@ class EleviaClient:
         try:
             async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
                 response = await client.get(
-                    f"{self.base_url}/api/offers/{offer_id}",
+                    f"{self.base_url}/offers/{offer_id}",
                     headers=self.headers,
                 )
                 response.raise_for_status()
