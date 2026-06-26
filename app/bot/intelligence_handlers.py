@@ -25,27 +25,36 @@ async def intelligence_menu_callback(update: Update, context: ContextTypes.DEFAU
     db = SessionLocal()
 
     try:
-        # Create intelligence menu
+        # Create intelligence menu with local and live market insights
         keyboard = [
-            [InlineKeyboardButton("📊 Résumé de candidatures", callback_data="intel_summary")],
+            # Local database insights
+            [InlineKeyboardButton("📊 Mes candidatures", callback_data="intel_summary")],
             [InlineKeyboardButton("🔍 Mes skill gaps", callback_data="intel_gaps")],
             [InlineKeyboardButton("📍 Offres par entreprise", callback_data="intel_companies")],
             [InlineKeyboardButton("🏆 Meilleurs matches", callback_data="intel_best")],
-            [InlineKeyboardButton("📈 Top compétences", callback_data="intel_skills")],
-            [InlineKeyboardButton("💬 Poser une question libre", callback_data="intel_ask")],
+            # Live market insights (Elevia)
+            [InlineKeyboardButton("💼 Marché en direct", callback_data="intel_market")],
+            [InlineKeyboardButton("🎯 Top opportunités", callback_data="intel_opportunities")],
+            # Free question
+            [InlineKeyboardButton("💬 Poser une question", callback_data="intel_ask")],
             [InlineKeyboardButton("🏠 Accueil", callback_data="home")],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         text = """🤖 <b>Agent Intelligence</b>
 
-Bienvenue! Je peux t'aider à comprendre:
-• Tes skill gaps (compétences manquantes)
-• Les tendances du marché
-• Tes meilleurs matches
-• Les entreprises qui recrutent
+Bienvenue! Je peux t'aider à:
+<b>Ton historique:</b>
+• Résumer tes candidatures
+• Identifier tes skill gaps
+• Analyser les entreprises
 
-Choisis une analyse rapide ou pose une question libre!"""
+<b>Marché en direct (Elevia):</b>
+• Voir les tendances actuelles
+• Découvrir les meilleures opportunités
+• Analyser la demande en compétences
+
+Choisis une analyse ou pose une question!"""
 
         await query.edit_message_text(
             text=text,
@@ -77,7 +86,7 @@ async def handle_intelligence_insight(update: Update, context: ContextTypes.DEFA
         # Special handling for "ask" - start free question mode
         if insight_type == "ask":
             await query.edit_message_text(
-                text="💬 <b>Pose ta question</b>\n\nEnvoie une question naturelle sur tes offres, compétences, etc.",
+                text="💬 <b>Pose ta question</b>\n\nEnvoie une question naturelle sur tes offres, compétences, le marché, etc.",
                 parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup([[
                     InlineKeyboardButton("↩️ Retour", callback_data="intelligence_menu")
@@ -85,23 +94,34 @@ async def handle_intelligence_insight(update: Update, context: ContextTypes.DEFA
             )
             return ASKING_QUESTION
 
-        # Get insight from agent
-        insight = await IntelligenceAgent.get_quick_insight(db, user_id, insight_type)
+        # Show typing indicator
+        await update.effective_chat.send_action("typing")
+
+        # Get insight from agent instance
+        agent = IntelligenceAgent()
+        insight = await agent.get_quick_insight(db, user_id, insight_type)
 
         keyboard = [[InlineKeyboardButton("↩️ Retour", callback_data="intelligence_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        await query.edit_message_text(
-            text=insight,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup
-        )
+        # Split long messages
+        from app.utils.debug import split_telegram_message
+        messages = split_telegram_message(insight, max_length=4000)
+
+        for msg in messages:
+            await query.edit_message_text(
+                text=msg,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup
+            )
+
         logger.info("handle_intelligence_insight user_id=%s type=%s", user_id, insight_type)
         return INTELLIGENCE_MENU
 
     except Exception as e:
         logger.error("handle_intelligence_insight error: %s", str(e))
-        await query.edit_message_text(f"❌ Erreur: {str(e)[:100]}")
+        error_msg = format_exception_for_telegram(e)
+        await query.edit_message_text(f"❌ Erreur: {error_msg[:100]}")
         return INTELLIGENCE_MENU
     finally:
         db.close()
@@ -119,8 +139,9 @@ async def handle_free_question(update: Update, context: ContextTypes.DEFAULT_TYP
         # Show typing indicator
         await update.message.chat.send_action("typing")
 
-        # Analyze question with agent
-        response = await IntelligenceAgent.analyze_user_question(db, user_id, question)
+        # Analyze question with agent instance
+        agent = IntelligenceAgent()
+        response = await agent.analyze_user_question(db, user_id, question)
 
         # Split long messages
         from app.utils.debug import split_telegram_message
