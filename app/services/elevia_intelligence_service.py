@@ -24,7 +24,7 @@ class EleviaIntelligenceService:
     async def get_recent_offers(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get recent active offers from Elevia."""
         try:
-            result = await self.client.get_catalog(limit=limit)
+            result = await self.client.get_offers_catalog(limit=limit)
             if "error" in result:
                 logger.warning("[ELEVIA_INTEL] Catalog error: %s", result.get("error"))
                 return []
@@ -48,7 +48,7 @@ class EleviaIntelligenceService:
     async def get_ingestion_status(self) -> Dict[str, Any]:
         """Get latest ingestion run metadata."""
         try:
-            result = await self.client.get_inbox("")  # Using inbox as proxy for ingestion status
+            result = await self.client.search_offers()  # Using search as proxy for ingestion status
             return result if result else {}
         except Exception as e:
             logger.error("[ELEVIA_INTEL] Failed to get ingestion status: %s", str(e))
