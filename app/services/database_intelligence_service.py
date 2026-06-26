@@ -1,152 +1,124 @@
-"""Database Intelligence Service - Query and analyze job offers and skill gaps."""
+"""Database Intelligence Service - Local application and skills analysis."""
 
+import logging
+from typing import Dict, List, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import func, text
-from app.database.models import Application, JobAnalysis
-import json
+from sqlalchemy import func
+from app.database.models import Application, JobAnalysis, ProfileBlock, CategoryEnum
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseIntelligenceService:
-    """Service to query and analyze application data."""
+    """Service for analyzing local application data and skill gaps."""
 
     @staticmethod
-    def get_statistics(db: Session, user_id: str) -> dict:
-        """Get basic statistics about user's applications."""
-        total = db.query(Application).filter(
-            Application.telegram_user_id == user_id
-        ).count()
-
-        if total == 0:
-            return {
-                "total_applications": 0,
-                "message": "Aucune candidature pour le moment. Commence à analyser des offres!"
-            }
-
-        avg_score = db.query(func.avg(Application.match_score)).filter(
-            Application.telegram_user_id == user_id
-        ).scalar() or 0
-
-        return {
-            "total_applications": total,
-            "avg_match_score": round(avg_score, 1),
-            "max_score": db.query(func.max(Application.match_score)).filter(
-                Application.telegram_user_id == user_id
-            ).scalar() or 0,
-        }
-
-    @staticmethod
-    def get_top_skills_required(db: Session, user_id: str, limit: int = 10) -> list:
-        """Get most frequently required skills from analyzed offers."""
-        apps = db.query(Application, JobAnalysis).join(
-            JobAnalysis, JobAnalysis.application_id == Application.id
-        ).filter(Application.telegram_user_id == user_id).all()
+    def get_application_summary(db: Session, user_id: str) -> Dict[str, Any]:
+        """Get summary statistics of user's applications."""
+        apps = db.query(Application).filter(Application.telegram_user_id == user_id).all()
 
         if not apps:
-            return []
+            return {
+                "total_applications": 0,
+                "avg_match_score": 0,
+                "max_match_score": 0,
+                "top_skills": [],
+            }
 
-        skill_frequency = {}
-        for app, analysis in apps:
-            if analysis.required_skills:
-                skills = analysis.required_skills
-                if isinstance(skills, str):
-                    skills = json.loads(skills)
-                for skill in skills:
-                    skill_lower = skill.lower() if isinstance(skill, str) else ""
-                    skill_frequency[skill_lower] = skill_frequency.get(skill_lower, 0) + 1
+        match_scores = [app.match_score or 0 for app in apps]
+        avg_score = sum(match_scores) / len(match_scores) if match_scores else 0
+        max_score = max(match_scores) if match_scores else 0
 
-        sorted_skills = sorted(skill_frequency.items(), key=lambda x: x[1], reverse=True)
-        return [{"skill": s[0], "frequency": s[1]} for s in sorted_skills[:limit]]
-
-    @staticmethod
-    def get_application_summary(db: Session, user_id: str) -> dict:
-        """Get summary of user's applications."""
-        stats = DatabaseIntelligenceService.get_statistics(db, user_id)
-        top_skills = DatabaseIntelligenceService.get_top_skills_required(db, user_id)
+        # Get top skills from analyses
+        top_skills = DatabaseIntelligenceService.get_top_skills_required(db, user_id, limit=5)
 
         return {
-            **stats,
+            "total_applications": len(apps),
+            "avg_match_score": round(avg_score, 1),
+            "max_match_score": max_score,
             "top_skills": top_skills,
         }
 
     @staticmethod
-    def search_applications(db: Session, user_id: str, query: str) -> list:
-        """Search applications by company or job title."""
-        results = db.query(Application).filter(
-            Application.telegram_user_id == user_id,
-            (Application.company.ilike(f"%{query}%")) |
-            (Application.job_title.ilike(f"%{query}%"))
-        ).all()
-
-        return [
-            {
-                "id": app.id,
-                "company": app.company,
-                "job_title": app.job_title,
-                "match_score": app.match_score,
-                "status": app.status,
-            }
-            for app in results
-        ]
-
-    @staticmethod
-    def get_skill_gaps(db: Session, user_id: str, candidate_skills: list = None) -> dict:
-        """Analyze skill gaps from applications."""
-        apps = db.query(Application, JobAnalysis).join(
-            JobAnalysis, JobAnalysis.application_id == Application.id
+    def get_top_skills_required(db: Session, user_id: str, limit: int = 15) -> List[Dict[str, Any]]:
+        """Get most frequently required skills across analyzed offers."""
+        analyses = db.query(JobAnalysis).join(
+            Application, JobAnalysis.application_id == Application.id
         ).filter(Application.telegram_user_id == user_id).all()
 
-        if not apps:
-            return {"gaps": [], "message": "Pas assez de données pour analyser les gaps"}
-
-        # Get all required skills
-        all_required_skills = {}
-        for app, analysis in apps:
+        skill_counts = {}
+        for analysis in analyses:
             if analysis.required_skills:
-                skills = analysis.required_skills
-                if isinstance(skills, str):
-                    skills = json.loads(skills)
+                skills = analysis.required_skills if isinstance(analysis.required_skills, list) else []
                 for skill in skills:
-                    skill_lower = skill.lower() if isinstance(skill, str) else ""
-                    all_required_skills[skill_lower] = all_required_skills.get(skill_lower, 0) + 1
+                    skill_lower = skill.lower() if isinstance(skill, str) else str(skill).lower()
+                    skill_counts[skill_lower] = skill_counts.get(skill_lower, 0) + 1
 
-        # If candidate_skills provided, identify gaps
-        candidate_skills_lower = [s.lower() for s in (candidate_skills or [])]
-        gaps = {}
-        for skill, frequency in all_required_skills.items():
-            if skill not in candidate_skills_lower:
-                gaps[skill] = frequency
+        # Sort by frequency
+        sorted_skills = sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:limit]
+        return [{"skill": skill, "frequency": count} for skill, count in sorted_skills]
 
-        sorted_gaps = sorted(gaps.items(), key=lambda x: x[1], reverse=True)
+    @staticmethod
+    def get_skill_gaps(db: Session, user_id: str, candidate_skills: List[str]) -> Dict[str, Any]:
+        """Identify skills required in offers but missing from candidate profile."""
+        candidate_skills_lower = [s.lower() for s in candidate_skills]
+
+        # Get all required skills from user's applications
+        all_required = DatabaseIntelligenceService.get_top_skills_required(db, user_id, limit=1000)
+
+        gaps = []
+        for skill_data in all_required:
+            skill_lower = skill_data["skill"].lower()
+            if skill_lower not in candidate_skills_lower:
+                gaps.append({
+                    "skill": skill_data["skill"],
+                    "frequency": skill_data["frequency"],
+                })
+
         return {
-            "gaps": [{"skill": g[0], "frequency": g[1]} for g in sorted_gaps[:10]],
-            "total_unique_skills_required": len(all_required_skills),
+            "gaps": gaps,
             "gaps_count": len(gaps),
+            "total_unique_skills_required": len(all_required),
         }
 
     @staticmethod
-    def get_offers_by_company(db: Session, user_id: str) -> list:
-        """Get offers grouped by company."""
-        results = db.query(
-            Application.company,
-            func.count(Application.id).label("count"),
-            func.avg(Application.match_score).label("avg_score")
-        ).filter(
-            Application.telegram_user_id == user_id
-        ).group_by(Application.company).all()
+    def get_offers_by_company(db: Session, user_id: str) -> List[Dict[str, Any]]:
+        """Group offers by company with statistics."""
+        apps = db.query(Application).filter(Application.telegram_user_id == user_id).all()
 
-        return [
-            {
-                "company": r[0] or "Unknown",
-                "offers": r[1],
-                "avg_match_score": round(r[2], 1) if r[2] else 0,
-            }
-            for r in results if r[0]
-        ]
+        companies = {}
+        for app in apps:
+            company = app.company or "Unknown"
+            if company not in companies:
+                companies[company] = {
+                    "company": company,
+                    "offers": 0,
+                    "match_scores": [],
+                }
+            companies[company]["offers"] += 1
+            if app.match_score:
+                companies[company]["match_scores"].append(app.match_score)
+
+        # Calculate average match score
+        result = []
+        for company_data in companies.values():
+            avg_score = (
+                sum(company_data["match_scores"]) / len(company_data["match_scores"])
+                if company_data["match_scores"]
+                else 0
+            )
+            result.append({
+                "company": company_data["company"],
+                "offers": company_data["offers"],
+                "avg_match_score": round(avg_score, 1),
+            })
+
+        return sorted(result, key=lambda x: x["offers"], reverse=True)
 
     @staticmethod
-    def get_best_matching_offers(db: Session, user_id: str, limit: int = 5) -> list:
-        """Get best matching offers."""
-        results = db.query(Application).filter(
+    def get_best_matching_offers(db: Session, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get highest matching applications."""
+        apps = db.query(Application).filter(
             Application.telegram_user_id == user_id
         ).order_by(Application.match_score.desc()).limit(limit).all()
 
@@ -155,50 +127,27 @@ class DatabaseIntelligenceService:
                 "id": app.id,
                 "company": app.company,
                 "job_title": app.job_title,
-                "match_score": app.match_score,
+                "match_score": app.match_score or 0,
+                "source": getattr(app, 'source_url', ''),
             }
-            for app in results
+            for app in apps
         ]
 
     @staticmethod
-    def format_insight_message(key: str, data: dict, candidate_skills: list = None) -> str:
-        """Format database insights into readable messages."""
-        if key == "summary":
+    def format_insight_message(insight_type: str, data: Dict[str, Any]) -> str:
+        """Format insight data as Telegram message."""
+        if insight_type == "summary":
             msg = f"""📊 <b>Résumé de tes candidatures</b>
 
-Total: <b>{data['total_applications']}</b> offres analysées
-Match moyen: <b>{data['avg_match_score']}/100</b>
-Meilleur match: <b>{data['max_score']}/100</b>
+Total d'offres analysées: <b>{data.get('total_applications', 0)}</b>
+Match moyen: <b>{data.get('avg_match_score', 0)}/100</b>
+Meilleur match: <b>{data.get('max_match_score', 0)}/100</b>
 
-<b>Top 5 compétences demandées:</b>
+<b>Top compétences demandées:</b>
 """
-            for i, skill in enumerate(data.get("top_skills", [])[:5], 1):
+            for i, skill in enumerate(data.get('top_skills', [])[:5], 1):
                 msg += f"\n{i}. {skill['skill'].title()} ({skill['frequency']}×)"
+
             return msg
 
-        elif key == "gaps":
-            gaps_data = DatabaseIntelligenceService.get_skill_gaps(None, None, candidate_skills)
-            msg = f"""🔍 <b>Tes skill gaps</b>
-
-Compétences uniques demandées: <b>{gaps_data['total_unique_skills_required']}</b>
-Gaps identifiés: <b>{gaps_data['gaps_count']}</b>
-
-<b>Top gaps à combler:</b>
-"""
-            for i, gap in enumerate(gaps_data['gaps'][:5], 1):
-                msg += f"\n{i}. {gap['skill'].title()} (dans {gap['frequency']} offres)"
-            return msg
-
-        elif key == "companies":
-            msg = "<b>📍 Offres par entreprise:</b>\n\n"
-            for company in data[:5]:
-                msg += f"• {company['company']}: {company['offers']} offres (match: {company['avg_match_score']}/100)\n"
-            return msg
-
-        elif key == "best":
-            msg = "<b>🏆 Tes meilleurs matches:</b>\n\n"
-            for i, offer in enumerate(data[:5], 1):
-                msg += f"{i}. {offer['company']} - {offer['job_title']}\n   Match: {offer['match_score']}/100\n\n"
-            return msg
-
-        return "Données non disponibles"
+        return "Insight non disponible"

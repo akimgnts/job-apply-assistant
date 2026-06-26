@@ -14,8 +14,8 @@ class IntelligenceAgent:
     def __init__(self):
         self.elevia = EleviaIntelligenceService()
 
-    @staticmethod
     async def analyze_user_question(
+        self,
         db: Session,
         user_id: str,
         question: str,
@@ -30,12 +30,9 @@ class IntelligenceAgent:
             ).all()
             candidate_skills = [block.title.lower() for block in blocks]
 
-        # Initialize agent to access Elevia service
-        agent = IntelligenceAgent()
-
         # Get live market data from Elevia
-        market_data = await agent.elevia.analyze_market_insights()
-        opportunities = await agent.elevia.discover_opportunities(db, user_id, candidate_skills, limit=5)
+        market_data = await self.elevia.analyze_market_insights()
+        opportunities = await self.elevia.discover_opportunities(db, user_id, candidate_skills, limit=5)
 
         # Get local application data for comparison
         summary = DatabaseIntelligenceService.get_application_summary(db, user_id)

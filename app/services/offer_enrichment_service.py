@@ -1,112 +1,111 @@
 import logging
 from typing import Dict, Any, Optional
-from app.services.elevia_gateway import EleviaOfferContext
+from app.schemas.elevia_offer import EleviaIntegrationContext
 
 logger = logging.getLogger(__name__)
 
 
 class OfferEnrichmentService:
-    """Enrich offer analysis with Elevia context."""
+    """Enrich job analysis with external context (e.g., from Elevia)."""
 
     @staticmethod
     def enrich_analysis_with_elevia_context(
         analysis: Dict[str, Any],
-        elevia_context: EleviaOfferContext,
+        elevia_context: Optional[EleviaIntegrationContext],
     ) -> Dict[str, Any]:
-        """Merge Elevia context into existing analysis.
-
-        Preserves existing analysis structure while adding Elevia enrichments.
-        """
-        if not analysis or not elevia_context:
+        """Merge Elevia context into job analysis for better decision-making."""
+        if not elevia_context:
             return analysis
 
+        # Preserve original analysis, add Elevia context
         enriched = analysis.copy()
 
-        # Add Elevia source metadata
-        enriched["source"] = "elevia"
-        enriched["source_offer_id"] = elevia_context.source_offer_id
-        enriched["source_type"] = elevia_context.source_type
+        # Store Elevia offer details
+        enriched["elevia_source"] = {
+            "offer_id": elevia_context.source_offer_id,
+            "source_type": elevia_context.source_type,
+        }
 
-        # Enrich job information
-        enriched["job_title"] = elevia_context.get_job_title()
-        enriched["company"] = elevia_context.get_company()
-        enriched["location"] = elevia_context.get_location()
+        # Enhance with offer detail context
+        if elevia_context.offer_detail:
+            offer_detail = elevia_context.offer_detail
+            enriched["elevia_offer_detail"] = {
+                "required_skills": offer_detail.required_skills,
+                "soft_skills": offer_detail.soft_skills,
+                "ats_keywords": offer_detail.ats_keywords,
+                "contract_type": offer_detail.contract_type,
+                "mission_duration": offer_detail.mission_duration,
+            }
 
-        # Enrich required skills
-        elevia_skills = elevia_context.get_required_skills()
-        if elevia_skills:
-            existing_skills = enriched.get("required_skills", [])
-            # Merge, preferring Elevia structured data
-            enriched["required_skills"] = list(set(elevia_skills + existing_skills))
+        # Merge matching context if available
+        if elevia_context.matching_context:
+            match = elevia_context.matching_context
+            enriched["elevia_matching"] = {
+                "match_score": match.match_score,
+                "matching_skills": match.matching_skills,
+                "missing_skills": match.missing_skills,
+                "strengths": match.strengths,
+                "recommendations": match.recommendations,
+            }
+            # Update top-level fields with Elevia insights
+            if match.match_score is not None:
+                enriched["elevia_match_score"] = match.match_score
 
-        # Enrich soft skills
-        elevia_soft = elevia_context.get_soft_skills()
-        if elevia_soft:
-            existing_soft = enriched.get("soft_skills", [])
-            enriched["soft_skills"] = list(set(elevia_soft + existing_soft))
-
-        # Enrich ATS keywords
-        elevia_ats = elevia_context.get_ats_keywords()
-        if elevia_ats:
-            existing_ats = enriched.get("ats_keywords", [])
-            enriched["ats_keywords"] = list(set(elevia_ats + existing_ats))
-
-        # Add matching context if available
-        match_score = elevia_context.get_match_score()
-        if match_score is not None:
-            enriched["elevia_match_score"] = match_score
-
-        matching_expl = elevia_context.get_matching_explanation()
-        if matching_expl:
-            enriched["elevia_matching_explanation"] = matching_expl
-
-        # Add Elevia offer context for reference
-        enriched["elevia_context"] = elevia_context.to_dict()
-
-        logger.info(
-            "[ENRICHMENT] Analysis enriched with Elevia context: "
-            "%s @ %s, skills=%d, soft_skills=%d",
-            elevia_context.get_job_title(),
-            elevia_context.get_company(),
-            len(enriched.get("required_skills", [])),
-            len(enriched.get("soft_skills", [])),
-        )
+        # Store profile context
+        if elevia_context.profile:
+            enriched["elevia_profile"] = {
+                "skills": elevia_context.profile.skills,
+                "experience_count": len(elevia_context.profile.experience),
+                "education_count": len(elevia_context.profile.education),
+            }
 
         return enriched
 
     @staticmethod
+    def get_offer_text_from_elevia_context(
+        elevia_context: EleviaIntegrationContext,
+    ) -> str:
+        """Extract job offer text from Elevia context for analysis."""
+        return elevia_context.get_job_offer_text()
+
+    @staticmethod
     def build_artifact_generation_context(
         analysis: Dict[str, Any],
-        positioning: str,
-        elevia_context: Optional[EleviaOfferContext] = None,
+        elevia_context: Optional[EleviaIntegrationContext],
     ) -> Dict[str, Any]:
-        """Build context for CV/letter generation with Elevia enrichment."""
-        context = {
-            "job_title": analysis.get("job_title", "Unknown"),
-            "company": analysis.get("company", "Unknown"),
-            "location": analysis.get("location", "Unknown"),
-            "positioning": positioning,
-            "required_skills": analysis.get("required_skills", []),
-            "soft_skills": analysis.get("soft_skills", []),
-            "missions": analysis.get("missions", []),
-            "strengths": analysis.get("strengths", []),
-            "missing_points": analysis.get("missing_points", []),
-            "ats_keywords": analysis.get("ats_keywords", []),
-        }
+        """Build context for document generation with Elevia data."""
+        context = {}
 
-        # Add Elevia-specific enrichments
-        if elevia_context:
-            context["source"] = "elevia"
-            context["source_offer_id"] = elevia_context.source_offer_id
-            context["elevia_match_score"] = elevia_context.get_match_score()
-            context["elevia_matching_explanation"] = elevia_context.get_matching_explanation()
+        # Base offer information
+        context["job_title"] = analysis.get("job_title", "")
+        context["company"] = analysis.get("company", "")
+        context["positioning"] = analysis.get("recommended_angle", "")
 
-        logger.info(
-            "[ARTIFACT_CONTEXT] Built generation context: "
-            "%s @ %s, positioning=%s",
-            context.get("job_title"),
-            context.get("company"),
-            positioning,
-        )
+        # Add Elevia-specific context
+        if elevia_context and elevia_context.offer_detail:
+            offer = elevia_context.offer_detail
+            context["location"] = offer.location
+            context["contract_type"] = offer.contract_type
+            context["mission_duration"] = offer.mission_duration
+            context["required_skills"] = offer.required_skills
+            context["soft_skills"] = offer.soft_skills
+            context["ats_keywords"] = offer.ats_keywords
+
+        if elevia_context and elevia_context.profile:
+            profile = elevia_context.profile
+            context["candidate_profile"] = {
+                "skills": profile.skills,
+                "location": profile.location,
+                "experience": profile.experience,
+                "education": profile.education,
+            }
+
+        if elevia_context and elevia_context.matching_context:
+            match = elevia_context.matching_context
+            context["matching_insights"] = {
+                "matching_skills": match.matching_skills,
+                "missing_skills": match.missing_skills,
+                "recommendations": match.recommendations,
+            }
 
         return context

@@ -1,9 +1,6 @@
 import logging
-
-from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters
 from app.config import config
-from app.bot.observability import error_handler, log_update_probe
 from app.bot.handlers import (
     start_command,
     help_command,
@@ -24,15 +21,31 @@ from app.bot.handlers import (
     regenerate_callback,
     save_application_callback,
 )
-from app.bot.elevia_handlers import (
-    elevia_health_command,
-    search_offers_command,
-    load_elevia_offer_command,
-    catalog_command,
-    upload_profile_command,
-    my_profile_command,
-    clear_profile_command,
+
+# Elevia handlers (only imported if enabled)
+if config.ELEVIA_ENABLED:
+    from app.bot.elevia_handlers import (
+        elevia_health_check,
+        elevia_search_offers,
+        elevia_catalog,
+        elevia_load_offer,
+        elevia_upload_profile,
+        elevia_get_profile,
+    )
+
+# Career intelligence handlers
+from app.bot.career_intelligence_handlers import (
+    career_intelligence_summary,
+    skill_gaps_analysis,
+    project_recommendations,
+    role_family_analysis,
+    top_requested_skills,
+    most_frequent_gaps,
+    strongest_skills,
+    save_intelligence_snapshot,
 )
+
+# Intelligence Agent handlers (conversational)
 from app.bot.intelligence_handlers import (
     intelligence_menu_callback,
     handle_intelligence_insight,
@@ -48,29 +61,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-ALLOWED_POLLING_UPDATES = [
-    "message",
-    "edited_message",
-    "channel_post",
-    "edited_channel_post",
-    "callback_query",
-]
-
-for optional_update_type in (
-    "business_message",
-    "edited_business_message",
-    "guest_message",
-):
-    if hasattr(Update, optional_update_type.upper()):
-        ALLOWED_POLLING_UPDATES.append(optional_update_type)
-
-
 def setup_bot():
     """Configure bot handlers and filters."""
     app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
-    app.add_error_handler(error_handler)
-    app.add_handler(MessageHandler(filters.ALL, log_update_probe), group=-1)
-    app.add_handler(CallbackQueryHandler(log_update_probe), group=-1)
 
     # Commands
     app.add_handler(CommandHandler("start", start_command))
@@ -79,15 +72,22 @@ def setup_bot():
 
     # Elevia commands (if enabled)
     if config.ELEVIA_ENABLED:
-        app.add_handler(CommandHandler("elevia_health", elevia_health_command))
-        app.add_handler(CommandHandler("search_offers", search_offers_command))
-        app.add_handler(CommandHandler("load_elevia_offer", load_elevia_offer_command))
-        app.add_handler(CommandHandler("catalog", catalog_command))
-        app.add_handler(CommandHandler("upload_profile", upload_profile_command))
-        # Also handle document uploads directly
-        app.add_handler(MessageHandler(filters.Document.ALL, upload_profile_command))
-        app.add_handler(CommandHandler("my_profile", my_profile_command))
-        app.add_handler(CommandHandler("clear_profile", clear_profile_command))
+        app.add_handler(CommandHandler("elevia_health", elevia_health_check))
+        app.add_handler(CommandHandler("search_offers", elevia_search_offers))
+        app.add_handler(CommandHandler("catalog", elevia_catalog))
+        app.add_handler(CommandHandler("load_elevia_offer", elevia_load_offer))
+        app.add_handler(CommandHandler("upload_profile", elevia_upload_profile))
+        app.add_handler(CommandHandler("get_profile", elevia_get_profile))
+
+    # Career intelligence commands
+    app.add_handler(CommandHandler("intelligence", career_intelligence_summary))
+    app.add_handler(CommandHandler("gaps", skill_gaps_analysis))
+    app.add_handler(CommandHandler("projects", project_recommendations))
+    app.add_handler(CommandHandler("roles", role_family_analysis))
+    app.add_handler(CommandHandler("top_skills", top_requested_skills))
+    app.add_handler(CommandHandler("gaps_most", most_frequent_gaps))
+    app.add_handler(CommandHandler("strengths", strongest_skills))
+    app.add_handler(CommandHandler("save_intelligence", save_intelligence_snapshot))
 
     # Callbacks (buttons) — with and without app_id
     app.add_handler(CallbackQueryHandler(home_callback, pattern="^home$"))
@@ -139,12 +139,11 @@ def setup_bot():
 
     return app
 
-
 def main():
     """Start the bot."""
     logger.info("Starting Job Apply Assistant bot...")
     app = setup_bot()
-    app.run_polling(allowed_updates=ALLOWED_POLLING_UPDATES)
+    app.run_polling(allowed_updates=[])
 
 if __name__ == "__main__":
     main()

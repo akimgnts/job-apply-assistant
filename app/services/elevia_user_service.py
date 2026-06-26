@@ -1,87 +1,109 @@
 import logging
+from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import Column, String, DateTime
-from app.database.db import Base
-from datetime import datetime
+from sqlalchemy import create_engine
+from app.database.models import UserSession
 
 logger = logging.getLogger(__name__)
 
 
-class EleviaUserProfile(Base):
-    """Store user's Elevia profile ID mapping."""
-
-    __tablename__ = "elevia_user_profiles"
-
-    telegram_user_id = Column(String(255), primary_key=True)
-    elevia_profile_id = Column(String(255), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-
 class EleviaUserService:
-    """Manage user's Elevia profile lifecycle."""
+    """Manage Elevia profile association for Telegram users."""
 
     @staticmethod
-    def set_elevia_profile_id(
-        db: Session,
-        telegram_user_id: str,
-        elevia_profile_id: str,
-    ) -> None:
-        """Store or update user's Elevia profile ID (upsert, race-safe)."""
-        user_id = str(telegram_user_id)
-
-        # Use merge for atomic upsert (race-safe for concurrent uploads)
-        profile = EleviaUserProfile(
-            telegram_user_id=user_id,
-            elevia_profile_id=elevia_profile_id,
-        )
-        profile = db.merge(profile)
-        db.commit()
-
-        logger.info(
-            "[ELEVIA_USER] Set profile for user %s: %s (merge/upsert)",
-            user_id,
-            elevia_profile_id,
-        )
+    def get_elevia_profile_id(db: Session, telegram_user_id: str) -> Optional[str]:
+        """Retrieve stored Elevia profile ID for a user."""
+        try:
+            session = db.query(UserSession).filter(
+                UserSession.telegram_user_id == telegram_user_id
+            ).first()
+            if session and session.session_data:
+                return session.session_data.get("elevia_profile_id")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get Elevia profile ID: {e}")
+            return None
 
     @staticmethod
-    def get_elevia_profile_id(db: Session, telegram_user_id: str) -> str:
-        """Get user's Elevia profile ID."""
-        user_id = str(telegram_user_id)
+    def set_elevia_profile_id(db: Session, telegram_user_id: str, profile_id: str) -> bool:
+        """Store or update Elevia profile ID for a user."""
+        try:
+            session = db.query(UserSession).filter(
+                UserSession.telegram_user_id == telegram_user_id
+            ).first()
 
-        profile = (
-            db.query(EleviaUserProfile)
-            .filter_by(telegram_user_id=user_id)
-            .first()
-        )
+            if not session:
+                session = UserSession(
+                    telegram_user_id=telegram_user_id,
+                    session_data={"elevia_profile_id": profile_id},
+                )
+                db.add(session)
+            else:
+                if session.session_data is None:
+                    session.session_data = {}
+                session.session_data["elevia_profile_id"] = profile_id
 
-        if profile:
-            logger.info(
-                "[ELEVIA_USER] Found profile for user %s: %s",
-                user_id,
-                profile.elevia_profile_id,
-            )
-            return profile.elevia_profile_id
-
-        logger.warning("[ELEVIA_USER] No profile found for user %s", user_id)
-        return None
-
-    @staticmethod
-    def clear_elevia_profile_id(db: Session, telegram_user_id: str) -> None:
-        """Clear user's Elevia profile ID (e.g., if 404 returned)."""
-        user_id = str(telegram_user_id)
-
-        db.query(EleviaUserProfile).filter_by(telegram_user_id=user_id).delete()
-        db.commit()
-
-        logger.info("[ELEVIA_USER] Cleared profile for user %s", user_id)
+            db.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set Elevia profile ID: {e}")
+            db.rollback()
+            return False
 
     @staticmethod
-    def has_elevia_profile(db: Session, telegram_user_id: str) -> bool:
-        """Check if user has Elevia profile."""
-        return (
-            db.query(EleviaUserProfile)
-            .filter_by(telegram_user_id=str(telegram_user_id))
-            .first()
-            is not None
-        )
+    def clear_elevia_profile_id(db: Session, telegram_user_id: str) -> bool:
+        """Clear stored Elevia profile ID (e.g., if profile no longer exists)."""
+        try:
+            session = db.query(UserSession).filter(
+                UserSession.telegram_user_id == telegram_user_id
+            ).first()
+
+            if session and session.session_data:
+                session.session_data.pop("elevia_profile_id", None)
+                db.commit()
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to clear Elevia profile ID: {e}")
+            db.rollback()
+            return False
+
+    @staticmethod
+    def get_last_elevia_offer_id(db: Session, telegram_user_id: str) -> Optional[str]:
+        """Retrieve last Elevia offer ID accessed by user."""
+        try:
+            session = db.query(UserSession).filter(
+                UserSession.telegram_user_id == telegram_user_id
+            ).first()
+            if session and session.session_data:
+                return session.session_data.get("last_elevia_offer_id")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get last Elevia offer ID: {e}")
+            return None
+
+    @staticmethod
+    def set_last_elevia_offer_id(db: Session, telegram_user_id: str, offer_id: str) -> bool:
+        """Store last Elevia offer ID accessed by user."""
+        try:
+            session = db.query(UserSession).filter(
+                UserSession.telegram_user_id == telegram_user_id
+            ).first()
+
+            if not session:
+                session = UserSession(
+                    telegram_user_id=telegram_user_id,
+                    session_data={"last_elevia_offer_id": offer_id},
+                )
+                db.add(session)
+            else:
+                if session.session_data is None:
+                    session.session_data = {}
+                session.session_data["last_elevia_offer_id"] = offer_id
+
+            db.commit()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set last Elevia offer ID: {e}")
+            db.rollback()
+            return False

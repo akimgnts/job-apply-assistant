@@ -1,185 +1,168 @@
 import logging
 from typing import Optional, Dict, Any, List
 from app.services.elevia_client import EleviaClient
+from app.schemas.elevia_offer import (
+    EleviaOfferCatalogEntry,
+    EleviaOfferDetail,
+    EleviaProfile,
+    EleviaMatchContext,
+    EleviaIntegrationContext,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class EleviaOfferContext:
-    """Normalized internal object for Elevia offer context."""
-
-    def __init__(
-        self,
-        source_offer_id: str,
-        source_type: str = "business_france",
-        offer_catalog_entry: Optional[Dict[str, Any]] = None,
-        offer_detail: Optional[Dict[str, Any]] = None,
-        profile: Optional[Dict[str, Any]] = None,
-        matching_context: Optional[Dict[str, Any]] = None,
-    ):
-        self.source = "elevia"
-        self.source_offer_id = source_offer_id
-        self.source_type = source_type
-        self.offer_catalog_entry = offer_catalog_entry or {}
-        self.offer_detail = offer_detail or {}
-        self.profile = profile or {}
-        self.matching_context = matching_context or {}
-
-    def get_job_title(self) -> str:
-        """Extract job title from offer."""
-        return (
-            self.offer_detail.get("title")
-            or self.offer_catalog_entry.get("title")
-            or "Unknown Position"
-        )
-
-    def get_company(self) -> str:
-        """Extract company name."""
-        return (
-            self.offer_detail.get("company")
-            or self.offer_catalog_entry.get("company")
-            or "Unknown Company"
-        )
-
-    def get_location(self) -> str:
-        """Extract location."""
-        detail_loc = self.offer_detail.get("location")
-        if detail_loc:
-            return detail_loc
-
-        catalog_city = self.offer_catalog_entry.get("city")
-        catalog_country = self.offer_catalog_entry.get("country")
-        if catalog_city:
-            return f"{catalog_city}, {catalog_country}" if catalog_country else catalog_city
-        return "Unknown Location"
-
-    def get_description(self) -> str:
-        """Extract full description."""
-        return (
-            self.offer_detail.get("description")
-            or self.offer_detail.get("raw_description")
-            or self.offer_catalog_entry.get("description")
-            or self.offer_catalog_entry.get("display_description")
-            or ""
-        )
-
-    def get_required_skills(self) -> List[str]:
-        """Extract required skills."""
-        return self.offer_detail.get("required_skills", [])
-
-    def get_soft_skills(self) -> List[str]:
-        """Extract soft skills."""
-        return self.offer_detail.get("soft_skills", [])
-
-    def get_ats_keywords(self) -> List[str]:
-        """Extract ATS keywords."""
-        return self.offer_detail.get("ats_keywords", [])
-
-    def get_match_score(self) -> Optional[float]:
-        """Extract matching score if available."""
-        return self.matching_context.get("score")
-
-    def get_matching_explanation(self) -> str:
-        """Extract matching explanation."""
-        return self.matching_context.get("explanation", "")
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dict for serialization."""
-        return {
-            "source": self.source,
-            "source_offer_id": self.source_offer_id,
-            "source_type": self.source_type,
-            "offer_catalog_entry": self.offer_catalog_entry,
-            "offer_detail": self.offer_detail,
-            "profile": self.profile,
-            "matching_context": self.matching_context,
-        }
-
-
 class EleviaGateway:
-    """Orchestration layer for Elevia integration."""
+    """Orchestration layer for Elevia API integration."""
 
-    def __init__(self, client: Optional[EleviaClient] = None):
-        self.client = client or EleviaClient()
-
-    async def health_check(self) -> bool:
-        """Check if Elevia is available."""
-        return await self.client.health()
+    def __init__(self, client: EleviaClient):
+        self.client = client
 
     async def search_offers(
         self,
         query: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+    ) -> List[EleviaOfferCatalogEntry]:
+        """Search offers and return normalized entries."""
+        try:
+            response = await self.client.search_offers(query=query, filters=filters, limit=limit)
+            offers = response.get("offers", [])
+            return [self._normalize_catalog_entry(offer) for offer in offers]
+        except Exception as e:
+            logger.error(f"Gateway search offers failed: {e}")
+            raise
+
+    async def get_catalog(
+        self,
+        skip: int = 0,
         limit: int = 50,
-        source: str = "all",
-    ) -> List[Dict[str, Any]]:
-        """Search offers from catalog."""
-        logger.info("[ELEVIA_GATEWAY] Searching offers: query=%s, limit=%d", query, limit)
+    ) -> List[EleviaOfferCatalogEntry]:
+        """Get catalog and return normalized entries."""
+        try:
+            response = await self.client.get_offers_catalog(skip=skip, limit=limit)
+            offers = response.get("offers", [])
+            return [self._normalize_catalog_entry(offer) for offer in offers]
+        except Exception as e:
+            logger.error(f"Gateway catalog fetch failed: {e}")
+            raise
 
-        resp = await self.client.get_catalog(limit=limit, source=source)
-
-        if "error" in resp:
-            logger.warning("[ELEVIA_GATEWAY] Catalog error: %s", resp.get("error"))
-            return []
-
-        offers = resp.get("offers", [])
-        logger.info("[ELEVIA_GATEWAY] Found %d offers", len(offers))
-        return offers
-
-    async def get_offer_context(
+    async def get_offer_with_context(
         self,
         offer_id: str,
         profile_id: Optional[str] = None,
-    ) -> Optional[EleviaOfferContext]:
-        """Load complete offer context."""
-        logger.info("[ELEVIA_GATEWAY] Loading offer: %s, profile_id=%s", offer_id, profile_id)
+    ) -> EleviaIntegrationContext:
+        """Get complete offer context for application."""
+        context = EleviaIntegrationContext(source_offer_id=offer_id)
 
-        # Get offer detail
-        detail_resp = await self.client.get_offer_detail(offer_id)
-        if "error" in detail_resp:
-            logger.error("[ELEVIA_GATEWAY] Failed to load offer detail: %s", detail_resp.get("error"))
-            return None
+        try:
+            # Fetch offer detail
+            offer_data = await self.client.get_offer_detail(offer_id)
+            context.offer_detail = self._normalize_offer_detail(offer_data)
 
-        # Get matching context if profile available
-        matching_context = {}
-        if profile_id:
-            match_resp = await self.client.match(profile_id=profile_id, offer_id=offer_id)
-            if "error" not in match_resp:
-                matching_context = match_resp
+            # Optionally fetch profile
+            if profile_id:
+                try:
+                    profile_data = await self.client.get_profile(profile_id)
+                    context.profile = self._normalize_profile(profile_data)
 
-        # Get profile if available
-        profile = {}
-        if profile_id:
-            profile_resp = await self.client.get_profile(profile_id)
-            if "error" not in profile_resp:
-                profile = profile_resp
+                    # Try to get matching context
+                    try:
+                        match_data = await self.client.match_profile_with_offer(
+                            profile_id=profile_id,
+                            offer_id=offer_id,
+                        )
+                        context.matching_context = self._normalize_match_context(match_data)
+                    except Exception as e:
+                        logger.warning(f"Matching failed (non-critical): {e}")
 
-        context = EleviaOfferContext(
-            source_offer_id=offer_id,
-            source_type=detail_resp.get("source", "business_france"),
-            offer_detail=detail_resp,
-            profile=profile,
-            matching_context=matching_context,
+                except Exception as e:
+                    logger.warning(f"Profile fetch failed (non-critical): {e}")
+
+            return context
+
+        except Exception as e:
+            logger.error(f"Gateway get offer with context failed: {e}")
+            raise
+
+    async def parse_profile_from_file(
+        self,
+        file_content: bytes,
+        filename: str,
+    ) -> EleviaProfile:
+        """Parse and upload profile file."""
+        try:
+            response = await self.client.upload_profile(file_content, filename)
+            return self._normalize_profile(response)
+        except Exception as e:
+            logger.error(f"Gateway parse profile failed: {e}")
+            raise
+
+    async def get_profile(self, profile_id: str) -> EleviaProfile:
+        """Get profile by ID."""
+        try:
+            response = await self.client.get_profile(profile_id)
+            return self._normalize_profile(response)
+        except Exception as e:
+            logger.error(f"Gateway get profile failed: {e}")
+            raise
+
+    @staticmethod
+    def _normalize_catalog_entry(data: Dict[str, Any]) -> EleviaOfferCatalogEntry:
+        """Normalize raw API offer catalog entry."""
+        return EleviaOfferCatalogEntry(
+            offer_id=data.get("id", data.get("offer_id", "")),
+            title=data.get("title", data.get("job_title", "")),
+            company=data.get("company", ""),
+            location=data.get("location", data.get("country", "")),
+            description=data.get("description", data.get("summary", "")),
+            contract_type=data.get("contract_type", data.get("type", None)),
+            mission_duration=data.get("mission_duration", data.get("duration", None)),
         )
 
-        logger.info("[ELEVIA_GATEWAY] Offer context loaded: %s", context.get_job_title())
-        return context
+    @staticmethod
+    def _normalize_offer_detail(data: Dict[str, Any]) -> EleviaOfferDetail:
+        """Normalize raw API offer detail."""
+        return EleviaOfferDetail(
+            offer_id=data.get("id", data.get("offer_id", "")),
+            title=data.get("title", data.get("job_title", "")),
+            company=data.get("company", ""),
+            location=data.get("location", data.get("country", "")),
+            description=data.get("description", data.get("summary", "")),
+            full_text=data.get("full_text", data.get("content", "")),
+            contract_type=data.get("contract_type", data.get("type", None)),
+            mission_duration=data.get("mission_duration", data.get("duration", None)),
+            required_skills=data.get("required_skills", data.get("skills", [])),
+            soft_skills=data.get("soft_skills", []),
+            salary_range=data.get("salary_range", None),
+            ats_keywords=data.get("ats_keywords", []),
+            raw_data=data,
+        )
 
-    async def get_ranked_offers(
-        self,
-        profile_id: str,
-        limit: int = 20,
-    ) -> List[Dict[str, Any]]:
-        """Get ranked offers for profile from inbox."""
-        logger.info("[ELEVIA_GATEWAY] Loading inbox for profile: %s", profile_id)
+    @staticmethod
+    def _normalize_profile(data: Dict[str, Any]) -> EleviaProfile:
+        """Normalize raw API profile."""
+        return EleviaProfile(
+            profile_id=data.get("id", data.get("profile_id", "")),
+            name=data.get("name", data.get("full_name", None)),
+            email=data.get("email", None),
+            phone=data.get("phone", None),
+            location=data.get("location", data.get("country", None)),
+            skills=data.get("skills", []),
+            experience=data.get("experience", data.get("experiences", [])),
+            education=data.get("education", data.get("educations", [])),
+            certifications=data.get("certifications", []),
+            raw_data=data,
+        )
 
-        resp = await self.client.get_inbox(profile_id=profile_id, limit=limit)
-
-        if "error" in resp:
-            logger.warning("[ELEVIA_GATEWAY] Inbox error: %s", resp.get("error"))
-            # Fallback to catalog
-            logger.info("[ELEVIA_GATEWAY] Falling back to catalog")
-            return await self.search_offers(limit=limit)
-
-        offers = resp.get("offers", [])
-        logger.info("[ELEVIA_GATEWAY] Loaded %d ranked offers", len(offers))
-        return offers
+    @staticmethod
+    def _normalize_match_context(data: Dict[str, Any]) -> EleviaMatchContext:
+        """Normalize raw API matching response."""
+        return EleviaMatchContext(
+            match_score=data.get("score", data.get("match_score", None)),
+            matching_skills=data.get("matching_skills", []),
+            missing_skills=data.get("missing_skills", []),
+            strengths=data.get("strengths", []),
+            recommendations=data.get("recommendations", []),
+            raw_data=data,
+        )

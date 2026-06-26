@@ -104,3 +104,54 @@ class UserSession(Base):
     session_data = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    gap_events = relationship("SkillGapEvent", back_populates="user_session")
+
+
+class SkillGapEvent(Base):
+    """Store skill gaps discovered in each job offer analysis."""
+    __tablename__ = "skill_gap_events"
+
+    id = Column(Integer, primary_key=True)
+    telegram_user_id = Column(String(255), nullable=False)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+    user_session_id = Column(Integer, ForeignKey("user_sessions.id"), nullable=True)
+
+    offer_title = Column(String(255), nullable=False)
+    company = Column(String(255), nullable=True)
+    role_family = Column(String(100), nullable=True)
+    positioning = Column(String(100), nullable=True)
+
+    skill_name = Column(String(100), nullable=False)
+    skill_category = Column(String(50), nullable=True)
+
+    required = Column(Integer, default=0)  # bool: 0=false, 1=true
+    present = Column(Integer, default=0)   # bool: 0=false, 1=true
+    gap = Column(Integer, default=0)       # bool: required & !present
+
+    importance_score = Column(Integer, default=5)  # 1-10 scale
+    confidence = Column(Integer, default=8)        # 1-10 scale
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    application = relationship("Application", foreign_keys=[application_id])
+    user_session = relationship("UserSession", back_populates="gap_events")
+
+
+class CareerIntelligenceSnapshot(Base):
+    """Periodic snapshot of career intelligence insights."""
+    __tablename__ = "career_intelligence_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    telegram_user_id = Column(String(255), nullable=False)
+
+    total_offers_analyzed = Column(Integer, default=0)
+    top_strengths = Column(JSON, default=list)      # List of skill names
+    frequent_gaps = Column(JSON, default=list)       # List of dicts: {skill, frequency, importance}
+    critical_gaps = Column(JSON, default=list)       # Ranked by gap_score
+    recommended_projects = Column(JSON, default=list)
+    role_family_strengths = Column(JSON, default=dict)  # {role_family: score}
+    role_family_weaknesses = Column(JSON, default=dict)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

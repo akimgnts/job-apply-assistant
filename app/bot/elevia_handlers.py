@@ -1,471 +1,320 @@
 import logging
-import io
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.config import config
-from app.services.elevia_gateway import EleviaGateway
-from app.services.elevia_client import EleviaClient
-from app.services.elevia_user_service import EleviaUserService
 from app.agents.elevia_agent import EleviaAgent
-from app.bot.keyboards import home_menu, offer_extracted_menu
+from app.agents.analysis_agent import AnalysisAgent
+from app.agents.matching_agent import MatchingAgent
+from app.agents.positioning_agent import PositioningAgent
+from app.agents.generation_agent import GenerationAgent
+from app.services.application_service import (
+    create_application,
+    save_analysis,
+    update_application_with_analysis,
+    update_user_session,
+    get_last_application,
+    mark_application_as_generated,
+)
+from app.services.offer_enrichment_service import OfferEnrichmentService
+from app.database.models import GeneratedDocument, Application
+from app.utils.debug import format_exception_for_telegram, split_telegram_message
+from app.bot.keyboards import home_menu, offer_extracted_menu, save_or_regenerate_menu
+from app.bot.message_formatter import format_analysis_message
 
 logger = logging.getLogger(__name__)
 
 
-async def elevia_health_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def elevia_health_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Check Elevia API health."""
-    is_healthy = await EleviaAgent.health_check()
+    if not EleviaAgent.is_enabled():
+        await update.message.reply_text("❌ Elevia est désactivé.")
+        return
 
+    is_healthy = await EleviaAgent.health_check()
     if is_healthy:
         await update.message.reply_text("✅ Elevia API est disponible!")
     else:
-        await update.message.reply_text(
-            "❌ Elevia API n'est pas disponible.\n\n"
-            "Vérifiez la configuration ou réessayez plus tard."
-        )
+        await update.message.reply_text("❌ Elevia API est indisponible.")
 
 
-async def search_offers_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Search for offers with natural language query."""
-    if not context.args:
+async def elevia_search_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Search Elevia offers with natural language query."""
+    if not EleviaAgent.is_enabled():
+        await update.message.reply_text("❌ Elevia est désactivé.")
+        return
+
+    user_query = " ".join(context.args) if context.args else None
+    if not user_query:
         await update.message.reply_text(
-            "Usage: /search_offers <query>\n\n"
+            "📌 Usage: /search_offers <query>\n\n"
             "Exemples:\n"
-            "  /search_offers data scientist Spain\n"
-            "  /search_offers engineer France\n"
-            "  /search_offers business analyst Germany"
+            "• /search_offers data scientist Spain\n"
+            "• /search_offers business analyst France"
         )
         return
 
-    query = " ".join(context.args)
-    await update.message.reply_text(f"🔍 Recherche pour: {query}...")
+    await update.message.reply_text("🔍 Recherche des meilleures offres...")
+    await update.message.chat.send_action("typing")
 
-    db = SessionLocal()
     try:
-        user_id = str(update.effective_user.id)
-        result = await EleviaAgent.search_and_rank_offers(
-            db,
-            user_id,
-            query=query,
-            limit=10,
-        )
-
-        if not result.get("success"):
-            await update.message.reply_text(
-                f"❌ Erreur: {result.get('error', 'Unknown error')}"
-            )
-            return
-
-        offers = result.get("offers", [])
-        ranking_mode = result.get("ranking_mode", "unknown")
-
+        offers = await EleviaAgent.search_offers(query=user_query, limit=10)
         if not offers:
-            await update.message.reply_text(
-                f"❌ Aucune offre trouvée pour: {query}\n\n"
-                "Essayez une autre recherche."
-            )
+            await update.message.reply_text("Aucune offre trouvée.")
             return
 
-        response = f"📋 Trouvé {len(offers)} offres ({ranking_mode})\n\n"
-        for i, offer in enumerate(offers[:10], 1):
-            title = offer.get("title", "Unknown Position")
-            company = offer.get("company", "Unknown Company")
-            location = offer.get("city", "Unknown Location")
-            offer_id = offer.get("id", offer.get("offer_id", ""))
+        response = f"📋 Offres trouvées pour: *{user_query}*\n\n"
+        for i, offer in enumerate(offers, 1):
+            response += (
+                f"{i}. *{offer.title}*\n"
+                f"   Entreprise: {offer.company}\n"
+                f"   Localisation: {offer.location}\n"
+                f"   ID: `{offer.offer_id}`\n\n"
+            )
 
-            response += f"{i}. {title}\n"
-            response += f"   {company} — {location}\n"
-            if offer_id:
-                response += f"   ID: `{offer_id}`\n"
-            response += "\n"
-
-        await update.message.reply_text(response, parse_mode="Markdown")
+        response += "Utilise `/load_elevia_offer <offer_id>` pour charger une offre."
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
 
     except Exception as e:
-        logger.error("[ELEVIA_HANDLER] Error in search: %s", str(e), exc_info=True)
-        await update.message.reply_text(
-            f"❌ Erreur: {str(e)[:100]}"
-        )
-    finally:
-        db.close()
+        logger.error(f"Error searching Elevia offers: {e}", exc_info=True)
+        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
 
 
-async def load_elevia_offer_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Load and analyze specific Elevia offer."""
+async def elevia_catalog(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Browse Elevia offers catalog."""
+    if not EleviaAgent.is_enabled():
+        await update.message.reply_text("❌ Elevia est désactivé.")
+        return
+
+    skip = 0
+    if context.args and context.args[0].isdigit():
+        skip = int(context.args[0])
+
+    await update.message.reply_text("📚 Chargement du catalogue...")
+    await update.message.chat.send_action("typing")
+
+    try:
+        offers = await EleviaAgent.get_catalog(skip=skip, limit=20)
+        if not offers:
+            await update.message.reply_text("Aucune offre trouvée.")
+            return
+
+        response = f"📋 Catalogue Elevia (page {skip//20 + 1})\n\n"
+        for i, offer in enumerate(offers, 1):
+            response += (
+                f"{i}. *{offer.title}*\n"
+                f"   {offer.company} - {offer.location}\n"
+                f"   ID: `{offer.offer_id}`\n\n"
+            )
+
+        response += "Utilise `/load_elevia_offer <offer_id>` pour charger une offre.\n"
+        response += f"Utilise `/catalog {skip + 20}` pour la prochaine page."
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+
+    except Exception as e:
+        logger.error(f"Error loading Elevia catalog: {e}", exc_info=True)
+        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+
+
+async def elevia_load_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Load and analyze a specific Elevia offer."""
+    if not EleviaAgent.is_enabled():
+        await update.message.reply_text("❌ Elevia est désactivé.")
+        return
+
     if not context.args:
-        await update.message.reply_text(
-            "Usage: /load_elevia_offer <offer_id>\n\n"
-            "Exemple: /load_elevia_offer BF-12345"
-        )
+        await update.message.reply_text("Usage: /load_elevia_offer <offer_id>")
         return
 
     offer_id = context.args[0]
-    await update.message.reply_text(f"⏳ Chargement de l'offre: {offer_id}...")
-
     user_id = str(update.effective_user.id)
     db = SessionLocal()
 
     try:
-        result = await EleviaAgent.load_and_prepare_offer(
-            db,
-            offer_id,
-            user_id,
+        await update.message.reply_text("⏳ Chargement de l'offre Elevia...")
+        await update.message.chat.send_action("typing")
+
+        # Get offer context from Elevia
+        elevia_context = await EleviaAgent.get_offer_with_context(
+            offer_id=offer_id,
+            db=db,
+            telegram_user_id=user_id,
         )
 
-        if not result.get("success"):
-            await update.message.reply_text(
-                f"❌ Impossible de charger l'offre:\n{result.get('error', 'Unknown error')}"
-            )
+        if not elevia_context or not elevia_context.offer_detail:
+            await update.message.reply_text("❌ Impossible de charger l'offre.")
             return
 
-        offer_context_dict = result.get("offer_context", {})
-        profile_id = result.get("profile_id")
-        positioning = result.get("positioning", "Unknown Position")
+        # Get job offer text
+        offer_text = OfferEnrichmentService.get_offer_text_from_elevia_context(elevia_context)
 
-        title = offer_context_dict.get("job_title", "Unknown")
-        company = offer_context_dict.get("company", "Unknown")
-        location = offer_context_dict.get("location", "Unknown")
-        description = offer_context_dict.get("offer_detail", {}).get("description", "")
-        skills = offer_context_dict.get("offer_detail", {}).get("required_skills", [])
-        match_score = offer_context_dict.get("matching_context", {}).get("score")
+        await update.message.reply_text("🔍 Analyse en cours...")
 
-        response = f"📄 {title}\n\n"
-        response += f"🏢 {company}\n"
-        response += f"📍 {location}\n"
-        if match_score:
-            response += f"📊 Match (profile): {match_score:.1f}/10\n"
-        response += "\n"
+        # Create application record
+        app = create_application(
+            db,
+            user_id,
+            offer_text,
+            source_url=elevia_context.offer_detail.raw_data.get("url", None),
+        )
 
-        if description:
-            response += f"📝 Description:\n{description[:400]}\n\n"
+        # Analyze offer
+        analysis = await AnalysisAgent.analyze(db, offer_text)
 
-        if skills:
-            response += f"🔧 Compétences requises:\n"
-            response += ", ".join(skills[:8]) + "\n\n"
+        # Enrich with matching
+        analysis = MatchingAgent.enrich_analysis(analysis, db)
 
-        response += "Que veux-tu faire?\n"
-        response += "• GO — Générer CV + lettre + mail\n"
-        response += "• CV — Générer seulement le CV\n"
-        response += "• LETTRE — Générer seulement la lettre"
+        # Enrich with Elevia context
+        analysis = OfferEnrichmentService.enrich_analysis_with_elevia_context(
+            analysis,
+            elevia_context,
+        )
 
-        await update.message.reply_text(response, reply_markup=home_menu())
+        # Save analysis
+        save_analysis(db, app.id, analysis)
+        update_application_with_analysis(db, app.id, analysis)
 
-        # Store offer context in user context for next command
+        # Choose positioning
+        positioning_result = await PositioningAgent.choose_angle(analysis)
+        positioning = positioning_result.get("positioning", "")
+        skill_profile = positioning_result.get("skill_profile", "general_business_data")
+
         if context.user_data is None:
             context.user_data = {}
-        context.user_data["elevia_offer_context"] = offer_context_dict
-        context.user_data["elevia_offer_id"] = offer_id
-        context.user_data["elevia_positioning"] = positioning
-        context.user_data["elevia_profile_id"] = profile_id
+        context.user_data["skill_profile"] = skill_profile
+        context.user_data["elevia_context"] = elevia_context.to_dict()
 
-        logger.info(
-            "[ELEVIA_HANDLER] Offer loaded and stored for user %s: %s",
-            user_id,
-            offer_id,
+        update_user_session(db, user_id, app.id, state="waiting_for_command")
+
+        # Format response
+        text, parse_mode = format_analysis_message(
+            job_title=analysis.get("job_title", ""),
+            company=analysis.get("company", ""),
+            positioning=positioning,
+            match_score=app.match_score or 0,
+            strengths=analysis.get("strengths", []),
+            weaknesses=analysis.get("missing_points", []),
         )
 
-    except Exception as e:
-        logger.error(
-            "[ELEVIA_HANDLER] Error loading offer: %s",
-            str(e),
-            exc_info=True,
-        )
+        text += "\n\n📌 *Source: Elevia*"
+
         await update.message.reply_text(
-            f"❌ Erreur lors du chargement: {str(e)[:100]}"
+            text,
+            parse_mode=parse_mode,
+            reply_markup=offer_extracted_menu(app.id),
         )
-    finally:
-        db.close()
-
-
-async def catalog_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Browse job offers catalog."""
-    page = 1
-    if context.args:
-        try:
-            page = int(context.args[0])
-        except ValueError:
-            pass
-
-    limit = 10
-    offset = (page - 1) * limit
-
-    await update.message.reply_text(f"📋 Parcourir le catalogue (page {page})...")
-
-    db = SessionLocal()
-    try:
-        user_id = str(update.effective_user.id)
-        result = await EleviaAgent.search_and_rank_offers(
-            db,
-            user_id,
-            query=None,
-            limit=limit + 1,
-        )
-
-        if not result.get("success"):
-            await update.message.reply_text(
-                f"❌ Erreur: {result.get('error', 'Unknown error')}"
-            )
-            return
-
-        offers = result.get("offers", [])
-        if not offers:
-            await update.message.reply_text(
-                "❌ Aucune offre disponible pour le moment."
-            )
-            return
-
-        paginated_offers = offers[offset : offset + limit]
-        has_next = len(offers) > offset + limit
-
-        response = f"📋 Catalogue des offres (page {page})\n\n"
-        for i, offer in enumerate(paginated_offers, offset + 1):
-            title = offer.get("title", "Unknown Position")
-            company = offer.get("company", "Unknown Company")
-            location = offer.get("city", "Unknown Location")
-            offer_id = offer.get("id", offer.get("offer_id", ""))
-
-            response += f"{i}. {title}\n"
-            response += f"   {company} — {location}\n"
-            if offer_id:
-                response += f"   `/load_elevia_offer {offer_id}`\n"
-            response += "\n"
-
-        if has_next:
-            response += f"\n➡️ `/catalog {page + 1}` pour la page suivante"
-
-        await update.message.reply_text(response, parse_mode="Markdown")
 
     except Exception as e:
-        logger.error("[ELEVIA_HANDLER] Error in catalog: %s", str(e), exc_info=True)
-        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+        logger.error(f"Error loading Elevia offer: {e}", exc_info=True)
+
+        if config.DEBUG_TELEGRAM_ERRORS:
+            error_msg = format_exception_for_telegram(
+                e,
+                {"user_id": user_id, "offer_id": offer_id},
+            )
+            chunks = split_telegram_message(error_msg)
+            for chunk in chunks:
+                await update.message.reply_text(chunk)
+        else:
+            await update.message.reply_text("❌ Erreur lors du chargement de l'offre.")
+
     finally:
         db.close()
 
 
-async def upload_profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Upload and parse user profile from CV/resume file."""
+async def elevia_upload_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Upload a profile file to Elevia."""
+    if not EleviaAgent.is_enabled():
+        await update.message.reply_text("❌ Elevia est désactivé.")
+        return
+
     user_id = str(update.effective_user.id)
     db = SessionLocal()
-    MAX_FILE_SIZE_MB = 20
 
     try:
-        # Check if a file was provided
+        # Check if called with command or if document is attached
         if not update.message.document:
             await update.message.reply_text(
-                "📄 Envoie moi ton CV ou resume (PDF, DOCX, TXT, etc.)\n\n"
-                "Usage: Télécharge un fichier ou utilise `/upload_profile` directement avec un document."
+                "📤 Envoie un fichier PDF ou Word avec ton profil pour l'analyser.\n\n"
+                "Utilisation: envoie la commande puis attache le fichier, ou "
+                "envoie simplement le fichier."
             )
             return
 
-        # Validate file size
-        file_size_mb = update.message.document.file_size / (1024 * 1024) if update.message.document.file_size else 0
-        if file_size_mb > MAX_FILE_SIZE_MB:
-            await update.message.reply_text(
-                f"❌ Fichier trop gros: {file_size_mb:.1f}MB\n\n"
-                f"Maximum: {MAX_FILE_SIZE_MB}MB"
-            )
-            logger.warning(
-                "[UPLOAD_PROFILE] File too large for user %s: %.1f MB",
-                user_id,
-                file_size_mb,
-            )
-            return
+        await update.message.reply_text("⏳ Upload et analyse du profil...")
+        await update.message.chat.send_action("typing")
 
         # Download file
-        file = await update.message.document.get_file()
-        file_bytes = await file.download_as_bytearray()
+        file_obj = await update.message.document.get_file()
+        file_content = await file_obj.download_as_bytearray()
 
-        # Validate file not empty
-        if not file_bytes or len(file_bytes) == 0:
-            await update.message.reply_text(
-                "❌ Fichier vide. Envoie un CV valide."
-            )
-            logger.warning(
-                "[UPLOAD_PROFILE] Empty file for user %s",
-                user_id,
-            )
-            return
-
-        await update.message.reply_text("⏳ Parsing du profil en cours...")
-
-        # Parse file with Elevia API
-        client = EleviaClient()
-        result = await client.parse_profile_file(
-            file_content=bytes(file_bytes),
+        # Upload to Elevia
+        profile_id = await EleviaAgent.upload_profile_from_file(
+            file_content=bytes(file_content),
             filename=update.message.document.file_name or "profile.pdf",
+            db=db,
+            telegram_user_id=user_id,
         )
 
-        if "error" in result:
+        if profile_id:
             await update.message.reply_text(
-                f"❌ Erreur lors du parsing:\n{result.get('error', 'Unknown error')}"
+                f"✅ Profil téléchargé et analysé!\n"
+                f"ID: `{profile_id}`\n\n"
+                f"Cet ID sera utilisé pour matcher tes offres automatiquement."
             )
-            logger.error(
-                "[UPLOAD_PROFILE] Parse failed for user %s: %s",
-                user_id,
-                result.get("error"),
-            )
-            return
-
-        profile_id = result.get("profile_id")
-        if not profile_id:
-            await update.message.reply_text(
-                "❌ Profil non créé: l'API n'a pas retourné de profile_id."
-            )
-            logger.error(
-                "[UPLOAD_PROFILE] No profile_id in response for user %s",
-                user_id,
-            )
-            return
-
-        # Check if user already has a profile
-        existing_profile_id = EleviaUserService.get_elevia_profile_id(db, user_id)
-
-        # Store profile_id for user
-        EleviaUserService.set_elevia_profile_id(db, user_id, profile_id)
-
-        response = f"✅ Profil mis à jour:\n\n"
-        response += f"Profile ID: `{profile_id}`\n"
-        response += f"Nom: {result.get('name', 'N/A')}\n"
-        response += f"Compétences: {len(result.get('skills', []))} détectées\n"
-        response += f"Expériences: {len(result.get('experience', []))} détectées\n"
-
-        if existing_profile_id and existing_profile_id != profile_id:
-            response += f"\n(ancien profil: `{existing_profile_id}` remplacé)"
-
-        response += "\n\nTu peux maintenant:"
-        response += "\n• `/search_offers` - chercher des offres"
-        response += "\n• `/catalog` - parcourir le catalogue"
-        response += "\n• `/my_profile` - voir ton profil"
-
-        await update.message.reply_text(response, parse_mode="Markdown")
-
-        logger.info(
-            "[UPLOAD_PROFILE] Profile created/updated for user %s: profile_id=%s, skills=%d",
-            user_id,
-            profile_id,
-            len(result.get("skills", [])),
-        )
-
-    except Exception as e:
-        logger.error(
-            "[UPLOAD_PROFILE] Error: %s",
-            str(e),
-            exc_info=True,
-        )
-        await update.message.reply_text(
-            f"❌ Erreur lors du chargement: {str(e)[:100]}"
-        )
-    finally:
-        db.close()
-
-
-async def my_profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show current user profile."""
-    user_id = str(update.effective_user.id)
-    db = SessionLocal()
-
-    try:
-        profile_id = EleviaUserService.get_elevia_profile_id(db, user_id)
-
-        if not profile_id:
-            await update.message.reply_text(
-                "❌ Aucun profil Elevia actif.\n\n"
-                "Utilise `/upload_profile` pour en créer un."
-            )
-            return
-
-        # Try to fetch profile details from Elevia
-        client = EleviaClient()
-        profile_data = await client.get_profile(profile_id)
-
-        if "error" in profile_data:
-            response = f"⚠️ Profil trouvé mais détails indisponibles:\n\n"
-            response += f"Profile ID: `{profile_id}`\n"
-            response += f"(Erreur: {profile_data.get('error')})"
         else:
-            response = f"✅ Profil Elevia actif:\n\n"
-            response += f"Profile ID: `{profile_id}`\n"
-
-            if profile_data.get("name"):
-                response += f"Nom: {profile_data.get('name')}\n"
-
-            skills = profile_data.get("skills", [])
-            if skills:
-                response += f"Compétences ({len(skills)}): {', '.join(skills[:5])}"
-                if len(skills) > 5:
-                    response += f", +{len(skills) - 5} autres"
-                response += "\n"
-
-            experience = profile_data.get("experience", [])
-            if experience:
-                response += f"Expériences ({len(experience)})\n"
-
-        response += "\n\nCommandes:"
-        response += "\n• `/upload_profile` - mettre à jour"
-        response += "\n• `/clear_profile` - réinitialiser"
-
-        await update.message.reply_text(response, parse_mode="Markdown")
-
-        logger.info(
-            "[MY_PROFILE] Profile queried for user %s: profile_id=%s",
-            user_id,
-            profile_id,
-        )
+            await update.message.reply_text("❌ Impossible d'analyser le profil.")
 
     except Exception as e:
-        logger.error(
-            "[MY_PROFILE] Error: %s",
-            str(e),
-            exc_info=True,
-        )
-        await update.message.reply_text(
-            f"❌ Erreur: {str(e)[:100]}"
-        )
+        logger.error(f"Error uploading Elevia profile: {e}", exc_info=True)
+        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+
     finally:
         db.close()
 
 
-async def clear_profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Clear user's Elevia profile."""
+async def elevia_get_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Get current user's Elevia profile."""
+    if not EleviaAgent.is_enabled():
+        await update.message.reply_text("❌ Elevia est désactivé.")
+        return
+
     user_id = str(update.effective_user.id)
     db = SessionLocal()
 
     try:
-        profile_id = EleviaUserService.get_elevia_profile_id(db, user_id)
+        profile_data = await EleviaAgent.get_user_profile(db, user_id)
 
-        if not profile_id:
+        if not profile_data:
             await update.message.reply_text(
-                "ℹ️ Aucun profil Elevia à supprimer."
+                "❌ Aucun profil Elevia trouvé.\n\n"
+                "Utilise /upload_profile pour envoyer ton profil."
             )
             return
 
-        # Clear profile
-        EleviaUserService.clear_elevia_profile_id(db, user_id)
+        response = "👤 *Ton profil Elevia*\n\n"
+        if profile_data.get("name"):
+            response += f"Nom: {profile_data['name']}\n"
+        if profile_data.get("email"):
+            response += f"Email: {profile_data['email']}\n"
+        if profile_data.get("location"):
+            response += f"Localisation: {profile_data['location']}\n"
 
-        await update.message.reply_text(
-            f"✅ Profil supprimé.\n\n"
-            f"Ancien profil: `{profile_id}`\n\n"
-            f"Utilise `/upload_profile` pour en charger un nouveau.",
-            parse_mode="Markdown"
-        )
+        skills = profile_data.get("skills", [])
+        if skills:
+            response += f"\n💼 Compétences ({len(skills)}):\n"
+            for skill in skills[:5]:
+                response += f"• {skill}\n"
+            if len(skills) > 5:
+                response += f"• ... et {len(skills) - 5} autres"
 
-        logger.info(
-            "[CLEAR_PROFILE] Profile cleared for user %s (was: %s)",
-            user_id,
-            profile_id,
-        )
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
 
     except Exception as e:
-        logger.error(
-            "[CLEAR_PROFILE] Error: %s",
-            str(e),
-            exc_info=True,
-        )
-        await update.message.reply_text(
-            f"❌ Erreur: {str(e)[:100]}"
-        )
+        logger.error(f"Error getting Elevia profile: {e}", exc_info=True)
+        await update.message.reply_text("❌ Erreur lors de la récupération du profil.")
+
     finally:
         db.close()

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.database.db import SessionLocal
 from app.agents.intelligence_agent import IntelligenceAgent
-from app.utils.debug import format_exception_for_telegram
+from app.utils.debug import format_exception_for_telegram, split_telegram_message
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,6 @@ async def handle_intelligence_insight(update: Update, context: ContextTypes.DEFA
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         # Split long messages
-        from app.utils.debug import split_telegram_message
         messages = split_telegram_message(insight, max_length=4000)
 
         for msg in messages:
@@ -144,7 +143,6 @@ async def handle_free_question(update: Update, context: ContextTypes.DEFAULT_TYP
         response = await agent.analyze_user_question(db, user_id, question)
 
         # Split long messages
-        from app.utils.debug import split_telegram_message
         messages = split_telegram_message(response, max_length=4000)
 
         for msg in messages:
