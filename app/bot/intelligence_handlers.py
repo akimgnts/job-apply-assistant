@@ -89,7 +89,7 @@ async def handle_intelligence_insight(update: Update, context: ContextTypes.DEFA
                 text="💬 <b>Pose ta question</b>\n\nEnvoie une question naturelle sur tes offres, compétences, le marché, etc.",
                 parse_mode=ParseMode.HTML,
                 reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("↩️ Retour", callback_data="intelligence_menu")
+                    InlineKeyboardButton("↩️ Retour", callback_data="intel_back")
                 ]])
             )
             return ASKING_QUESTION
@@ -101,18 +101,25 @@ async def handle_intelligence_insight(update: Update, context: ContextTypes.DEFA
         agent = IntelligenceAgent()
         insight = await agent.get_quick_insight(db, user_id, insight_type)
 
-        keyboard = [[InlineKeyboardButton("↩️ Retour", callback_data="intelligence_menu")]]
+        keyboard = [[InlineKeyboardButton("↩️ Retour", callback_data="intel_back")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         # Split long messages
         messages = split_telegram_message(insight, max_length=4000)
 
-        for msg in messages:
+        # Edit first message, send rest as new messages
+        if messages:
             await query.edit_message_text(
-                text=msg,
+                text=messages[0],
                 parse_mode=ParseMode.HTML,
                 reply_markup=reply_markup
             )
+            for msg in messages[1:]:
+                await update.effective_chat.send_message(
+                    text=msg,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=reply_markup
+                )
 
         logger.info("handle_intelligence_insight user_id=%s type=%s", user_id, insight_type)
         return INTELLIGENCE_MENU
@@ -142,6 +149,9 @@ async def handle_free_question(update: Update, context: ContextTypes.DEFAULT_TYP
         agent = IntelligenceAgent()
         response = await agent.analyze_user_question(db, user_id, question)
 
+        keyboard = [[InlineKeyboardButton("↩️ Retour au menu", callback_data="intel_back")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
         # Split long messages
         messages = split_telegram_message(response, max_length=4000)
 
@@ -149,9 +159,7 @@ async def handle_free_question(update: Update, context: ContextTypes.DEFAULT_TYP
             await update.message.reply_text(
                 text=msg,
                 parse_mode=ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("↩️ Retour au menu", callback_data="intelligence_menu")
-                ]])
+                reply_markup=reply_markup
             )
 
         return ASKING_QUESTION
