@@ -23,7 +23,7 @@ from app.database.models import GeneratedDocument, DocumentTypeEnum
 from app.utils.debug import format_exception_for_telegram, split_telegram_message
 from app.utils.filename import safe_document_filename
 from app.bot.keyboards import (
-    home_menu, back_home, offer_extracted_menu, match_view_menu,
+    home_menu, back_home, back_home_and_action, offer_extracted_menu, match_view_menu,
     application_detail_menu, save_or_regenerate_menu, profile_menu, master_cv_menu
 )
 from app.bot.message_formatter import (
@@ -129,7 +129,11 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 💡 <i>Documents sont toujours sauvegardés</i>"""
 
-    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+    await update.message.reply_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=back_home()
+    )
     logger.info("help_command.reply_sent user_id=%s", user_id)
 
 async def last_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -159,7 +163,11 @@ async def last_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 📂 Utilise <code>/my_applications</code> pour voir toutes tes candidatures"""
 
-            await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+            await update.message.reply_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_home_and_action("📂 Toutes les candidatures", "my_applications")
+            )
         else:
             text = """<b>📭 Aucune candidature</b>
 
@@ -168,7 +176,11 @@ Envoie une offre pour commencer:
 • Texte brut
 • Ou <code>/upload_profile</code> puis <code>/search_offers</code>"""
 
-            await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+            await update.message.reply_text(
+                text,
+                parse_mode=ParseMode.HTML,
+                reply_markup=back_home()
+            )
     finally:
         db.close()
 
@@ -324,7 +336,10 @@ async def handle_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         }.get(command, [])
 
         if not doc_types:
-            await update.message.reply_text("Commande non reconnue. Utilise GO, CV, LETTRE ou MAIL.")
+            await update.message.reply_text(
+                "Commande non reconnue. Utilise GO, CV, LETTRE ou MAIL.",
+                reply_markup=back_home()
+            )
             return
 
         await update.message.chat.send_action("typing")
@@ -387,12 +402,18 @@ async def _handle_command_standard(
     """Handle command in standard URL/text mode with graceful degradation."""
     app = get_last_application(db, user_id)
     if not app:
-        await update.message.reply_text("Aucune offre en cours. Envoie une offre d'abord.")
+        await update.message.reply_text(
+            "Aucune offre en cours. Envoie une offre d'abord.",
+            reply_markup=back_home()
+        )
         return
 
     analysis = app.analyses[0].analysis_json if app.analyses else None
     if not analysis:
-        await update.message.reply_text("Analyse non trouvée.")
+        await update.message.reply_text(
+            "Analyse non trouvée.",
+            reply_markup=back_home()
+        )
         return
 
     positioning = analysis.get("recommended_angle", "Data Analyst BI")

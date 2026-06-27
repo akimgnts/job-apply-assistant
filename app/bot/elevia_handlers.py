@@ -30,20 +30,32 @@ logger = logging.getLogger(__name__)
 async def elevia_health_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Check Elevia API health."""
     if not EleviaAgent.is_enabled():
-        await update.message.reply_text("❌ Elevia est désactivé.")
+        await update.message.reply_text(
+            "❌ Elevia est désactivé.",
+            reply_markup=home_menu()
+        )
         return
 
     is_healthy = await EleviaAgent.health_check()
     if is_healthy:
-        await update.message.reply_text("✅ Elevia API est disponible!")
+        await update.message.reply_text(
+            "✅ Elevia API est disponible!",
+            reply_markup=home_menu()
+        )
     else:
-        await update.message.reply_text("❌ Elevia API est indisponible.")
+        await update.message.reply_text(
+            "❌ Elevia API est indisponible.",
+            reply_markup=home_menu()
+        )
 
 
 async def elevia_search_offers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Search Elevia offers with natural language query."""
     if not EleviaAgent.is_enabled():
-        await update.message.reply_text("❌ Elevia est désactivé.")
+        await update.message.reply_text(
+            "❌ Elevia est désactivé.",
+            reply_markup=home_menu()
+        )
         return
 
     user_query = " ".join(context.args) if context.args else None
@@ -52,7 +64,8 @@ async def elevia_search_offers(update: Update, context: ContextTypes.DEFAULT_TYP
             "📌 Usage: /search_offers <query>\n\n"
             "Exemples:\n"
             "• /search_offers data scientist Spain\n"
-            "• /search_offers business analyst France"
+            "• /search_offers business analyst France",
+            reply_markup=home_menu()
         )
         return
 
@@ -62,7 +75,10 @@ async def elevia_search_offers(update: Update, context: ContextTypes.DEFAULT_TYP
     try:
         offers = await EleviaAgent.search_offers(query=user_query, limit=10)
         if not offers:
-            await update.message.reply_text("Aucune offre trouvée.")
+            await update.message.reply_text(
+                "Aucune offre trouvée.",
+                reply_markup=home_menu()
+            )
             return
 
         response = f"📋 Offres trouvées pour: *{user_query}*\n\n"
@@ -75,17 +91,23 @@ async def elevia_search_offers(update: Update, context: ContextTypes.DEFAULT_TYP
             )
 
         response += "Utilise `/load_elevia_offer <offer_id>` pour charger une offre."
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN, reply_markup=home_menu())
 
     except Exception as e:
         logger.error(f"Error searching Elevia offers: {e}", exc_info=True)
-        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+        await update.message.reply_text(
+            f"❌ Erreur: {str(e)[:100]}",
+            reply_markup=home_menu()
+        )
 
 
 async def elevia_catalog(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Browse Elevia offers catalog."""
     if not EleviaAgent.is_enabled():
-        await update.message.reply_text("❌ Elevia est désactivé.")
+        await update.message.reply_text(
+            "❌ Elevia est désactivé.",
+            reply_markup=home_menu()
+        )
         return
 
     skip = 0
@@ -98,7 +120,10 @@ async def elevia_catalog(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     try:
         offers = await EleviaAgent.get_catalog(skip=skip, limit=20)
         if not offers:
-            await update.message.reply_text("Aucune offre trouvée.")
+            await update.message.reply_text(
+                "Aucune offre trouvée.",
+                reply_markup=home_menu()
+            )
             return
 
         response = f"📋 Catalogue Elevia (page {skip//20 + 1})\n\n"
@@ -111,11 +136,14 @@ async def elevia_catalog(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         response += "Utilise `/load_elevia_offer <offer_id>` pour charger une offre.\n"
         response += f"Utilise `/catalog {skip + 20}` pour la prochaine page."
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN, reply_markup=home_menu())
 
     except Exception as e:
         logger.error(f"Error loading Elevia catalog: {e}", exc_info=True)
-        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+        await update.message.reply_text(
+            f"❌ Erreur: {str(e)[:100]}",
+            reply_markup=home_menu()
+        )
 
 
 async def elevia_load_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -227,7 +255,10 @@ async def elevia_load_offer(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def elevia_upload_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Upload a profile file to Elevia."""
     if not EleviaAgent.is_enabled():
-        await update.message.reply_text("❌ Elevia est désactivé.")
+        await update.message.reply_text(
+            "❌ Elevia est désactivé.",
+            reply_markup=home_menu()
+        )
         return
 
     user_id = str(update.effective_user.id)
@@ -239,7 +270,8 @@ async def elevia_upload_profile(update: Update, context: ContextTypes.DEFAULT_TY
             await update.message.reply_text(
                 "📤 Envoie un fichier PDF ou Word avec ton profil pour l'analyser.\n\n"
                 "Utilisation: envoie la commande puis attache le fichier, ou "
-                "envoie simplement le fichier."
+                "envoie simplement le fichier.",
+                reply_markup=home_menu()
             )
             return
 
@@ -262,14 +294,21 @@ async def elevia_upload_profile(update: Update, context: ContextTypes.DEFAULT_TY
             await update.message.reply_text(
                 f"✅ Profil téléchargé et analysé!\n"
                 f"ID: `{profile_id}`\n\n"
-                f"Cet ID sera utilisé pour matcher tes offres automatiquement."
+                f"Cet ID sera utilisé pour matcher tes offres automatiquement.",
+                reply_markup=home_menu()
             )
         else:
-            await update.message.reply_text("❌ Impossible d'analyser le profil.")
+            await update.message.reply_text(
+                "❌ Impossible d'analyser le profil.",
+                reply_markup=home_menu()
+            )
 
     except Exception as e:
         logger.error(f"Error uploading Elevia profile: {e}", exc_info=True)
-        await update.message.reply_text(f"❌ Erreur: {str(e)[:100]}")
+        await update.message.reply_text(
+            f"❌ Erreur: {str(e)[:100]}",
+            reply_markup=home_menu()
+        )
 
     finally:
         db.close()
@@ -278,7 +317,10 @@ async def elevia_upload_profile(update: Update, context: ContextTypes.DEFAULT_TY
 async def elevia_get_profile(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Get current user's Elevia profile."""
     if not EleviaAgent.is_enabled():
-        await update.message.reply_text("❌ Elevia est désactivé.")
+        await update.message.reply_text(
+            "❌ Elevia est désactivé.",
+            reply_markup=home_menu()
+        )
         return
 
     user_id = str(update.effective_user.id)
@@ -290,7 +332,8 @@ async def elevia_get_profile(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if not profile_data:
             await update.message.reply_text(
                 "❌ Aucun profil Elevia trouvé.\n\n"
-                "Utilise /upload_profile pour envoyer ton profil."
+                "Utilise /upload_profile pour envoyer ton profil.",
+                reply_markup=home_menu()
             )
             return
 
@@ -310,11 +353,14 @@ async def elevia_get_profile(update: Update, context: ContextTypes.DEFAULT_TYPE)
             if len(skills) > 5:
                 response += f"• ... et {len(skills) - 5} autres"
 
-        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+        await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN, reply_markup=home_menu())
 
     except Exception as e:
         logger.error(f"Error getting Elevia profile: {e}", exc_info=True)
-        await update.message.reply_text("❌ Erreur lors de la récupération du profil.")
+        await update.message.reply_text(
+            "❌ Erreur lors de la récupération du profil.",
+            reply_markup=home_menu()
+        )
 
     finally:
         db.close()
