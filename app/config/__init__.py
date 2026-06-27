@@ -42,7 +42,7 @@ class Config:
 
     # Elevia API Integration
     ELEVIA_ENABLED = os.getenv("ELEVIA_ENABLED", "false").lower() == "true"
-    ELEVIA_BASE_URL = os.getenv("ELEVIA_BASE_URL", "http://37.59.112.53:8000/api")
+    ELEVIA_BASE_URL = os.getenv("ELEVIA_BASE_URL", "http://37.59.112.53:3000/api")
     ELEVIA_API_KEY = os.getenv("ELEVIA_API_KEY", "")
     ELEVIA_REQUEST_TIMEOUT_MS = int(os.getenv("ELEVIA_REQUEST_TIMEOUT_MS", "20000"))
 
