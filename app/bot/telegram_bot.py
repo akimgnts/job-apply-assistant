@@ -123,10 +123,11 @@ def setup_bot():
         states={
             INTELLIGENCE_MENU: [
                 CallbackQueryHandler(handle_intelligence_insight, pattern="^intel_"),
+                CallbackQueryHandler(intelligence_menu_callback, pattern="^intel_back$"),
             ],
             ASKING_QUESTION: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_free_question),
-                CallbackQueryHandler(intelligence_menu_callback, pattern="^intelligence_menu$"),
+                CallbackQueryHandler(intelligence_menu_callback, pattern="^intel_back$"),
             ],
         },
         fallbacks=[CallbackQueryHandler(cancel_intelligence, pattern="^home$")],
