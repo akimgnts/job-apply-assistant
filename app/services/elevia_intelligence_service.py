@@ -193,7 +193,7 @@ class EleviaIntelligenceService:
         """Format market insights for Telegram."""
         msg = f"""📊 <b>Marché actuel (Elevia)</b>
 
-Total d'offres actives: <b>{market_data['total_active_offers']}</b>
+Total d'offres actives: <b>{market_data.get('total_active_offers', 'N/A')}</b>
 
 <b>Top 5 entreprises:</b>
 """
@@ -218,10 +218,17 @@ Total d'offres actives: <b>{market_data['total_active_offers']}</b>
 
         msg = "<b>🎯 Top opportunités pour toi:</b>\n\n"
         for i, opp in enumerate(opportunities[:5], 1):
-            msg += f"{i}. <b>{opp['company']}</b>\n"
-            msg += f"   {opp['title']}\n"
-            msg += f"   📍 {opp['location']}, {opp['country']}\n"
-            msg += f"   Match: {opp['match_score']}/100\n"
-            msg += f"   Type: {opp['contract_type']}\n\n"
+            company = opp.get('company', 'Unknown')
+            title = opp.get('title', 'Unknown')
+            location = opp.get('location', 'Unknown')
+            country = opp.get('country', 'Unknown')
+            match_score = opp.get('match_score', '—')
+            contract_type = opp.get('contract_type', 'Unknown')
+
+            msg += f"{i}. <b>{company}</b>\n"
+            msg += f"   {title}\n"
+            msg += f"   📍 {location}, {country}\n"
+            msg += f"   Match: {match_score}/100\n"
+            msg += f"   Type: {contract_type}\n\n"
 
         return msg
