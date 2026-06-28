@@ -36,6 +36,8 @@ services:
       sh -c "alembic upgrade head &&
              python -m app.database.seed_profile --force &&
              python -m app.bot.telegram_bot"
+    stop_signal: SIGTERM
+    stop_grace_period: 30s
 
 volumes:
   postgres_data:

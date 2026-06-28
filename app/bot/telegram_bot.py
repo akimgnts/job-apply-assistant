@@ -1,4 +1,6 @@
 import logging
+import signal
+import asyncio
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters
 from app.config import config
 from app.bot.handlers import (
@@ -141,10 +143,24 @@ def setup_bot():
     return app
 
 def main():
-    """Start the bot."""
+    """Start the bot with graceful shutdown support."""
     logger.info("Starting Job Apply Assistant bot...")
     app = setup_bot()
-    app.run_polling(allowed_updates=[])
+
+    def stop_bot(signum, frame):
+        """Handle graceful shutdown on SIGTERM."""
+        logger.info(f"Received signal {signum}, stopping bot gracefully...")
+        app.stop()
+
+    signal.signal(signal.SIGTERM, stop_bot)
+    signal.signal(signal.SIGINT, stop_bot)
+
+    try:
+        app.run_polling(allowed_updates=[])
+    except Exception as e:
+        logger.error(f"Bot encountered error: {e}", exc_info=True)
+    finally:
+        logger.info("Bot stopped")
 
 if __name__ == "__main__":
     main()
