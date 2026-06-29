@@ -155,3 +155,26 @@ class CareerIntelligenceSnapshot(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class BotInstance(Base):
+    """Track bot instance lifecycle for singleton management."""
+    __tablename__ = "bot_instances"
+
+    id = Column(Integer, primary_key=True)
+    pid = Column(Integer, nullable=False)
+    status = Column(String(50), nullable=False)  # 'started', 'stopped', 'error'
+    message = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class ConversationHistory(Base):
+    """Record all user conversations for audit and replay."""
+    __tablename__ = "conversation_history"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(255), nullable=False, index=True)
+    message_type = Column(String(50), nullable=False)  # 'user_message', 'bot_reply', 'callback', 'error'
+    content = Column(Text, nullable=False)
+    metadata = Column(JSON, default=dict)  # Extra data: command, button_pressed, error_type, etc
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

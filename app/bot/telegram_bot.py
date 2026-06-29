@@ -3,6 +3,8 @@ import signal
 import asyncio
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters
 from app.config import config
+from app.services.bot_instance_manager import BotInstanceManager
+from app.database.db import SessionLocal
 from app.bot.handlers import (
     start_command,
     help_command,
@@ -143,24 +145,34 @@ def setup_bot():
     return app
 
 def main():
-    """Start the bot with graceful shutdown support."""
-    logger.info("Starting Job Apply Assistant bot...")
-    app = setup_bot()
-
-    def stop_bot(signum, frame):
-        """Handle graceful shutdown on SIGTERM."""
-        logger.info(f"Received signal {signum}, stopping bot gracefully...")
-        app.stop()
-
-    signal.signal(signal.SIGTERM, stop_bot)
-    signal.signal(signal.SIGINT, stop_bot)
-
+    """Start the bot with singleton instance management."""
+    db = SessionLocal()
     try:
-        app.run_polling(allowed_updates=[])
-    except Exception as e:
-        logger.error(f"Bot encountered error: {e}", exc_info=True)
+        # Acquire singleton lock - kills old instance if running
+        BotInstanceManager.acquire_lock()
+        BotInstanceManager.record_instance(db, "started", "Bot instance acquired lock")
+
+        logger.info("Starting Job Apply Assistant bot...")
+        app = setup_bot()
+
+        def stop_bot(signum, frame):
+            """Handle graceful shutdown on SIGTERM."""
+            logger.info(f"Received signal {signum}, stopping bot gracefully...")
+            app.stop()
+
+        signal.signal(signal.SIGTERM, stop_bot)
+        signal.signal(signal.SIGINT, stop_bot)
+
+        try:
+            app.run_polling(allowed_updates=[])
+        except Exception as e:
+            logger.error(f"Bot encountered error: {e}", exc_info=True)
+            BotInstanceManager.record_instance(db, "error", str(e))
+        finally:
+            logger.info("Bot stopped")
+            BotInstanceManager.cleanup_on_shutdown(db)
     finally:
-        logger.info("Bot stopped")
+        db.close()
 
 if __name__ == "__main__":
     main()
