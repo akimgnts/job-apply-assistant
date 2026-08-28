@@ -204,3 +204,30 @@ class CareerIntelligenceSnapshot(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class BotInstance(Base):
+    """Track bot instance lifecycle for singleton management."""
+    __tablename__ = "bot_instances"
+
+    id = Column(Integer, primary_key=True)
+    pid = Column(Integer, nullable=False)
+    status = Column(String(50), nullable=False)  # 'started', 'stopped', 'error'
+    message = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class ConversationHistory(Base):
+    """Record all user conversations for audit and replay.
+
+    Note: Python attribute 'metadata_json' maps to SQL column 'metadata' to avoid
+    SQLAlchemy reserved name conflict.
+    """
+    __tablename__ = "conversation_history"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(255), nullable=False, index=True)
+    message_type = Column(String(50), nullable=False)
+    content = Column(Text, nullable=False)
+    metadata_json = Column("metadata", JSON, default=dict)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
