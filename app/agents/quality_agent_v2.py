@@ -39,6 +39,20 @@ class ValidatedClaim:
     rewritten_text: Optional[str] = None  # If action is REWRITE
 
 
+@dataclass
+class AdaptationValidationResult:
+    """Result of validating an adaptation JSON before rendering."""
+
+    cleaned_adaptation: Dict  # Modified adaptation with removed/rewritten claims
+    pass_count: int
+    rewrite_count: int
+    remove_count: int
+    total_count: int
+    removal_rate: float  # Percentage of claims removed
+    recommendation: str  # "ACCEPT" | "REVIEW" | "REJECT"
+    details: List[Dict]  # Per-claim validation results
+
+
 class QualityAgentV2:
     """Claim-by-claim validation against atomic profile blocks."""
 
@@ -253,3 +267,274 @@ class QualityAgentV2:
                 context_lines.append(f"- {skill.source_ref or skill.id}: {skill.title}{level}")
 
         return "\n".join(context_lines)
+
+    @staticmethod
+    def _find_experience_blocks(experience_index: int, all_blocks: List[ProfileBlock]) -> List[str]:
+        """Find all experience blocks for a given index.
+
+        Returns list of source_refs for all experience blocks matching the index:
+        0 → Sidel blocks (dashboard, automation, analytics, consolidation, etc)
+        1 → MadeByAkim blocks
+        2 → Vassard block
+        """
+        company_prefixes = {
+            0: "master_v3:sidel_",
+            1: "master_v3:madebyakim_",
+            2: "master_v3:vassard_",
+        }
+
+        prefix = company_prefixes.get(experience_index)
+        if not prefix:
+            return []
+
+        matching = [
+            b.source_ref for b in all_blocks
+            if b.source_ref and b.source_ref.startswith(prefix) and b.category.value == "experience"
+        ]
+        return matching
+
+    @staticmethod
+    def _find_best_source_block_for_bullet(
+        bullet: str, candidate_blocks: List[str], all_blocks: List[ProfileBlock]
+    ) -> Optional[str]:
+        """Find best matching source block for a bullet claim.
+
+        Strategy:
+        1. Check which blocks contain technologies mentioned in bullet
+        2. Check which blocks contain metrics mentioned in bullet
+        3. Return first match, or fall back to first candidate
+
+        Args:
+            bullet: Claim text
+            candidate_blocks: List of source_refs to check against
+            all_blocks: All ProfileBlock objects for lookup
+
+        Returns:
+            Best matching source_ref, or first candidate, or None
+        """
+        if not candidate_blocks:
+            return None
+
+        blocks_by_ref = {b.source_ref: b for b in all_blocks if b.source_ref}
+
+        bullet_lower = bullet.lower()
+
+        # First pass: check for technology matches
+        for source_ref in candidate_blocks:
+            block = blocks_by_ref.get(source_ref)
+            if block and block.technologies:
+                for tech in block.technologies:
+                    if tech.lower() in bullet_lower:
+                        return source_ref
+
+        # Second pass: check for metric matches
+        for source_ref in candidate_blocks:
+            block = blocks_by_ref.get(source_ref)
+            if block and block.metrics:
+                metrics_str = str(block.metrics).lower()
+                if any(m.lower() in bullet_lower for m in metrics_str.split()):
+                    return source_ref
+
+        # Fallback: return first candidate
+        return candidate_blocks[0] if candidate_blocks else None
+
+    @staticmethod
+    def validate_adaptation_claims(
+        adaptation: Dict,
+        db: Session,
+        removal_threshold: float = 0.30,  # 30% threshold
+    ) -> AdaptationValidationResult:
+        """Validate adaptation JSON before rendering to HTML.
+
+        Checks all claims (summary, experience bullets, project bullets) against
+        atomic profile blocks. Applies PASS/REWRITE/REMOVE logic.
+
+        If removal rate exceeds threshold, recommends REVIEW instead of ACCEPT.
+
+        Args:
+            adaptation: JSON from CVAdaptationAgent with title, summary, bullets
+            db: Database session
+            removal_threshold: Max removal rate (default 30%) before REVIEW recommendation
+
+        Returns:
+            AdaptationValidationResult with cleaned adaptation + stats
+        """
+        # Load ALL atomic blocks (not just selected ones)
+        all_blocks = db.query(ProfileBlock).all()
+        if not all_blocks:
+            logger.warning("No profile blocks found for adaptation validation")
+            return AdaptationValidationResult(
+                cleaned_adaptation=adaptation,
+                pass_count=0,
+                rewrite_count=0,
+                remove_count=0,
+                total_count=0,
+                removal_rate=0.0,
+                recommendation="REJECT",
+                details=[],
+            )
+
+        validator = ClaimValidatorService(all_blocks)
+        details = []
+        total_claims = 0
+        pass_count = 0
+        rewrite_count = 0
+        remove_count = 0
+
+        cleaned_adaptation = {
+            "title": adaptation.get("title", ""),
+            "summary": adaptation.get("summary", ""),
+            "experience_order": adaptation.get("experience_order", []),
+            "experience_bullets": {},
+            "project_order": adaptation.get("project_order", []),
+            "project_bullets": {},
+            "ats_keywords": adaptation.get("ats_keywords", []),
+        }
+
+        # Validate summary (as experience claim)
+        if adaptation.get("summary"):
+            total_claims += 1
+            summary_claim = adaptation["summary"]
+            # Validate as a general claim (no specific block context)
+            # This is simplified—summary usually passes unless obviously false
+            validation = validator.validate_experience_claim(
+                summary_claim,
+                "master_v3:sidel_experience"  # Use primary block context
+            )
+            details.append({
+                "type": "summary",
+                "original": summary_claim,
+                "action": validation.action.value,
+                "reason": validation.reason,
+            })
+            if validation.action == ValidationAction.PASS:
+                pass_count += 1
+            elif validation.action == ValidationAction.REWRITE:
+                rewrite_count += 1
+                cleaned_adaptation["summary"] = validation.rewritten_claim or summary_claim
+            elif validation.action == ValidationAction.REMOVE:
+                remove_count += 1
+                cleaned_adaptation["summary"] = ""
+
+        # Validate experience bullets
+        for exp_str, bullets in adaptation.get("experience_bullets", {}).items():
+            try:
+                exp_index = int(exp_str)
+            except ValueError:
+                continue
+
+            # Find all candidate blocks for this experience index
+            candidate_blocks = QualityAgentV2._find_experience_blocks(exp_index, all_blocks)
+            if not candidate_blocks:
+                logger.warning(f"No candidate blocks for experience index {exp_index}")
+                cleaned_adaptation["experience_bullets"][exp_str] = bullets
+                continue
+
+            cleaned_bullets = []
+            for bullet in bullets:
+                total_claims += 1
+
+                # Find best source block for this specific bullet
+                source_ref = QualityAgentV2._find_best_source_block_for_bullet(
+                    bullet, candidate_blocks, all_blocks
+                )
+
+                validation = validator.validate_experience_claim(bullet, source_ref)
+
+                details.append({
+                    "type": "experience",
+                    "index": exp_index,
+                    "original": bullet,
+                    "action": validation.action.value,
+                    "reason": validation.reason,
+                    "source_block": source_ref,
+                })
+
+                if validation.action == ValidationAction.PASS:
+                    pass_count += 1
+                    cleaned_bullets.append(bullet)
+                elif validation.action == ValidationAction.REWRITE:
+                    rewrite_count += 1
+                    cleaned_bullets.append(validation.rewritten_claim or bullet)
+                elif validation.action == ValidationAction.REMOVE:
+                    remove_count += 1
+                    # Don't add to cleaned_bullets (removes the claim)
+
+            cleaned_adaptation["experience_bullets"][exp_str] = cleaned_bullets
+
+        # Validate project bullets (fixed project mapping)
+        project_mapping = {
+            0: ["master_v3:elevia_platform", "master_v3:elevia_matching_engine", "master_v3:elevia_document_generation", "master_v3:elevia_architecture"],
+            1: ["master_v3:job_apply_assistant"],
+            2: ["master_v3:vie_matcher"],
+        }
+
+        for proj_str, bullets in adaptation.get("project_bullets", {}).items():
+            try:
+                proj_index = int(proj_str)
+            except ValueError:
+                continue
+
+            candidate_blocks = project_mapping.get(proj_index, [])
+            if not candidate_blocks:
+                logger.warning(f"No candidate blocks for project index {proj_index}")
+                cleaned_adaptation["project_bullets"][proj_str] = bullets
+                continue
+
+            cleaned_bullets = []
+            for bullet in bullets:
+                total_claims += 1
+
+                # Find best source block for this specific bullet
+                source_ref = QualityAgentV2._find_best_source_block_for_bullet(
+                    bullet, candidate_blocks, all_blocks
+                )
+
+                validation = validator.validate_experience_claim(bullet, source_ref)
+
+                details.append({
+                    "type": "project",
+                    "index": proj_index,
+                    "original": bullet,
+                    "action": validation.action.value,
+                    "reason": validation.reason,
+                    "source_block": source_ref,
+                })
+
+                if validation.action == ValidationAction.PASS:
+                    pass_count += 1
+                    cleaned_bullets.append(bullet)
+                elif validation.action == ValidationAction.REWRITE:
+                    rewrite_count += 1
+                    cleaned_bullets.append(validation.rewritten_claim or bullet)
+                elif validation.action == ValidationAction.REMOVE:
+                    remove_count += 1
+                    # Don't add to cleaned_bullets (removes the claim)
+
+            cleaned_adaptation["project_bullets"][proj_str] = cleaned_bullets
+
+        # Determine recommendation
+        removal_rate = remove_count / total_claims if total_claims > 0 else 0.0
+        if remove_count > 0:
+            recommendation = "REVIEW"  # Has removals = needs review
+        elif removal_rate > removal_threshold:
+            recommendation = "REVIEW"  # Too many removals
+        else:
+            recommendation = "ACCEPT"  # Safe to render
+
+        logger.info(
+            f"Adaptation validation complete: pass={pass_count}, rewrite={rewrite_count}, "
+            f"remove={remove_count}, total={total_claims}, removal_rate={removal_rate:.1%}, "
+            f"recommendation={recommendation}"
+        )
+
+        return AdaptationValidationResult(
+            cleaned_adaptation=cleaned_adaptation,
+            pass_count=pass_count,
+            rewrite_count=rewrite_count,
+            remove_count=remove_count,
+            total_count=total_claims,
+            removal_rate=removal_rate,
+            recommendation=recommendation,
+            details=details,
+        )
