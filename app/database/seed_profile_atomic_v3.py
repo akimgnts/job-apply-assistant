@@ -57,7 +57,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 10,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Sidel — Dashboard Portfolio: Installed Base, Events, Business KPIs",
         "content": (
             "Built and maintained ~10 dashboards and reporting tools covering installed base, "
@@ -88,7 +88,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 10,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Sidel — Data Automation: Extraction, Cleaning, Consolidation",
         "content": (
             "Automated recurring extraction, cleaning, consolidation and visualization tasks. "
@@ -118,7 +118,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 10,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Sidel — Installed Base Analysis: Wines & Spirits, 61 Customers",
         "content": (
             "Analyzed installed base, equipment and service data across 61 customers in the "
@@ -148,7 +148,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 9,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Sidel — Data Consolidation: Multi-Source Business Data",
         "content": (
             "Consolidated multi-source business data (customers, leads, events, campaigns) and "
@@ -171,7 +171,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 8,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Sidel — International Collaboration: Europe, French & English",
         "content": (
             "Coordinated with international stakeholders across Europe. Presented analyses, "
@@ -195,7 +195,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 7,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Sidel — Data Quality: Structured Cleaning & Consistency Checks",
         "content": (
             "Supported data quality through structured cleaning, consistency checks and documentation "
@@ -238,7 +238,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 9,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "MadeByAkim — Workflow Automation: Email, Meetings, Lead Enrichment",
         "content": (
             "Automated repetitive operational tasks such as email preparation, meeting workflows, "
@@ -263,7 +263,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 9,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "MadeByAkim — API & Webhook Integration: CRM, Database, Communication",
         "content": (
             "Built workflow automation using APIs, webhooks, Make, n8n, JSON payloads and Python "
@@ -285,7 +285,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 9,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "MadeByAkim — Dashboards & Reporting: Operational Tracking Systems",
         "content": (
             "Designed dashboards, reporting structures and operational tracking systems for client "
@@ -306,7 +306,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 8,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "MadeByAkim — CRM Systems: HubSpot, ManyChat, Airtable, Notion, Google Sheets",
         "content": (
             "Structured CRM workflows and digital operations using ManyChat, Meta Business Suite, "
@@ -328,7 +328,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 8,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "MadeByAkim — Creative Content: Adobe Suite, Canva, Visual Design",
         "content": (
             "Produced social media assets, visual identities and content using Adobe Premiere Pro, "
@@ -399,7 +399,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 10,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Elevia — Matching Engine: 10+ Versions, 30 Profiles, 1000+ Opportunities",
         "content": (
             "Designed and iterated through more than 10 versions of a matching engine. Evaluated "
@@ -427,7 +427,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 10,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Elevia — Document Generation: 100+ CVs, ~90% Time Reduction",
         "content": (
             "Generated 100+ AI-assisted application documents (CVs, cover letters, recruiter messages) "
@@ -453,7 +453,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "priority": 10,
     },
     {
-        "category": CategoryEnum.achievement,
+        "category": CategoryEnum.experience,
         "title": "Elevia — Architecture: ~10 Components, 4 PostgreSQL Tables",
         "content": (
             "Built a modular architecture of ~10 components across 4 PostgreSQL tables, covering "
