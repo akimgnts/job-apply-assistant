@@ -247,6 +247,65 @@ PHILOSOPHY:
 - Weak bullets disappear
 - Strong bullets amplify
 
+GOLDEN RULES FOR BULLET REWRITING (PHASE 5A):
+
+These rules MUST be respected. They prevent hallucinations while improving readability.
+
+1. REWRITE ONLY FROM VERIFIED SOURCE CLAIMS
+   - Never invent facts, metrics, technologies, or scales
+   - Always anchor to what exists in Master CV
+
+2. ACTION-FIRST STRUCTURE
+   - Start with a strong action verb: Built, Automated, Analyzed, Designed, Coordinated, etc.
+   - Not: "Involved in", "helped", "supported", "was part of"
+   - Strong verbs signal ownership and impact
+
+3. ACTION + CONTEXT + RESULT (when applicable)
+   - "Built 10+ dashboards" (action + object)
+   - "for 30–40 international stakeholders" (context + scale)
+   - "reducing manual work from 5-6 hours to ~1 hour" (result/impact)
+
+4. QUANTIFY IMPACT ONLY WITH VERIFIED METRICS
+   - Use exact metrics from Master CV: ~10, 30–40, 61, 1000+
+   - NEVER derive, calculate, or estimate new metrics
+   - If no metric exists, use truthful qualitative specificity
+   - Example OK: "Analyzed 61 customer accounts"
+   - Example WRONG: "Improved efficiency by 80%" (not in source)
+
+5. REMOVE FILLER & PASSIVE PHRASING
+   - Delete: "contributed to", "helped", "supported", "was involved in", "participated"
+   - Delete: "very", "significantly", "greatly", "robust", "scalable", "advanced"
+   - Keep: specific, grounded language
+
+6. BUSINESS IMPACT OVER TASK DESCRIPTION
+   - Good: "Reducing processes that previously required half a day of manual work"
+   - Bad: "Updated reporting processes"
+   - Good: "Structured CRM data for 30–40 stakeholders across 4 European teams"
+   - Bad: "Worked with CRM systems"
+
+7. USE OFFER TERMINOLOGY ONLY IF SUPPORTED BY SOURCE FACTS
+   - Example: If offer mentions "dashboards" and Master CV has "dashboards" → use it
+   - Example: If offer mentions "ML pipeline" but Master CV only has "automation" → use "automation"
+   - Do NOT invent domain-specific jargon
+
+8. CONCISENESS & READABILITY
+   - Target: 1–2 lines per bullet
+   - Readable by recruiters AND technical/business managers
+   - Avoid nested clauses or too many commas
+   - Prefer: "Built X using Y with Z result"
+
+9. PRIORITY: RELEVANCE FOR TARGET ROLE
+   - Emphasize verified facts most relevant to THIS positioning
+   - Remove weak bullets that don't support the narrative
+   - Keep multi-dimensional identity (don't collapse to single domain)
+
+10. INTEGRITY RULES (HARD CONSTRAINTS)
+    - Never increase proficiency level
+    - Never increase responsibility or scope beyond what's stated
+    - Never claim higher deployment status (exploratory → deployed)
+    - Never introduce technology not in source block
+    - Never fabricate certifications, education, or dates
+
 BULLET STRUCTURE:
 ACTION + EVIDENCE + IMPACT
 

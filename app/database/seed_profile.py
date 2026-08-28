@@ -1,5 +1,8 @@
 from app.database.db import SessionLocal, engine, Base
-from app.database.models import ProfileBlock, CategoryEnum, TruthLevelEnum
+from app.database.models import (
+    ProfileBlock, CategoryEnum, TruthLevelEnum,
+    ProficiencyLevelEnum, BlockStatusEnum
+)
 
 PROFILE_BLOCKS = [
     # -------------------------------------------------------------------------
@@ -69,6 +72,18 @@ PROFILE_BLOCKS = [
             "data_quality", "power_query", "automation", "installed_base", "wines_spirits",
         ],
         "truth_level": TruthLevelEnum.verified,
+        "status": BlockStatusEnum.completed,
+        "company": "Sidel",
+        "start_date": "2023",
+        "end_date": "2025",
+        "technologies": ["Excel", "Power BI", "Power Query", "Python", "SQL", "Microsoft Dynamics"],
+        "job_families": ["Data Analyst", "BI Analyst", "Business Analyst", "Analytics Engineer"],
+        "forbidden_claims": [
+            "Do not claim ownership of dashboards without naming them",
+            "Do not claim impact metrics without verification",
+            "Do not change '~30-40 users' to a specific number",
+        ],
+        "source_ref": "master_v3:sidel_experience",
         "priority": 10,
     },
     {
@@ -135,7 +150,18 @@ PROFILE_BLOCKS = [
             "scoring", "explainability", "document_generation", "openai", "claude", "langchain",
             "agents", "pipelines", "data_quality",
         ],
-        "truth_level": TruthLevelEnum.in_progress,
+        "truth_level": TruthLevelEnum.declared,
+        "status": BlockStatusEnum.in_progress,
+        "company": "Personal Project",
+        "start_date": "2024",
+        "technologies": ["Python", "FastAPI", "PostgreSQL", "OpenAI", "Claude", "LangChain"],
+        "job_families": ["AI Engineer", "ML Engineer", "Backend Engineer", "Data Engineer"],
+        "forbidden_claims": [
+            "Do not claim 1000+ job matches without data",
+            "Do not claim production scale without real user base",
+            "Do not invent matching accuracy percentages",
+        ],
+        "source_ref": "master_v3:elevia_platform",
         "priority": 10,
     },
     {
@@ -154,7 +180,23 @@ PROFILE_BLOCKS = [
             "telegram", "openai", "postgresql", "sqlalchemy", "jinja2",
             "automation", "cv_generation", "job_application", "ai",
         ],
-        "truth_level": TruthLevelEnum.in_progress,
+        "truth_level": TruthLevelEnum.declared,
+        "status": BlockStatusEnum.in_progress,
+        "company": "Personal Project",
+        "start_date": "2025",
+        "technologies": ["Python", "Telegram", "OpenAI", "PostgreSQL", "SQLAlchemy", "Jinja2"],
+        "job_families": ["AI Engineer", "Backend Engineer", "Automation Engineer"],
+        "metrics": {
+            "before": "~45 minutes per application",
+            "after": "~5 minutes per application",
+            "reduction": "~90%"
+        },
+        "forbidden_claims": [
+            "Do not claim production scale without real user metrics",
+            "Do not invent user numbers",
+            "Do not claim accuracy without measured data",
+        ],
+        "source_ref": "master_v3:job_apply_assistant",
         "priority": 9,
     },
     {
@@ -178,7 +220,16 @@ PROFILE_BLOCKS = [
             "Stack: n8n, PostgreSQL, Telegram, OpenAI."
         ),
         "tags": ["n8n", "postgresql", "telegram", "openai", "ai_assistant", "career", "matching", "vie"],
-        "truth_level": TruthLevelEnum.in_progress,
+        "truth_level": TruthLevelEnum.declared,
+        "status": BlockStatusEnum.exploratory,
+        "company": "Elevia",
+        "technologies": ["n8n", "PostgreSQL", "Telegram", "OpenAI"],
+        "job_families": ["AI Engineer", "Integration Engineer", "Career Intelligence"],
+        "forbidden_claims": [
+            "Do not claim production deployment without live user base",
+            "Do not invent market data",
+        ],
+        "source_ref": "master_v3:vie_intelligence_assistant",
         "priority": 8,
     },
     {
@@ -267,6 +318,14 @@ PROFILE_BLOCKS = [
             "business_analysis",
         ],
         "truth_level": TruthLevelEnum.verified,
+        "proficiency_level": ProficiencyLevelEnum.expert,
+        "job_families": ["Data Analyst", "BI Analyst", "Data Engineer", "Analytics Engineer"],
+        "technologies": ["Python", "SQL", "Pandas", "Power BI", "Excel", "Power Query"],
+        "forbidden_claims": [
+            "Do not claim expertise in tools not actively used",
+            "Do not invent project complexity",
+        ],
+        "source_ref": "master_v3:data_skills",
         "priority": 10,
     },
     {
@@ -280,7 +339,15 @@ PROFILE_BLOCKS = [
             "openai", "claude", "gemini", "prompt_engineering", "structured_extraction",
             "ai_agents", "rag", "knowledge_bases", "document_generation", "llm_workflows",
         ],
-        "truth_level": TruthLevelEnum.project,
+        "truth_level": TruthLevelEnum.verified,
+        "proficiency_level": ProficiencyLevelEnum.intermediate,
+        "job_families": ["AI Engineer", "ML Engineer", "Data Engineer"],
+        "technologies": ["OpenAI", "Claude", "Gemini", "LangChain", "Python"],
+        "forbidden_claims": [
+            "Do not claim expert level without measurable production impact",
+            "Do not claim advanced RAG without implementation evidence",
+        ],
+        "source_ref": "master_v3:ai_llm_skills",
         "priority": 9,
     },
     {
@@ -292,6 +359,14 @@ PROFILE_BLOCKS = [
         ),
         "tags": ["make", "n8n", "rest_api", "webhooks", "json", "google_apps_script", "automation", "lead_enrichment"],
         "truth_level": TruthLevelEnum.verified,
+        "proficiency_level": ProficiencyLevelEnum.intermediate,
+        "job_families": ["Automation Engineer", "Integration Engineer", "Backend Engineer"],
+        "technologies": ["Make", "n8n", "REST APIs", "Webhooks", "JSON", "Google Apps Script"],
+        "forbidden_claims": [
+            "Do not claim expert workflow design without multi-step proof",
+            "Do not invent error handling capabilities",
+        ],
+        "source_ref": "master_v3:automation_skills",
         "priority": 9,
     },
     {

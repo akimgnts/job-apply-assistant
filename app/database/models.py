@@ -15,9 +15,23 @@ class CategoryEnum(str, enum.Enum):
 
 class TruthLevelEnum(str, enum.Enum):
     verified = "verified"
-    project = "project"
-    in_progress = "in_progress"
+    declared = "declared"
     learning = "learning"
+
+class ProficiencyLevelEnum(int, enum.Enum):
+    """Mastery level: 0 (learning) → 3 (expert)"""
+    learning = 0
+    beginner = 1
+    intermediate = 2
+    expert = 3
+
+class BlockStatusEnum(str, enum.Enum):
+    """Project/achievement status"""
+    completed = "completed"
+    deployed = "deployed"
+    in_progress = "in_progress"
+    exploratory = "exploratory"
+    not_deployed = "not_deployed"
 
 class ApplicationStatusEnum(str, enum.Enum):
     analyzed = "analyzed"
@@ -37,9 +51,44 @@ class ProfileBlock(Base):
     category = Column(SQLEnum(CategoryEnum), nullable=False)
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
-    tags = Column(JSON, default=list)
+    tags = Column(JSON, default=list)  # Keywords, metadata
+
+    # Truth & verification
     truth_level = Column(SQLEnum(TruthLevelEnum), default=TruthLevelEnum.verified)
+
+    # Skill-specific (for skills/technologies)
+    proficiency_level = Column(SQLEnum(ProficiencyLevelEnum), nullable=True)
+
+    # Project/achievement-specific (for achievements, projects)
+    status = Column(SQLEnum(BlockStatusEnum), nullable=True)
+
+    # Structured metrics (e.g., {"before": "5-6h/week", "after": "~1h/week", "reduction": "~80%"})
+    metrics = Column(JSON, default=dict)
+
+    # Technologies/tools used in this block
+    technologies = Column(JSON, default=list)  # ["Python", "Power BI", "Excel"]
+
+    # Job families this block is relevant for
+    job_families = Column(JSON, default=list)  # ["Data Analyst", "BI Analyst"]
+
+    # Company/organization context
+    company = Column(String(255), nullable=True)
+
+    # Time period (ISO dates or flexible strings)
+    start_date = Column(String(50), nullable=True)
+    end_date = Column(String(50), nullable=True)
+
+    # Critical: Claims that should NEVER be modified, exaggerated, or invented
+    forbidden_claims = Column(JSON, default=list)
+    # Example: ["Do not claim 100% automation", "Do not invent metrics"]
+
+    # Reference to source (for traceability)
+    source_ref = Column(String(255), nullable=True)  # e.g., "master_v3:sidel_automation"
+
+    # ATS weighting
     priority = Column(Integer, default=0)
+
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

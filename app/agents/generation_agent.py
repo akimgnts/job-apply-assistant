@@ -302,6 +302,28 @@ class GenerationAgent:
                 # Fallback: use master CV with unchanged title/summary
                 adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
 
+            # QUALITY CHECK: Validate claims against atomic blocks (Phase 4)
+            from app.agents.quality_agent_v2 import QualityAgentV2
+            quality_result = QualityAgentV2.validate_adaptation_claims(
+                adaptation, db, removal_threshold=0.30
+            )
+            logger.info(
+                f"Quality check complete: recommendation={quality_result.recommendation}, "
+                f"pass={quality_result.pass_count}, rewrite={quality_result.rewrite_count}, "
+                f"remove={quality_result.remove_count}, total={quality_result.total_count}"
+            )
+
+            # Use cleaned adaptation (with REMOVE and REWRITE applied)
+            adaptation = quality_result.cleaned_adaptation
+
+            # If too many claims removed, still proceed but log warning
+            if quality_result.recommendation == "REVIEW":
+                logger.warning(
+                    f"Adaptation flagged for REVIEW: {quality_result.remove_count} claims removed "
+                    f"({quality_result.removal_rate:.1%}). CV may lack content. "
+                    f"Details: {quality_result.details[:3]}..."  # First 3 issues
+                )
+
             # Ensure all defaults are set
             adaptation = GenerationAgent._ensure_adaptation_defaults(adaptation)
 
