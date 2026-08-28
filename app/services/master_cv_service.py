@@ -35,13 +35,13 @@ def load_master_cv() -> dict:
                 "context": "International B2B industrial environment",
                 "dates": "2023 – 2025",
                 "bullets": [
-                    "Built and maintained around 10 dashboards and reporting tools covering installed base, events and business KPIs — used weekly and monthly by approximately 30–40 stakeholders across marketing, commercial and management teams.",
+                    "Built and maintained 6+ dashboards and reporting tools covering installed base, events and business KPIs — used weekly and monthly by dozens of collaborators and managers across marketing, commercial and management teams.",
                     "Automated recurring extraction, cleaning, consolidation and visualization tasks using Python, SQL and Power BI — reducing processes that previously required half a day to several days of manual work.",
                     "Analyzed installed base, equipment and service data across 61 customers in the Wines & Spirits sector; produced commercial action plans supporting account prioritization by machine age, installed base evolution and business opportunities.",
                     "Consolidated multi-source business data (customers, leads, events, campaigns) and monitored KPIs to improve operational visibility for European marketing and commercial teams.",
                     "Coordinated with international stakeholders across Europe; presented analyses, action plans and business insights in French and English.",
                     "Supported data quality through structured cleaning, consistency checks and documentation across multi-source reporting processes.",
-                    "Used Python, SQL, Snowflake, Power BI, Power Query and Microsoft Dynamics for data consolidation, reporting and business analysis in a large-scale B2B industrial context.",
+                    "Used Python, SQL, Power BI, Power Query and Microsoft Dynamics for data consolidation, reporting and business analysis in a large-scale B2B industrial context.",
                 ]
             },
             {
@@ -122,11 +122,11 @@ def load_master_cv() -> dict:
             },
             {
                 "label": "AI & LLM Workflows",
-                "content": "OpenAI API, Claude, Gemini, Prompt Engineering, Structured Extraction, RAG Concepts, AI Agents, Knowledge Bases, LLM Workflows, LangChain."
+                "content": "OpenAI API, Prompt Engineering, Structured Extraction, RAG Concepts, AI Agents, Knowledge Bases, LLM Workflows, LangChain."
             },
             {
                 "label": "Backend & Data Systems",
-                "content": "PostgreSQL, Supabase, Firebase, MongoDB, Snowflake, Elasticsearch, FastAPI, Git, GitHub, Docker Basics, SQLAlchemy, Jinja2, Data Pipelines, Technical Documentation."
+                "content": "PostgreSQL, Supabase, Elasticsearch, FastAPI, Git, GitHub, Docker Basics, SQLAlchemy, Jinja2, Data Pipelines, Technical Documentation."
             },
             {
                 "label": "Business Systems",
