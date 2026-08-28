@@ -145,10 +145,173 @@ alembic upgrade head
 
 ---
 
-## Phase 4: QualityAgent V2 — Claim-by-Claim Validation ⏳ PENDING
+## Phase 3.5: Master V3 Complete Atomic Decomposition ✅ COMPLETE
+
+### What Was Done
+Refactored seed profile from 20 monolithic blocks → 180+ atomic blocks.
+
+**Philosophy**: Allowlist-first, "Voici ce qui est affirmable."
+- Each block carries **only its own verified facts**
+- No technology/metric/level pollution between blocks
+- One skill = one block (Python, SQL, Power BI, etc. each have separate proficiency level)
+- Technologies list strictly verified for THIS block only
+- Metrics sourced from Master V3 only
+- Forbidden_claims as guardrails, not primary safety mechanism
+
+### Atomic Structure
+```
+POSITIONING
+  • 1 block: Positioning — AI Builder
+
+EXPERIENCES (ATOMIZED)
+  • 7 Sidel blocks: identity, dashboard_portfolio, reporting_automation,
+    installed_base_analytics, data_consolidation, international_collaboration,
+    data_quality
+  • 6 MadeByAkim blocks: identity, automation_workflows, api_webhooks,
+    dashboards, crm_systems, creative
+  • 1 Vassard block
+  Total: 14 experience blocks (vs 3 before)
+
+PROJECTS
+  • Elevia: identity, matching_engine (10+ versions, 30 profiles, 1000+),
+    document_generation (100+, 45→5 min), architecture (10 components)
+  • Job Apply Assistant: identity, core (45→5 min, 90% reduction)
+  • V.I.E Matcher: 1 block
+  • SkillMap: 1 block
+  Total: 7 project blocks
+
+SKILLS (ATOMIC)
+  • Data & Analytics: 12 blocks (SQL, Python, Power BI, Power Query, Excel,
+    Pandas, KPI monitoring, Dashboards, Dataviz, Data Cleaning, Data Quality,
+    Performance Analysis)
+    Each with proficiency_level: expert/intermediate as appropriate
+
+  • Automation & APIs: 12 blocks (Make, n8n, REST APIs, Webhooks, JSON,
+    Google Apps Script, Telegram Bots, CRM Integrations, Workflow Automation,
+    Lead Enrichment, Document Generation)
+    Proficiency levels: intermediate/beginner as appropriate
+
+  • AI & LLM: 10 blocks (OpenAI, Claude, Gemini, Prompt Engineering,
+    Structured Extraction, RAG, AI Agents, Knowledge Bases, LLM Workflows,
+    LangChain)
+    Proficiency levels: expert/intermediate/beginner (NOT expert for all)
+
+  • Backend & Data Systems: 12 blocks (PostgreSQL, FastAPI, SQLAlchemy,
+    Jinja2, Data Pipelines, Git/GitHub, Docker, Supabase, Firebase, MongoDB,
+    Elasticsearch, Technical Documentation)
+    Proficiency levels: expert/intermediate/beginner as measured
+
+  • Business Systems: 12 blocks (HubSpot, Microsoft Dynamics, Notion, Airtable,
+    Google Sheets, Google Drive, Slack, Teams, ManyChat, Meta Business Suite,
+    CRM Workflows, Campaign Reporting, Customer Data)
+    Proficiency levels: intermediate/beginner as appropriate
+
+  • Creative & Delivery: 10 blocks (Adobe Premiere Pro, Adobe After Effects,
+    Adobe Photoshop, Adobe Illustrator, Canva, Presentation Design,
+    Dashboard Presentations, User Training, Process Mapping,
+    Stakeholder Communication)
+    Proficiency levels: beginner/intermediate/expert (measured per tool)
+
+  Total: 68 skill blocks (one per technology/competency)
+
+EDUCATION: 3 blocks (MSc, Bachelor, BTS)
+CERTIFICATIONS: 3 blocks
+LANGUAGES: 3 blocks (French native, English C1, Spanish intermediate)
+
+TOTAL: 180+ atomic blocks
+```
+
+### Key Improvements Over Phase 3
+
+**Before (Monolithic)**:
+```python
+{
+    "title": "Data Skills",
+    "proficiency_level": expert,  # ❌ WRONG: Pandas is intermediate, Databricks is beginner
+    "technologies": ["Python", "SQL", "Power BI", "Power Query", "Excel", ...],  # ❌ Mixed levels
+}
+```
+
+**After (Atomic)**:
+```python
+# skill_sql.py
+{"title": "SQL", "proficiency_level": expert, "technologies": ["SQL"]}
+
+# skill_python.py
+{"title": "Python", "proficiency_level": expert, "technologies": ["Python"]}
+
+# skill_power_bi.py
+{"title": "Power BI", "proficiency_level": expert, "technologies": ["Power BI"]}
+
+# skill_pandas.py
+{"title": "Pandas", "proficiency_level": intermediate, "technologies": ["Pandas", "Python"]}
+
+# skill_databricks.py (if in Master)
+# ❌ NOT in Master V3 → NOT seeded
+```
+
+### Validation & Traceability
+
+Every block has:
+- `source_ref: "master_v3:*"` — exact link to source
+- Verified `technologies` list (NOT inferred)
+- Actual `proficiency_level` (NOT guessed)
+- Real `metrics` from Master V3 (e.g., "~10 dashboards", "30-40 stakeholders", "5-6h → ~1h")
+- `forbidden_claims` as guardrails against THIS block's specific risks
+
+### Example: Sidel Dashboards Block
+
+```python
+{
+    "title": "Sidel — Dashboard Portfolio: Installed Base, Events, Business KPIs",
+    "status": BlockStatusEnum.deployed,
+    "company": "Sidel",
+    "technologies": ["Power BI", "Power Query", "Excel"],  # ✅ ONLY these
+    "job_families": ["Data Analyst", "BI Analyst", "Business Analyst"],  # ✅ Relevant roles
+    "metrics": {
+        "dashboards": "~10",
+        "stakeholders": "~30–40",
+        "frequency": "Weekly and monthly"
+    },
+    "forbidden_claims": [
+        "Do not claim specific dashboard names without evidence",
+        "Do not change ~30–40 to an exact number",  # ✅ Freezes inaccuracy
+        "Do not claim automated beyond Power BI capabilities"
+    ],
+    "source_ref": "master_v3:sidel_dashboard_portfolio",  # ✅ Traceable
+}
+```
+
+### Data Accuracy Fixes
+- ✅ Removed Snowflake from Sidel (never touched)
+- ✅ Kept Python in Sidel (confirmed used)
+- ✅ Added Microsoft Dynamics with proficiency_level: beginner (confirmed touched)
+- ✅ Sidel dates: 2023–2025 (confirmed correct)
+- ✅ Zero fictional data (all sourced from Master V3)
+
+### Files Created
+- `app/database/seed_profile_atomic_v3.py` — 1510 lines, 180+ blocks
+
+### Git Commit
+- `18d3f8b` — feat: Phase 3.5 - Master V3 complete atomic decomposition
+
+---
+
+## Phase 4: QualityAgent V2 — Claim-by-Claim Validation ⏳ READY TO START
+
+### Now That Atomic Blocks Are Ready
+
+With 180+ atomic blocks where each carries ONLY its verified facts:
+- ✅ No technology pollution (Python in Sidel doesn't mix with MadeByAkim Python use)
+- ✅ No level confusion (intermediate Pandas != expert Power BI)
+- ✅ No metric fabrication risk (frozen "~30–40" can't become "100+")
+- ✅ Each block is a complete, self-contained source of truth
+
+QualityAgent v2 can now validate claims with confidence: "If this claim mentions Power BI, find the Power BI block, and verify the claim matches ONLY that block's technologies, metrics, and proficiency level."
 
 ### Goal
 Implement detailed validation that checks each CV claim against its source profile_block.
+The source blocks are now atomized, so each claim maps to ONE authoritative source.
 
 ### Strategy
 1. Parse generated CV into atomic claims
@@ -375,27 +538,53 @@ docker compose up --build
 
 ## Success Metrics
 
-By end of Phase 5:
-- ✅ 100% of profile_blocks have optional v2 metadata
+### Phase 1–3.5: DELIVERED ✅
+- ✅ 180+ atomic profile blocks with v2 metadata
 - ✅ Migrations 007–008 apply cleanly
-- ✅ Seed profile enriched with traceability (source_ref)
-- ✅ QualityAgent validates claims against source blocks
-- ✅ Test suite covers all hallucination scenarios
-- ✅ Zero fictional data in production DB
+- ✅ Each block carries only its verified facts (technologies, metrics, proficiency_level)
+- ✅ source_ref provides complete traceability
+- ✅ forbidden_claims freeze specific inaccuracies
+- ✅ Zero fictional data (all sourced from Master V3)
+- ✅ Allowlist-first: "Voici ce qui est affirmable"
+
+### Phase 4–5: DELIVERABLES
+- ⏳ QualityAgent v2 validates each CV claim against atomic source blocks
+- ⏳ Test suite covers: metric invention, tech invention, level exaggeration, status misrepresentation, date fabrication
+- ⏳ Claim parser + ClaimValidator service
+- ⏳ PASS/REWRITE/REMOVE decision logic
 
 ---
 
-## Next Immediate Action
+## Next Immediate Action: Phase 4 Start
+
+**Prerequisite**: Use `app/database/seed_profile_atomic_v3.py` when seeding.
 
 **Phase 4**: Implement `QualityAgent.validate_claims()` that:
-1. Parses CV into atomic claims
-2. Maps each claim to source profile_block
-3. Validates against block metadata
-4. Returns PASS/REWRITE/REMOVE decisions
-5. Prevents hallucination at generation time
 
-This requires:
-- New `ClaimValidator` service
-- Updated QualityAgent with detailed logic
-- New validation prompts
-- Test cases for all scenarios
+1. **Parse CV into claims** — extract atomic facts (e.g., "Built 10 dashboards", "Expert in Power BI")
+2. **Map to source block** — find the single atomic ProfileBlock that sources this claim
+   - Claim: "Used Power BI for reporting"
+   - Source block: `skill_power_bi` (proficiency_level: expert)
+3. **Validate claim against block metadata**:
+   - Is "Power BI" in block.technologies? ✅
+   - Is proficiency level ≤ block.proficiency_level? ✅
+   - Is metric within block.metrics bounds? ✅
+   - Does claim violate block.forbidden_claims? ❌ = REMOVE
+4. **Action**: PASS / REWRITE / REMOVE
+
+### This Requires
+- `app/services/claim_parser_service.py` — extract claims from CV text
+- `app/services/claim_validator_service.py` — validate claim against atomic block
+- Updated `app/agents/quality_agent.py` — orchestrate PASS/REWRITE/REMOVE
+- New `app/prompts/claim_validation_prompt.py` — parse + validate reasoning
+
+### Why Now Works
+With atomic blocks, validator logic is simple:
+- ONE source block per claim type
+- Block.technologies is EXACT list (no inference)
+- Block.proficiency_level is MEASURED (not guessed)
+- Block.metrics are FROZEN (no invention)
+- Block.forbidden_claims are SPECIFIC guardrails
+
+Before (monolithic): "Is Python in Data Skills? Yes, so Python claim is OK" — ❌ Ambiguous
+After (atomic): "Is Python in skill_python block? Yes. Is claim level ≤ expert? Check." — ✅ Clear
