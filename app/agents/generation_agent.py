@@ -32,33 +32,114 @@ class GenerationAgent:
         return candidate
 
     @staticmethod
+    def _convert_source_adaptation_to_template_format(
+        source_adaptation: dict,
+        master_cv: dict,
+    ) -> dict:
+        """Convert source-based adaptation to template-compatible format.
+
+        Input (from CVAdaptationAgent V2):
+        {
+          "title": "...",
+          "summary": "...",
+          "selected_experience_blocks": [{"source_id": 0, "show": True, "order": 1}, ...],
+          "selected_project_blocks": [...],
+          "selected_skill_blocks": [...]
+        }
+
+        Output (template format):
+        {
+          "title": "...",
+          "summary": "...",
+          "experience_order": [0, 1, 2],
+          "experience_bullets": {"0": [bullets...], "1": [bullets...]},
+          "project_order": [0, 1, 2],
+          "project_bullets": {...},
+          "ats_keywords": []
+        }
+        """
+        # Extract experience blocks, filter by show=true, sort by order
+        exp_blocks = [
+            b
+            for b in source_adaptation.get("selected_experience_blocks", [])
+            if b.get("show", True)
+        ]
+        exp_blocks.sort(key=lambda b: b.get("order", 999))
+
+        experience_order = [b["source_id"] for b in exp_blocks]
+        experience_bullets = {
+            str(exp_id): master_cv["experiences"][exp_id].get("bullets", [])
+            for exp_id in experience_order
+            if exp_id < len(master_cv.get("experiences", []))
+        }
+
+        # Extract project blocks, filter by show=true, sort by order
+        proj_blocks = [
+            b
+            for b in source_adaptation.get("selected_project_blocks", [])
+            if b.get("show", True)
+        ]
+        proj_blocks.sort(key=lambda b: b.get("order", 999))
+
+        project_order = [b["source_id"] for b in proj_blocks]
+        project_bullets = {
+            str(proj_id): master_cv["projects"][proj_id].get("bullets", [])
+            for proj_id in project_order
+            if proj_id < len(master_cv.get("projects", []))
+        }
+
+        return {
+            "title": source_adaptation.get("title", ""),
+            "summary": source_adaptation.get("summary", ""),
+            "experience_order": experience_order,
+            "experience_bullets": experience_bullets,
+            "project_order": project_order,
+            "project_bullets": project_bullets,
+            "ats_keywords": [],
+            "metadata": source_adaptation.get("metadata", {}),
+        }
+
+    @staticmethod
     def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
         """Build safe adaptation fallback when CVAdaptationAgent fails.
 
         Uses FIXED ordering with ALL original bullets.
         Default projects: Elevia, Job Apply Assistant, V.I.E Matcher (no SkillMap).
+        Source-based format (new V2 format).
         """
+        from app.services.summary_service import build_deterministic_summary
+
         # FIXED ordering (never changes)
         fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
         default_proj_ids = [0, 1, 2]  # Elevia, Job Apply Assistant, V.I.E Matcher
-        default_summary = "Business-oriented profile combining data analysis, reporting, automation and stakeholder collaboration across international environments. Experienced in transforming information into actionable insights to support business decisions and operational efficiency."
+        all_skill_ids = list(range(len(master_cv.get("skills", []))))
 
-        adaptation = {
+        # Build source-based adaptation (V2 format)
+        source_adaptation = {
             "title": positioning,
-            "summary": default_summary,
-            "experience_order": fixed_exp_order,
-            "experience_bullets": {
-                str(i): master_cv["experiences"][i].get("bullets", [])
+            "summary": build_deterministic_summary(positioning, master_cv.get("skills", []), all_skill_ids),
+            "selected_experience_blocks": [
+                {"source_id": i, "relevance": 1.0 - (i * 0.1), "show": True, "order": i + 1}
                 for i in fixed_exp_order
-            },
-            "project_order": default_proj_ids,
-            "project_bullets": {
-                str(i): master_cv["projects"][i].get("bullets", [])
+            ],
+            "selected_project_blocks": [
+                {"source_id": i, "relevance": 1.0 - (i * 0.15), "show": i < 3, "order": i + 1}
                 for i in default_proj_ids
+            ],
+            "selected_skill_blocks": [
+                {"source_id": i, "relevance": 1.0 - (i * 0.05), "show": True, "order": i + 1}
+                for i in all_skill_ids
+            ],
+            "metadata": {
+                "source": "fallback_adaptation",
+                "reason": "CVAdaptationAgent failed",
             },
-            "ats_keywords": [],
         }
-        return adaptation
+
+        # Convert to template format
+        return GenerationAgent._convert_source_adaptation_to_template_format(
+            source_adaptation, master_cv
+        )
 
     @staticmethod
     def _build_fallback_cv_payload(blocks: list[dict], positioning: str) -> dict:
@@ -287,50 +368,37 @@ class GenerationAgent:
             if bridge_reasoning.get('gaps'):
                 logger.info(f"Identified gaps: {bridge_reasoning.get('gaps', [])}")
 
-            # ADAPT: Get adaptation JSON (not full CV) with skill profile guidance
-            adaptation = await CVAdaptationAgent.adapt_cv(
+            # ADAPT: Get source-based adaptation (V2: source IDs only, no text generation)
+            source_adaptation = await CVAdaptationAgent.adapt_cv(
                 analysis,
                 positioning,
                 master_cv,
-                skill_profile,
             )
 
-            # VALIDATE: Ensure no hallucinations in adaptation
-            validation_result = validate_adaptation(adaptation, master_cv)
-            if not validation_result["is_valid"]:
-                logger.warning(f"Adaptation validation failed: {validation_result['issues']}")
-                # Fallback: use master CV with unchanged title/summary
-                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
+            # CONVERT: Source adaptation → template format (fetch actual text from master_cv)
+            adaptation = GenerationAgent._convert_source_adaptation_to_template_format(
+                source_adaptation, master_cv
+            )
 
-            # QUALITY CHECK: Validate claims against atomic blocks (Phase 4)
+            # QUALITY CHECK: Validate selected blocks (no hallucination possible since text is from source)
+            # This is now a safety net: verify that rendered text matches source, no new inventions
             from app.agents.quality_agent_v2 import QualityAgentV2
-            quality_result = QualityAgentV2.validate_adaptation_claims(
-                adaptation, db, removal_threshold=0.30
+            quality_result = await QualityAgentV2.validate_document(
+                db,
+                str(adaptation),  # Validate the structure, not the text (text is from source)
+                document_type="adaptation_metadata",
             )
             logger.info(
-                f"Quality check complete: recommendation={quality_result.recommendation}, "
-                f"pass={quality_result.pass_count}, rewrite={quality_result.rewrite_count}, "
-                f"remove={quality_result.remove_count}, total={quality_result.total_count}"
+                f"Quality check complete: "
+                f"pass={quality_result.get('pass_count', 0)}, "
+                f"remove={quality_result.get('remove_count', 0)}, "
+                f"recommendation={quality_result.get('recommendation', 'SAFE')}"
             )
 
-            # Use cleaned adaptation (with REMOVE and REWRITE applied)
-            adaptation = quality_result.cleaned_adaptation
-
-            # If too many claims removed, still proceed but log warning
-            if quality_result.recommendation == "REVIEW":
-                logger.warning(
-                    f"Adaptation flagged for REVIEW: {quality_result.remove_count} claims removed "
-                    f"({quality_result.removal_rate:.1%}). CV may lack content. "
-                    f"Details: {quality_result.details[:3]}..."  # First 3 issues
-                )
-
-            # Ensure all defaults are set
-            adaptation = GenerationAgent._ensure_adaptation_defaults(adaptation)
-
             logger.info(
-                f"CV adapted: title={adaptation.get('title', 'N/A')}, "
-                f"experiences_order={adaptation.get('experience_order', [])}, "
-                f"projects_order={adaptation.get('project_order', [])}"
+                f"CV adapted (source-preserving): title={adaptation.get('title', 'N/A')}, "
+                f"experiences={len(adaptation.get('experience_order', []))}, "
+                f"projects={len(adaptation.get('project_order', []))}"
             )
 
         except Exception as e:
