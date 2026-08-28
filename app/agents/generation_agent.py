@@ -8,7 +8,7 @@ from app.services.master_cv_service import load_master_cv, validate_adaptation
 from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
 from app.agents.quality_agent import QualityAgent
-from app.agents.cv_adaptation_agent import CVAdaptationAgent
+from app.agents.cv_adaptation_agent_v3 import CVAdaptationAgentV3 as CVAdaptationAgent
 from app.agents.letter_agent import LetterAgent
 from app.agents.gap_analysis_agent import GapAnalysisAgent
 from app.database.models import GeneratedDocument, DocumentTypeEnum, ProfileBlock, CategoryEnum
@@ -38,24 +38,25 @@ class GenerationAgent:
     ) -> dict:
         """Convert source-based adaptation to template-compatible format.
 
-        Input (from CVAdaptationAgent V2):
+        Supports both V2 and V3 formats:
+
+        V2 Input:
         {
-          "title": "...",
-          "summary": "...",
-          "selected_experience_blocks": [{"source_id": 0, "show": True, "order": 1}, ...],
-          "selected_project_blocks": [...],
-          "selected_skill_blocks": [...]
+          "selected_experience_blocks": [{"source_id": 0, "show": True, "order": 1}, ...]
+        }
+
+        V3 Input (with bullet selection):
+        {
+          "selected_experience_blocks": [
+            {"source_id": 0, "bullet_indices": [0, 1, 2], "order": 1, "show": True}
+          ]
         }
 
         Output (template format):
         {
-          "title": "...",
-          "summary": "...",
           "experience_order": [0, 1, 2],
-          "experience_bullets": {"0": [bullets...], "1": [bullets...]},
-          "project_order": [0, 1, 2],
-          "project_bullets": {...},
-          "ats_keywords": []
+          "experience_bullets": {"0": [selected_bullets...], "1": [...]},
+          ...
         }
         """
         # Extract experience blocks, filter by show=true, sort by order
@@ -67,11 +68,24 @@ class GenerationAgent:
         exp_blocks.sort(key=lambda b: b.get("order", 999))
 
         experience_order = [b["source_id"] for b in exp_blocks]
-        experience_bullets = {
-            str(exp_id): master_cv["experiences"][exp_id].get("bullets", [])
-            for exp_id in experience_order
-            if exp_id < len(master_cv.get("experiences", []))
-        }
+        experience_bullets = {}
+
+        for block in exp_blocks:
+            exp_id = block["source_id"]
+            if exp_id < len(master_cv.get("experiences", [])):
+                all_bullets = master_cv["experiences"][exp_id].get("bullets", [])
+
+                # If V3 provided bullet_indices, use only those; otherwise use all
+                if "bullet_indices" in block and block["bullet_indices"]:
+                    selected_bullets = [
+                        all_bullets[bi]
+                        for bi in block["bullet_indices"]
+                        if bi < len(all_bullets)
+                    ]
+                    experience_bullets[str(exp_id)] = selected_bullets
+                else:
+                    # V2 format: no bullet selection, use all bullets
+                    experience_bullets[str(exp_id)] = all_bullets
 
         # Extract project blocks, filter by show=true, sort by order
         proj_blocks = [
@@ -82,11 +96,24 @@ class GenerationAgent:
         proj_blocks.sort(key=lambda b: b.get("order", 999))
 
         project_order = [b["source_id"] for b in proj_blocks]
-        project_bullets = {
-            str(proj_id): master_cv["projects"][proj_id].get("bullets", [])
-            for proj_id in project_order
-            if proj_id < len(master_cv.get("projects", []))
-        }
+        project_bullets = {}
+
+        for block in proj_blocks:
+            proj_id = block["source_id"]
+            if proj_id < len(master_cv.get("projects", [])):
+                all_bullets = master_cv["projects"][proj_id].get("bullets", [])
+
+                # If V3 provided bullet_indices, use only those; otherwise use all
+                if "bullet_indices" in block and block["bullet_indices"]:
+                    selected_bullets = [
+                        all_bullets[bi]
+                        for bi in block["bullet_indices"]
+                        if bi < len(all_bullets)
+                    ]
+                    project_bullets[str(proj_id)] = selected_bullets
+                else:
+                    # V2 format: no bullet selection, use all bullets
+                    project_bullets[str(proj_id)] = all_bullets
 
         return {
             "title": source_adaptation.get("title", ""),
