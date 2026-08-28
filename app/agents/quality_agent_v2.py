@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 from app.database.models import ProfileBlock
 from app.services.claim_parser_service import ClaimParserService, ParsedClaim
 from app.services.claim_validator_service import ClaimValidatorService, ClaimValidation, ValidationAction
+from app.agents.title_validator import TitleValidator
 
 logger = logging.getLogger(__name__)
 
@@ -390,6 +391,33 @@ class QualityAgentV2:
             "project_bullets": {},
             "ats_keywords": adaptation.get("ats_keywords", []),
         }
+
+        # Validate title (factual consistency check)
+        if adaptation.get("title"):
+            total_claims += 1
+            original_title = adaptation["title"]
+            is_valid, rewritten_title = TitleValidator.validate_title(
+                original_title,
+                positioning=None  # positioning not passed to this method, but OK for generic validation
+            )
+            if is_valid:
+                action = ValidationAction.PASS
+                reason = "Title is factually supported"
+                pass_count += 1
+                cleaned_title = original_title
+            else:
+                action = ValidationAction.REWRITE
+                reason = f"Title contains unsupported domain/seniority. Rewritten to factually supported title."
+                rewrite_count += 1
+                cleaned_title = rewritten_title
+
+            details.append({
+                "type": "title",
+                "original": original_title,
+                "action": action.value,
+                "reason": reason,
+            })
+            cleaned_adaptation["title"] = cleaned_title
 
         # Validate summary (as experience claim)
         if adaptation.get("summary"):
