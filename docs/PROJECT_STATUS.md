@@ -236,20 +236,24 @@ Build an AI-powered CV generator that **never invents claims**. Only what's prov
 
 ## 🔐 Hallucination Prevention: 5-Layer Defense
 
+**Risk Level**: Strongly reduced via deterministic validation + immutable source blocks.  
+**Note**: Not mathematically guaranteed (LLM used for semantic mapping, coverage not complete).
+
 1. **Atomic blocks** (source of truth)
    - ~180 verified, user-corrected blocks
    - No cross-block contamination
    - Frozen metrics, technologies, dates, statuses
 
-2. **CVAdaptationAgent** (selection layer)
+2. **CVAdaptationAgent** (selection + rewriting layer)
    - Chooses which bullets from Master CV to use
-   - Adapts title & summary via LLM
-   - Never adds new facts
+   - Rewrites for impact & clarity (Phase 5A rules enforced)
+   - Never adds new facts, only reformulates existing ones
+   - LLM constrained via 10 golden rules (action-first, verified metrics only, etc.)
 
 3. **QualityAgent v2 Validation** (deterministic checking)
-   - ClaimValidatorService (5 strict rules)
-   - SmartBlockMatching (find correct block)
-   - PASS/REWRITE/REMOVE decisions
+   - ClaimValidatorService (5 strict rules, zero AI)
+   - SmartBlockMatching (find correct atomic block candidate)
+   - PASS/REWRITE/REMOVE decisions (deterministic)
 
 4. **Forbidden Claims** (semantic guardrails)
    - Blocks can forbid specific claims
