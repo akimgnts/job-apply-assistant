@@ -76,7 +76,7 @@ PROFILE_BLOCKS = [
         "company": "Sidel",
         "start_date": "2023",
         "end_date": "2025",
-        "technologies": ["Excel", "Power BI", "Power Query", "Python", "SQL", "Snowflake", "Microsoft Dynamics"],
+        "technologies": ["Excel", "Power BI", "Power Query", "Python", "SQL", "Microsoft Dynamics"],
         "job_families": ["Data Analyst", "BI Analyst", "Business Analyst", "Analytics Engineer"],
         "forbidden_claims": [
             "Do not claim ownership of dashboards without naming them",
