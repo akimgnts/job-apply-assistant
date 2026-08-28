@@ -31,7 +31,7 @@ class TestClaimValidatorService:
             # Sidel dashboards block
             ProfileBlock(
                 id=1,
-                category=CategoryEnum.achievement,
+                category=CategoryEnum.experience,
                 title="Sidel — Dashboard Portfolio",
                 content="Built dashboards",
                 tags=[],
@@ -53,7 +53,7 @@ class TestClaimValidatorService:
             # Sidel automation block
             ProfileBlock(
                 id=2,
-                category=CategoryEnum.achievement,
+                category=CategoryEnum.experience,
                 title="Sidel — Data Automation",
                 content="Automated reporting",
                 tags=[],
@@ -75,9 +75,22 @@ class TestClaimValidatorService:
                 source_ref="master_v3:sidel_reporting_automation",
                 priority=10,
             ),
-            # Skill: Power BI (expert)
+            # Skill: Python (expert)
             ProfileBlock(
                 id=3,
+                category=CategoryEnum.skill,
+                title="Python",
+                content="Programming language",
+                tags=["python"],
+                truth_level=TruthLevelEnum.verified,
+                proficiency_level=ProficiencyLevelEnum.expert,
+                technologies=["Python"],
+                source_ref="master_v3:skill_python",
+                priority=9,
+            ),
+            # Skill: Power BI (expert)
+            ProfileBlock(
+                id=4,
                 category=CategoryEnum.skill,
                 title="Power BI",
                 content="Business intelligence tool",
@@ -91,7 +104,7 @@ class TestClaimValidatorService:
             ),
             # Skill: Pandas (intermediate)
             ProfileBlock(
-                id=4,
+                id=5,
                 category=CategoryEnum.skill,
                 title="Pandas",
                 content="Python data library",
@@ -102,9 +115,9 @@ class TestClaimValidatorService:
                 source_ref="master_v3:skill_pandas",
                 priority=8,
             ),
-            # Elevia project (exploratory status)
+            # Elevia project (in_progress status)
             ProfileBlock(
-                id=5,
+                id=6,
                 category=CategoryEnum.project,
                 title="Elevia — Platform",
                 content="Matching platform",
@@ -124,6 +137,20 @@ class TestClaimValidatorService:
                 ],
                 source_ref="master_v3:elevia_platform",
                 priority=10,
+            ),
+            # Elevia exploratory version (for testing status incompatibility)
+            ProfileBlock(
+                id=7,
+                category=CategoryEnum.project,
+                title="Elevia — Exploratory",
+                content="Early exploration",
+                tags=["ai", "matching"],
+                truth_level=TruthLevelEnum.declared,
+                status=BlockStatusEnum.exploratory,
+                company="Personal Project",
+                start_date="2024",
+                source_ref="master_v3:elevia_exploratory",
+                priority=5,
             ),
         ]
         return {b.source_ref: b for b in blocks}
@@ -241,7 +268,7 @@ class TestClaimValidatorService:
         """Status exploratory + claim 'deployed' → REMOVE."""
         result = validator.validate_experience_claim(
             "Deployed the Elevia platform in production",
-            "master_v3:elevia_platform"
+            "master_v3:elevia_exploratory"
         )
         assert result.action == ValidationAction.REMOVE
         assert "exploratory" in result.reason
@@ -284,10 +311,11 @@ class TestClaimValidatorService:
     def test_forbidden_claim_violation_remove(self, validator):
         """Claim violates block's forbidden_claims → REMOVE."""
         result = validator.validate_experience_claim(
-            "Designed over 100+ dashboards for 1000+ users",
+            "Built with automated beyond Power BI capabilities",
             "master_v3:sidel_dashboard_portfolio"
         )
-        # Block forbids: "Do not change ~30–40 to an exact number"
+        # Block forbids: "Do not claim automated beyond Power BI capabilities"
+        # Claim contains exact prohibited phrase
         assert result.action == ValidationAction.REMOVE
         assert "forbidden" in result.reason.lower()
 

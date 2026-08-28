@@ -301,7 +301,7 @@ class ClaimValidatorService:
         This is a fallback for cases where semantic parsing hasn't identified them.
         Enhanced by LLM-based semantic parser for ambiguous claims.
         """
-        # Known technologies from seed
+        # Known technologies from seed + common BI/data tools
         known_techs = {
             "Python", "SQL", "Power BI", "Power Query", "Excel", "Pandas",
             "Make", "n8n", "REST APIs", "Webhooks", "JSON", "Google Apps Script",
@@ -309,6 +309,7 @@ class ClaimValidatorService:
             "PostgreSQL", "FastAPI", "SQLAlchemy", "Jinja2", "Git", "GitHub", "Docker",
             "HubSpot", "Microsoft Dynamics", "Notion", "Airtable", "Google Sheets",
             "Adobe Premiere Pro", "Adobe After Effects", "Photoshop", "Illustrator", "Canva",
+            "Tableau", "Looker", "Snowflake", "Redshift", "BigQuery",
         }
 
         found = [tech for tech in known_techs if tech.lower() in claim.lower()]
