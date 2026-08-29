@@ -143,9 +143,11 @@ class RelevanceScorer:
         experience: dict,
         job_analysis: dict,
     ) -> bool:
-        """Determine if an experience should be included at all.
+        """Determine if an experience should be included.
 
-        Returns False if experience is clearly irrelevant to job offer.
+        Include if experience has at least 1 relevant bullet (score > 0.1).
+        Do NOT exclude entire experiences by domain classification.
+        Bullet-level selection determines relevance.
         """
         title = experience.get("title", "").lower()
         company = experience.get("company", "").lower()
@@ -153,23 +155,26 @@ class RelevanceScorer:
 
         job_title = job_analysis.get("job_title", "").lower()
         required_skills = job_analysis.get("required_skills", [])
-        missions = " ".join(job_analysis.get("missions", [])).lower()
+        missions = job_analysis.get("missions", [])
 
-        # If title matches job domain, include
-        domain_keywords = ["data", "engineer", "developer", "analyst", "automation", "architect"]
-        if any(kw in title for kw in domain_keywords):
-            return True
+        # Score each bullet
+        for bullet in bullets:
+            score = RelevanceScorer.score_bullet(
+                bullet,
+                job_analysis.get("job_title", ""),
+                required_skills,
+                missions,
+                job_analysis.get("company", ""),
+            )
+            # If ANY bullet scores above threshold, include experience
+            if score > 0.1:
+                logger.debug(
+                    f"Including {title} @ {company}: found relevant bullet (score {score:.2f})"
+                )
+                return True
 
-        # If bullets have relevant skills/missions, include
-        bullets_text = " ".join(bullets).lower()
-        if any(skill.lower() in bullets_text for skill in required_skills):
-            return True
-
-        if any(mission.lower() in bullets_text for mission in missions):
-            return True
-
-        # Otherwise exclude (e.g., sales-focused role for data job)
-        logger.debug(f"Excluding experience {title} @ {company} (not relevant to {job_title})")
+        # No relevant bullets found
+        logger.debug(f"Excluding {title} @ {company}: no bullets score above threshold")
         return False
 
 
