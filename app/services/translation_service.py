@@ -230,19 +230,29 @@ def validate_translation_quality(
     extractor = InvariantExtractor()
     is_valid, missing = extractor.validate_invariants_preserved(original, translated)
 
-    # Check for remaining French words (simple heuristic)
-    french_words = ["et", "de", "d'", "la", "le", "en", "pour", "avec", "dans"]
+    # Check for remaining French words (strict check)
+    # Mix of common and distinctive French words
+    french_words = [
+        "et", "de", "d'", "la", "le", "en", "pour", "avec", "dans",
+        "utilisés", "utilisé", "utilisée", "utilisées",  # Past participles
+        "conception", "développement", "automatisation",  # Action verbs (French specific)
+        "amélioration", "réduction", "augmentation",  # Outcome nouns (French forms)
+        "collaborateurs", "équipes",  # Noun forms
+    ]
     translated_lower = translated.lower()
-    french_remaining = sum(
+    french_count = sum(
         1 for word in french_words
         if re.search(r'\b' + word + r'\b', translated_lower)
-    ) > 3  # More than 3 French words left = problem
+    )
+
+    # Strict threshold: 2+ French words = problem (strict for mixed language detection)
+    french_remaining = french_count >= 2
 
     quality_score = 100
     if missing:
         quality_score -= len(missing) * 20
     if french_remaining:
-        quality_score -= 30
+        quality_score -= 40  # Stronger penalty for mixed language
 
     return {
         "is_valid": is_valid and not french_remaining,
