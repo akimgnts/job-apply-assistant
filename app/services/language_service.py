@@ -60,103 +60,28 @@ def detect_job_offer_language(job_offer_text: str, analysis: dict) -> str:
 def translate_bullet_to_english(french_bullet: str) -> str:
     """Translate a French bullet point to English.
 
-    Rules:
-    - Preserve all numbers exactly
-    - Preserve dates, companies, technologies exactly
-    - Preserve metrics and quantitative claims exactly
-    - Only translate the narrative/descriptive text
-    - Never strengthen claims or add new information
+    Pipeline:
+    1. Extract protected invariants (numbers, dates, techs, companies)
+    2. Translate narrative text only using phrase-based mapping
+    3. Validate that all invariants are preserved exactly
+    4. Reject translation if any invariant is missing/modified
 
-    Uses simple pattern-based translation for reliability.
-    Falls back to original if translation unclear.
+    Rules:
+    - Preserve all numbers exactly (6+, 61, 80%, 5–6 h/semaine)
+    - Preserve all dates, companies, technologies, metrics exactly
+    - Only translate descriptive/narrative text
+    - Never strengthen claims or add new information
+    - Return original if translation validation fails
+
+    Uses controlled translation service with invariant validation.
     """
     if not french_bullet:
         return french_bullet
 
-    # Numbers and metrics (preserve exactly)
-    import re
+    from app.services.translation_service import translate_bullet_to_english_v2
 
-    # Mapping of common French phrases to English
-    # IMPORTANT: Only translate descriptions, never quantitative content
-    translation_map = {
-        # Verbs
-        "Conception et déploiement": "Designed and deployed",
-        "Conception": "Design",
-        "Développement": "Development",
-        "Automatisation": "Automation",
-        "Analyse": "Analysis",
-        "Consolidation": "Consolidation",
-        "Construction": "Building",
-        "Modélisation": "Modeling",
-        "Exploration": "Exploration",
-        "Exploitation": "Leveraging",
-        "Transformation": "Transformation",
-        "Orchestration": "Orchestration",
-        "Intégration": "Integration",
-        "Normalisation": "Normalization",
-        "Mise en place": "Implementation",
-        "Coordination": "Coordination",
-        "Préparation": "Preparation",
-        "Recueil": "Collection",
-        "Réalisation": "Execution",
-        "Collaboration": "Collaboration",
-        "Fonctionnement": "Operation",
-        "Production": "Production",
-        "Contribution": "Contribution",
-
-        # Common phrases
-        "chaque semaine": "each week",
-        "chaque mois": "each month",
-        "par": "by",
-        "à partir de": "from",
-        "selon": "by",
-        "afin de": "to",
-        "pour": "for",
-        "en croisant": "by crossing",
-        "en autonomie": "independently",
-        "en mode": "in",
-        "avant": "before",
-        "après": "after",
-        "en amont": "upstream",
-        "en parallèle": "in parallel",
-
-        # Skills/concepts (preserve some, translate descriptions)
-        "équipes": "teams",
-        "collaborateurs": "collaborators",
-        "managers": "managers",
-        "fonctions": "functions",
-        "métier": "business",
-        "besoin": "need",
-        "besoins": "needs",
-        "données": "data",
-        "qualité": "quality",
-        "performance": "performance",
-        "risques": "risks",
-        "opportunités": "opportunities",
-        "priorités": "priorities",
-        "solutions": "solutions",
-        "flux": "flows",
-        "processus": "processes",
-        "workflows": "workflows",  # Usually keep English
-        "dashboards": "dashboards",  # Usually keep English
-        "reporting": "reporting",  # Usually keep English
-        "KPI": "KPI",  # Acronym - keep
-        "CRM": "CRM",  # Acronym - keep
-    }
-
-    result = french_bullet
-
-    # Apply translations (case-insensitive for common phrases)
-    for french, english in translation_map.items():
-        # Case-insensitive replacement
-        result = re.sub(
-            re.escape(french),
-            english,
-            result,
-            flags=re.IGNORECASE
-        )
-
-    logger.debug(f"TRANSLATE: '{french_bullet[:50]}...' -> '{result[:50]}...'")
+    result = translate_bullet_to_english_v2(french_bullet)
+    logger.debug(f"TRANSLATE: '{french_bullet[:50]}...' → '{result[:50]}...'")
     return result
 
 

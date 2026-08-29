@@ -280,31 +280,68 @@ class GenerationAgent:
 >>>>>>> Stashed changes
     @staticmethod
     def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
-        """Build safe adaptation fallback when CVAdaptationAgent fails.
+        """Build intelligent fallback when CVAdaptationAgent fails.
 
-        Uses FIXED ordering with ALL original bullets.
-        Default projects: Elevia, Job Apply Assistant, V.I.E Matcher (no SkillMap).
-        Source-based format (new V2 format).
+        Selects most relevant bullets based on positioning.
+        Does NOT return all bullets exhaustively.
         """
         from app.services.summary_service import build_deterministic_summary
 
         # FIXED ordering (never changes)
         fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
-        default_proj_ids = [0, 1, 2]  # Elevia, Job Apply Assistant, V.I.E Matcher
+        default_proj_ids = [0, 1, 2]  # Elevia, Job Apply Assistant, Nuit Blanche
+
+        # Smart bullet selection based on positioning (not exhaustive)
+        selected_experience_blocks = []
+        for i in fixed_exp_order:
+            exp = master_cv["experiences"][i]
+            bullets = exp.get("bullets", [])
+
+            # Select top 3-5 most relevant bullets per experience (not all)
+            # For fallback, use first N bullets as proxy for relevance
+            if i == 0:  # Sidel - most relevant, take first 4 bullets
+                bullet_indices = list(range(min(4, len(bullets))))
+            elif i == 1:  # MadeByAkim - moderately relevant, take first 3 bullets
+                bullet_indices = list(range(min(3, len(bullets))))
+            else:  # Vassard - least relevant, take first 2 bullets
+                bullet_indices = list(range(min(2, len(bullets))))
+
+            selected_experience_blocks.append({
+                "source_id": i,
+                "bullet_indices": bullet_indices,
+                "relevance": 1.0 - (i * 0.1),
+                "show": True,
+                "order": i + 1,
+            })
+
+        # Smart project selection (not exhaustive)
+        selected_project_blocks = []
+        for i in default_proj_ids:
+            proj = master_cv["projects"][i]
+            bullets = proj.get("bullets", [])
+
+            # Select top 1-2 bullets per project
+            if i < 2:  # Elevia, Job Apply - more relevant
+                bullet_indices = list(range(min(2, len(bullets))))
+            else:  # Nuit Blanche - less relevant
+                bullet_indices = list(range(min(1, len(bullets))))
+
+            selected_project_blocks.append({
+                "source_id": i,
+                "bullet_indices": bullet_indices,
+                "relevance": 1.0 - (i * 0.15),
+                "show": True,
+                "order": i + 1,
+            })
+
         all_skill_ids = list(range(len(master_cv.get("skills", []))))
 
-        # Build source-based adaptation (V2 format)
+        # Build source-based adaptation (V3 format with bullet_indices)
         source_adaptation = {
             "title": positioning,
             "summary": build_deterministic_summary(positioning, master_cv.get("skills", []), all_skill_ids),
-            "selected_experience_blocks": [
-                {"source_id": i, "relevance": 1.0 - (i * 0.1), "show": True, "order": i + 1}
-                for i in fixed_exp_order
-            ],
-            "selected_project_blocks": [
-                {"source_id": i, "relevance": 1.0 - (i * 0.15), "show": i < 3, "order": i + 1}
-                for i in default_proj_ids
-            ],
+            "selected_experience_blocks": selected_experience_blocks,
+            "selected_project_blocks": selected_project_blocks,
             "selected_skill_blocks": [
                 {"source_id": i, "relevance": 1.0 - (i * 0.05), "show": True, "order": i + 1}
                 for i in all_skill_ids
