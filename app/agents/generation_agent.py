@@ -277,7 +277,6 @@ class GenerationAgent:
             },
         }
 
->>>>>>> Stashed changes
     @staticmethod
     def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
         """Build intelligent fallback when CVAdaptationAgent fails.
