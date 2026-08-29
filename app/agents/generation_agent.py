@@ -278,64 +278,79 @@ class GenerationAgent:
         }
 
     @staticmethod
-    def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
+    def _build_fallback_adaptation(
+        master_cv: dict,
+        positioning: str,
+        job_analysis: dict = None,
+    ) -> dict:
         """Build intelligent fallback when CVAdaptationAgent fails.
 
-        Selects most relevant bullets based on positioning.
-        Does NOT return all bullets exhaustively.
+        Uses relevance-based selection (not first-N, not exhaustive).
+        Scores bullets against job offer and selects most relevant.
+        Different job offers produce different selections.
         """
         from app.services.summary_service import build_deterministic_summary
+        from app.services.intelligent_selection_service import RelevanceScorer
 
-        # FIXED ordering (never changes)
-        fixed_exp_order = [0, 1, 2]  # Sidel, MadeByAkim, Vassard
-        default_proj_ids = [0, 1, 2]  # Elevia, Job Apply Assistant, Nuit Blanche
+        # Build job analysis if not provided
+        if not job_analysis:
+            job_analysis = {
+                "job_title": positioning,
+                "required_skills": [],
+                "missions": [],
+                "company": "",
+            }
 
-        # Smart bullet selection based on positioning (not exhaustive)
+        # Use relevance-based selection for experiences
         selected_experience_blocks = []
-        for i in fixed_exp_order:
-            exp = master_cv["experiences"][i]
-            bullets = exp.get("bullets", [])
+        for exp_idx, experience in enumerate(master_cv.get("experiences", [])):
+            # Determine if experience is relevant to job
+            if not RelevanceScorer.should_include_experience(experience, job_analysis):
+                logger.debug(f"Fallback: excluding experience {exp_idx} (not relevant)")
+                continue
 
-            # Select top 3-5 most relevant bullets per experience (not all)
-            # For fallback, use first N bullets as proxy for relevance
-            if i == 0:  # Sidel - most relevant, take first 4 bullets
-                bullet_indices = list(range(min(4, len(bullets))))
-            elif i == 1:  # MadeByAkim - moderately relevant, take first 3 bullets
-                bullet_indices = list(range(min(3, len(bullets))))
-            else:  # Vassard - least relevant, take first 2 bullets
-                bullet_indices = list(range(min(2, len(bullets))))
+            # Select most relevant bullets
+            selected_bullets = RelevanceScorer.select_relevant_bullets(
+                experience.get("bullets", []),
+                job_analysis,
+                max_bullets=4 if exp_idx == 0 else 3,
+            )
 
-            selected_experience_blocks.append({
-                "source_id": i,
-                "bullet_indices": bullet_indices,
-                "relevance": 1.0 - (i * 0.1),
-                "show": True,
-                "order": i + 1,
-            })
+            if selected_bullets:
+                selected_experience_blocks.append({
+                    "source_id": exp_idx,
+                    "bullet_indices": selected_bullets,
+                    "relevance": 1.0 - (exp_idx * 0.1),
+                    "show": True,
+                    "order": len(selected_experience_blocks) + 1,
+                })
 
-        # Smart project selection (not exhaustive)
+        # Project selection (based on presence in Master CV, minimal filtering)
         selected_project_blocks = []
-        for i in default_proj_ids:
-            proj = master_cv["projects"][i]
-            bullets = proj.get("bullets", [])
+        for proj_idx, project in enumerate(master_cv.get("projects", [])):
+            bullets = project.get("bullets", [])
+            if not bullets:
+                continue
 
             # Select top 1-2 bullets per project
-            if i < 2:  # Elevia, Job Apply - more relevant
-                bullet_indices = list(range(min(2, len(bullets))))
-            else:  # Nuit Blanche - less relevant
-                bullet_indices = list(range(min(1, len(bullets))))
+            selected_bullets = RelevanceScorer.select_relevant_bullets(
+                bullets,
+                job_analysis,
+                max_bullets=2 if proj_idx < 2 else 1,
+            )
 
-            selected_project_blocks.append({
-                "source_id": i,
-                "bullet_indices": bullet_indices,
-                "relevance": 1.0 - (i * 0.15),
-                "show": True,
-                "order": i + 1,
-            })
+            if selected_bullets:
+                selected_project_blocks.append({
+                    "source_id": proj_idx,
+                    "bullet_indices": selected_bullets,
+                    "relevance": 1.0 - (proj_idx * 0.15),
+                    "show": True,
+                    "order": len(selected_project_blocks) + 1,
+                })
 
         all_skill_ids = list(range(len(master_cv.get("skills", []))))
 
-        # Build source-based adaptation (V3 format with bullet_indices)
+        # Build source-based adaptation (V3 format with intelligent bullet_indices)
         source_adaptation = {
             "title": positioning,
             "summary": build_deterministic_summary(positioning, master_cv.get("skills", []), all_skill_ids),
@@ -348,8 +363,15 @@ class GenerationAgent:
             "metadata": {
                 "source": "fallback_adaptation",
                 "reason": "CVAdaptationAgent failed",
+                "method": "relevance_based_selection",
             },
         }
+
+        logger.info(
+            f"Fallback selection: {len(selected_experience_blocks)} experiences, "
+            f"{sum(len(b['bullet_indices']) for b in selected_experience_blocks)} experience bullets, "
+            f"{len(selected_project_blocks)} projects"
+        )
 
         # Convert to template format
         return GenerationAgent._convert_source_adaptation_to_template_format(
@@ -627,7 +649,7 @@ class GenerationAgent:
         except Exception as e:
             logger.error(f"CV adaptation failed: {e}, using fallback")
             try:
-                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning)
+                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning, analysis)
             except Exception as fallback_error:
                 logger.error(f"Fallback adaptation also failed: {fallback_error}, using minimal adaptation")
                 # Absolute fallback: minimal safe adaptation that doesn't need master_cv
