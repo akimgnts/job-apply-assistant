@@ -5,6 +5,8 @@ from app.config import config
 from app.services.openai_service import generate_text, generate_cv_payload
 from app.services.document_service import render_cv, render_letter, render_mail, save_document, get_output_path
 from app.services.master_cv_service import load_master_cv, validate_adaptation
+from app.services.language_service import detect_job_offer_language, translate_bullet_to_english, get_translated_section_titles
+from app.services.skill_grouping_service import build_skill_groups_for_template
 from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
 from app.agents.quality_agent import QualityAgent
@@ -32,9 +34,95 @@ class GenerationAgent:
         return candidate
 
     @staticmethod
+    def _apply_language_to_adaptation(
+        adaptation: dict,
+        language: str,
+        raw_job_offer: str = None,
+    ) -> dict:
+        """Apply language setting to adaptation: translate bullets if English.
+
+        For English offers (language="en"):
+        - Translate selected bullets from French to English
+        - Translate section titles
+        - Ensure consistent English throughout
+
+        For French offers (language="fr"):
+        - Keep original French bullets
+        - Use French section titles
+        """
+        if language != "en":
+            # French: keep as-is
+            return adaptation
+
+        logger.debug("LANGUAGE: Translating to English")
+
+        # Translate experience bullets
+        if "experience_bullets" in adaptation:
+            translated = {}
+            for exp_id, bullets in adaptation["experience_bullets"].items():
+                if isinstance(bullets, list):
+                    translated[exp_id] = [
+                        translate_bullet_to_english(b) for b in bullets
+                    ]
+                else:
+                    translated[exp_id] = bullets
+            adaptation["experience_bullets"] = translated
+
+        # Translate project bullets
+        if "project_bullets" in adaptation:
+            translated = {}
+            for proj_id, bullets in adaptation["project_bullets"].items():
+                if isinstance(bullets, list):
+                    translated[proj_id] = [
+                        translate_bullet_to_english(b) for b in bullets
+                    ]
+                else:
+                    translated[proj_id] = bullets
+            adaptation["project_bullets"] = translated
+
+        # Store language setting
+        adaptation["cv_language"] = language
+        adaptation["section_titles"] = get_translated_section_titles(language)
+
+        logger.debug("LANGUAGE: English translation complete")
+        return adaptation
+
+    @staticmethod
+    def _add_grouped_skills_to_adaptation(
+        adaptation: dict,
+        job_analysis: dict,
+        master_cv: dict,
+    ) -> dict:
+        """Add grouped skills to adaptation (instead of flat skill list).
+
+        Groups skills into semantic categories:
+        - Data & BI
+        - Automation & Backend
+        - AI & LLM
+        - Project & Business
+
+        Selection based on:
+        - Job requirements relevance
+        - Master CV skills availability
+        - Locked proficiency levels (never promote level 0/excluded)
+        """
+        # Build skill groups based on job + Master CV
+        skill_groups = build_skill_groups_for_template(
+            job_analysis,
+            master_cv.get("skills", [])
+        )
+
+        adaptation["skill_groups"] = skill_groups
+        logger.info(f"SKILLS: Added {len(skill_groups)} skill groups to adaptation")
+
+        return adaptation
+
+    @staticmethod
     def _convert_source_adaptation_to_template_format(
         source_adaptation: dict,
         master_cv: dict,
+        language: str = "fr",
+        job_analysis: dict = None,
     ) -> dict:
         """Convert source-based adaptation to template-compatible format.
 
@@ -124,8 +212,72 @@ class GenerationAgent:
             "project_bullets": project_bullets,
             "ats_keywords": [],
             "metadata": source_adaptation.get("metadata", {}),
+            "cv_language": language,  # Default language
         }
 
+        # Apply language: translate to English if needed
+        result = GenerationAgent._apply_language_to_adaptation(result, language)
+
+        # Add grouped skills (instead of flat list)
+        if job_analysis:
+            result = GenerationAgent._add_grouped_skills_to_adaptation(
+                result, job_analysis, master_cv
+            )
+
+        logger.debug(f"CONVERT: Final result - {len(result['experience_order'])} experiences, {len(result['project_order'])} projects, language={language}")
+        return result
+
+    @staticmethod
+    def _build_emergency_safe_fallback(master_cv: dict, positioning: str) -> dict:
+        """Emergency fallback when BOTH primary and normal fallback fail.
+
+        CRITICAL: Shows ALL Master CV content if it loaded successfully.
+        Never returns empty experiences/projects if Master CV exists.
+
+        This is better than empty CV:
+        - Preserves all Master CV content exactly
+        - No invented content
+        - Better UX than empty sections
+        - Graceful degradation when AI completely unavailable
+        """
+        logger.warning("EMERGENCY FALLBACK: Showing all Master CV content (AI selection unavailable)")
+
+        num_exp = len(master_cv.get("experiences", []))
+        num_proj = len(master_cv.get("projects", []))
+        num_skills = len(master_cv.get("skills", []))
+
+        # Build ALL experiences with ALL bullets
+        experience_order = list(range(num_exp))
+        experience_bullets = {}
+        for i in range(num_exp):
+            experience_bullets[str(i)] = master_cv["experiences"][i].get("bullets", [])
+
+        # Build ALL projects with ALL bullets
+        project_order = list(range(num_proj))
+        project_bullets = {}
+        for i in range(num_proj):
+            project_bullets[str(i)] = master_cv["projects"][i].get("bullets", [])
+
+        logger.warning(
+            f"EMERGENCY FALLBACK: Showing {len(experience_order)} experiences, {len(project_order)} projects"
+        )
+
+        return {
+            "title": positioning,
+            "summary": "Professional with comprehensive expertise in data analysis, business intelligence, automation and digital systems.",
+            "experience_order": experience_order,
+            "experience_bullets": experience_bullets,
+            "project_order": project_order,
+            "project_bullets": project_bullets,
+            "ats_keywords": [],
+            "metadata": {
+                "source": "emergency_safe_fallback",
+                "reason": "Both primary adaptation and normal fallback failed",
+                "behavior": "showing all Master CV content",
+            },
+        }
+
+>>>>>>> Stashed changes
     @staticmethod
     def _build_fallback_adaptation(master_cv: dict, positioning: str) -> dict:
         """Build safe adaptation fallback when CVAdaptationAgent fails.
@@ -380,6 +532,11 @@ class GenerationAgent:
         master_cv = load_master_cv()
         logger.info(f"Master CV loaded: {len(master_cv['experiences'])} experiences")
 
+        # Detect job offer language (French/English)
+        raw_job_offer = f"{analysis.get('job_title', '')} {' '.join(analysis.get('missions', []))}"
+        cv_language = detect_job_offer_language(raw_job_offer, analysis)
+        logger.info(f"CV Language detected: {cv_language.upper()}")
+
         try:
             # GAP ANALYSIS: Measure exact mismatch (P0 - confidence scoring)
             from app.agents.gap_analysis_agent import GapAnalysisAgent
@@ -404,7 +561,10 @@ class GenerationAgent:
 
             # CONVERT: Source adaptation → template format (fetch actual text from master_cv)
             adaptation = GenerationAgent._convert_source_adaptation_to_template_format(
-                source_adaptation, master_cv
+                source_adaptation,
+                master_cv,
+                language=cv_language,
+                job_analysis=analysis,
             )
 
             # QUALITY CHECK: Validate selected blocks (no hallucination possible since text is from source)
