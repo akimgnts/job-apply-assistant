@@ -1,12 +1,19 @@
 import logging
+import json
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Cache the loaded JSON
+_MASTER_CV_CACHE = None
+
 
 def load_master_cv() -> dict:
-    """Load hardcoded Master CV data structure.
+    """Load Master CV V3 from JSON file (single source of truth).
 
-    Single source of truth for facts (companies, dates, roles, achievements).
+    JSON file is locked source: app/data/master_cv_v3.json
+    Locked date: 2026-08-28
+    Source: c8606019-Akim_Guentas_MASTER_CV_V3_SOURCE_DE_VERITE_1.html
 
     Philosophy: Truth is immutable. Narrative is flexible.
     - AI preserves all facts (dates, companies, accomplishments)
@@ -15,162 +22,211 @@ def load_master_cv() -> dict:
     - AI can adapt vocabulary to match role domain
     - AI cannot fabricate facts
     """
-    from app.config import config
+    global _MASTER_CV_CACHE
 
+    if _MASTER_CV_CACHE is not None:
+        return _MASTER_CV_CACHE
+
+    json_path = Path(__file__).parent.parent / "data" / "master_cv_v3.json"
+
+    if not json_path.exists():
+        raise FileNotFoundError(
+            f"Master CV V3 source not found: {json_path}\n"
+            "This is CRITICAL — no fallback to old hardcoded Master CV exists.\n"
+            "Please restore app/data/master_cv_v3.json from repository."
+        )
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"Master CV V3 JSON is malformed: {e}\n"
+            f"File: {json_path}\n"
+            "Check that the JSON is valid and locked facts are intact."
+        )
+
+    data = _transform_json_to_service_format(raw_data)
+    _validate_master_cv(data)
+
+    _MASTER_CV_CACHE = data
+    logger.info(
+        f"Master CV V3 loaded from {json_path} "
+        f"(locked {raw_data['metadata']['locked_date']})"
+    )
+
+    return data
+
+
+def _transform_json_to_service_format(raw_data: dict) -> dict:
+    """Transform JSON structure into service-compatible format with convenience dicts."""
+
+    # Flatten experiences: convert sections to flat bullet list
+    experiences = []
+    for exp in raw_data.get("experiences", []):
+        flattened_exp = {
+            "id": exp["id"],
+            "title": exp.get("title", ""),
+            "company": exp.get("company", ""),
+            "context": exp.get("context", ""),
+            "dates": exp.get("dates", ""),
+            "location": exp.get("location", ""),
+            "bullets": [],
+        }
+
+        # Flatten all bullets from all sections
+        for section in exp.get("sections", []):
+            for bullet in section.get("bullets", []):
+                if isinstance(bullet, dict):
+                    flattened_exp["bullets"].append(bullet["text"])
+                else:
+                    flattened_exp["bullets"].append(str(bullet))
+
+        experiences.append(flattened_exp)
+
+    # Flatten projects: convert to flat bullet list
+    projects = []
+    for proj in raw_data.get("projects", []):
+        flattened_proj = {
+            "id": proj["id"],
+            "title": proj.get("title", ""),
+            "company": proj.get("company", ""),
+            "dates": proj.get("dates", ""),
+            "stack": proj.get("stack", ""),
+            "bullets": [],
+        }
+
+        for bullet in proj.get("bullets", []):
+            if isinstance(bullet, dict):
+                flattened_proj["bullets"].append(bullet["text"])
+            else:
+                flattened_proj["bullets"].append(str(bullet))
+
+        projects.append(flattened_proj)
+
+    # Transform skills: flatten into single list with labels and levels
+    skills = []
+    for skill_category in raw_data.get("skills", []):
+        category_name = skill_category.get("category", "")
+        skill_level = skill_category.get("level", 3)
+        for skill_name in skill_category.get("skills", []):
+            skills.append({
+                "label": skill_name,
+                "category": category_name,
+                "level": skill_level,
+            })
+
+    # Build result
     data = {
+        "metadata": raw_data.get("metadata", {}),
         "personal_info": {
-            "name": "Akim Guentas",
-            "location": "Paris",
-            "email": config.CANDIDATE_EMAIL or "",
-            "phone": config.CANDIDATE_PHONE or "",
-            "portfolio": "madebyakim.com",
-            "github": "github.com/akimgnts",
-            "linkedin": "linkedin.com/in/akimguentas",
+            "name": raw_data.get("profile", {}).get("name", ""),
+            "location": raw_data.get("profile", {}).get("location", ""),
+            "email": raw_data.get("profile", {}).get("email", ""),
+            "phone": raw_data.get("profile", {}).get("phone", ""),
+            "portfolio": raw_data.get("profile", {}).get("portfolio", ""),
+            "github": raw_data.get("profile", {}).get("github", ""),
+            "linkedin": raw_data.get("profile", {}).get("linkedin", ""),
         },
-        "experiences": [
-            {
-                "id": 0,
-                "title": "Data, Marketing & Communication Analyst (Apprenticeship)",
-                "company": "Sidel",
-                "context": "International B2B industrial environment",
-                "dates": "2023 – 2025",
-                "bullets": [
-                    "Built and maintained 6+ dashboards and reporting tools covering installed base, events and business KPIs — used weekly and monthly by dozens of collaborators and managers across marketing, commercial and management teams.",
-                    "Automated recurring extraction, cleaning, consolidation and visualization tasks using Python, SQL and Power BI — reducing processes that previously required half a day to several days of manual work.",
-                    "Analyzed installed base, equipment and service data across 61 customers in the Wines & Spirits sector; produced commercial action plans supporting account prioritization by machine age, installed base evolution and business opportunities.",
-                    "Consolidated multi-source business data (customers, leads, events, campaigns) and monitored KPIs to improve operational visibility for European marketing and commercial teams.",
-                    "Coordinated with international stakeholders across Europe; presented analyses, action plans and business insights in French and English.",
-                    "Supported data quality through structured cleaning, consistency checks and documentation across multi-source reporting processes.",
-                    "Used Python, SQL, Power BI, Power Query and Microsoft Dynamics for data consolidation, reporting and business analysis in a large-scale B2B industrial context.",
-                ]
-            },
-            {
-                "id": 1,
-                "title": "Freelance Projects · Data, Automation & Digital Systems",
-                "company": "MadeByAkim / Made By Curve",
-                "context": "",
-                "dates": "2024 – Present",
-                "bullets": [
-                    "Automated repetitive operational tasks (email preparation, meeting workflows, lead enrichment) — saving several hours of manual work per workflow across systems used by clients and personal operations.",
-                    "Built workflow automation using APIs, webhooks, Make, n8n, JSON payloads and Python scripts — connecting CRM tools, databases and communication channels.",
-                    "Designed dashboards, reporting structures and operational tracking systems for client and personal use cases.",
-                    "Used ManyChat, Meta Business Suite, HubSpot, Airtable, Notion and Google Sheets to structure CRM workflows and digital operations.",
-                    "Produced social media assets, visual identities and content using Adobe Premiere Pro, After Effects, Photoshop and Illustrator.",
-                ]
-            },
-            {
-                "id": 2,
-                "title": "Business Development & Reporting",
-                "company": "Vassard OMB Mobilier",
-                "context": "",
-                "dates": "2022 – 2023",
-                "bullets": [
-                    "Structured CRM and commercial data to improve visibility on prospects, customers, follow-up actions and sales activity.",
-                    "Implemented KPI tracking and reporting processes supporting sales decisions and business development priorities.",
-                    "Analyzed customer and sales information to identify priorities and improve commercial follow-up.",
-                ]
-            },
-        ],
-        "projects": [
-            {
-                "id": 0,
-                "title": "Elevia · Personal Data & AI Project",
-                "stack": "Python · FastAPI · PostgreSQL · OpenAI · LangChain · SQL · APIs",
-                "dates": "",
-                "bullets": [
-                    "Designed and iterated through more than 10 versions of a matching engine — evaluated across 30 test profiles and over 1,000 job opportunities, improving recommendation quality and explainability.",
-                    "Generated 100+ AI-assisted application documents (CVs, cover letters, recruiter messages) — reducing preparation time from dozens of minutes to a few seconds.",
-                    "Built a modular architecture of ~10 components across 4 PostgreSQL tables, covering CV parsing, skill extraction, canonicalization, scoring and observability.",
-                ]
-            },
-            {
-                "id": 1,
-                "title": "Job Apply Assistant",
-                "stack": "Telegram · OpenAI · PostgreSQL · Jinja2 · SQLAlchemy · Coolify",
-                "dates": "",
-                "bullets": [
-                    "Built a Telegram assistant that analyzes job offers, matches against a candidate profile and generates tailored CV, cover letter and recruiter message — reducing application preparation time from ~45 minutes to ~5 minutes.",
-                ]
-            },
-            {
-                "id": 2,
-                "title": "V.I.E Matcher",
-                "stack": "Automation · Matching · Scoring · Google Sheets · Telegram · AI workflows",
-                "dates": "",
-                "bullets": [
-                    "Workflow for V.I.E offer analysis, profile matching, scoring and ATS-oriented application preparation.",
-                ]
-            },
-            {
-                "id": 3,
-                "title": "SkillMap Automation Console",
-                "stack": "Data visualization · API · Dashboards · Skills intelligence",
-                "dates": "",
-                "bullets": [
-                    "Portfolio project transforming structured data into interfaces, dashboards and insights around skills, offers and workflows.",
-                ]
-            },
-        ],
-        "skills": [
-            {
-                "label": "Data & Analytics",
-                "content": "SQL, Python, Pandas, Power BI, Power Query, Excel Advanced, KPI Monitoring, Dashboards, Data Visualization, Reporting, Data Cleaning, Data Quality, Performance Analysis."
-            },
-            {
-                "label": "Automation & APIs",
-                "content": "Make, n8n, REST APIs, Webhooks, JSON, Google Apps Script, Telegram Bots, CRM Integrations, Workflow Automation, Lead Enrichment, Document Generation."
-            },
-            {
-                "label": "AI & LLM Workflows",
-                "content": "OpenAI API, Prompt Engineering, Structured Extraction, RAG Concepts, AI Agents, Knowledge Bases, LLM Workflows, LangChain."
-            },
-            {
-                "label": "Backend & Data Systems",
-                "content": "PostgreSQL, Supabase, Elasticsearch, FastAPI, Git, GitHub, Docker Basics, SQLAlchemy, Jinja2, Data Pipelines, Technical Documentation."
-            },
-            {
-                "label": "Business Systems",
-                "content": "HubSpot, Microsoft Dynamics, Notion, Airtable, Slack, Teams, Google Sheets, Google Drive, CRM Workflows, Campaign Reporting, Customer Data, ManyChat, Meta Business Suite."
-            },
-            {
-                "label": "Creative & Delivery",
-                "content": "Adobe Premiere Pro, After Effects, Photoshop, Illustrator, Canva, Presentation Design, User Training, Dashboard Presentations, Process Mapping, Stakeholder Communication."
-            },
-        ],
-        "education": [
-            {
-                "title": "MSc Business Intelligence & Analytics / Data Analyst for Marketing",
-                "school": "Eugenia School",
-                "year": "2025",
-            },
-            {
-                "title": "Bachelor Responsable Commerce & Marketing",
-                "school": "EM Normandie",
-                "year": "2023",
-            },
-            {
-                "title": "BTS Management Commercial Opérationnel",
-                "school": "",
-                "year": "2021",
-            },
-        ],
-        "certifications": [
-            {"name": "Dataiku ML Practitioner"},
-            {"name": "Python for Machine Learning"},
-            {"name": "Fine-Tuning Large Language Models"},
-        ],
-        "languages": [
-            {"name": "French", "level": "Native"},
-            {"name": "English", "level": "Professional Working Proficiency"},
-            {"name": "Spanish", "level": "Intermediate"},
-        ],
+        "experiences": experiences,
+        "projects": projects,
+        "skills": skills,
+        "education": raw_data.get("education", []),
+        "certifications": raw_data.get("certifications", []),
+        "languages": raw_data.get("languages", []),
+        "excluded_skills": raw_data.get("excluded_skills", {}),
+        "quantified_results": raw_data.get("quantified_results", {}),
+        "usage_rules": raw_data.get("usage_rules", {}),
     }
 
     # Add convenience _by_id dicts for template access
-    data["experiences_by_id"] = {e["id"]: e for e in data["experiences"]}
-    data["projects_by_id"] = {p["id"]: p for p in data["projects"]}
+    data["experiences_by_id"] = {e["id"]: e for e in experiences}
+    data["projects_by_id"] = {p["id"]: p for p in projects}
 
     return data
+
+
+def _validate_master_cv(data: dict) -> None:
+    """Validate Master CV structure and locked facts.
+
+    Fails loudly if critical facts are missing or malformed.
+    """
+    errors = []
+
+    # Check experiences count
+    if len(data.get("experiences", [])) != 3:
+        errors.append(
+            f"Expected 3 experiences, got {len(data.get('experiences', []))}"
+        )
+
+    # Check Sidel facts
+    sidel = data["experiences"][0] if data.get("experiences") else {}
+    sidel_bullets_text = " ".join(sidel.get("bullets", []))
+
+    if "6+" not in sidel_bullets_text:
+        errors.append("Sidel: '6+' dashboards fact missing")
+    if "5–6" not in sidel_bullets_text or "1 h" not in sidel_bullets_text:
+        errors.append("Sidel: '5–6 h → 1 h' automation fact missing or malformed")
+    if "80 %" not in sidel_bullets_text:
+        errors.append("Sidel: '80 %' time reduction fact missing")
+    if "61" not in sidel_bullets_text:
+        errors.append("Sidel: '61' accounts (Wines & Spirits) fact missing")
+
+    # Check projects count (3 authorized in Master CV V3 HTML: Elevia, Job Apply, Nuit Blanche)
+    if len(data.get("projects", [])) != 3:
+        errors.append(
+            f"Expected 3 projects (authorized in Master CV V3), got {len(data.get('projects', []))}"
+        )
+
+    # Check project titles (Nuit Blanche should exist, no stale SkillMap or V.I.E Matcher)
+    project_titles = [p.get("title", "") for p in data.get("projects", [])]
+    if "SkillMap Automation Console" in project_titles:
+        errors.append("Stale project 'SkillMap Automation Console' found (not in Master CV V3)")
+    if "V.I.E Matcher" in project_titles:
+        errors.append("Stale project 'V.I.E Matcher' found (not in Master CV V3 HTML)")
+    if "Nuit Blanche" not in " ".join(project_titles):
+        errors.append("Project 'Nuit Blanche' not found")
+
+    # Check Elevia facts
+    elevia = next(
+        (p for p in data.get("projects", []) if "Elevia" in p.get("title", "")),
+        {}
+    )
+    elevia_text = " ".join(elevia.get("bullets", []))
+    if "10+" not in elevia_text or "30" not in elevia_text or "1 000+" not in elevia_text:
+        errors.append("Elevia: '10+', '30', '1 000+' facts missing")
+
+    # Check Job Apply Assistant facts
+    jaa = next(
+        (p for p in data.get("projects", []) if "Job Apply Assistant" in p.get("title", "")),
+        {}
+    )
+    jaa_text = " ".join(jaa.get("bullets", []))
+    if "45" not in jaa_text or "5" not in jaa_text:
+        errors.append("Job Apply Assistant: '45 → 5' time reduction fact missing")
+
+    # Check skill levels
+    skill_dict = {s["label"]: s.get("level", 0) for s in data.get("skills", [])}
+
+    # Level 3 (mastered) checks
+    level_3_required = ["Power BI", "SQL", "Python", "PostgreSQL", "FastAPI", "Docker", "Coolify"]
+    for skill in level_3_required:
+        if skill not in skill_dict or skill_dict[skill] != 3:
+            errors.append(f"Skill '{skill}' should be level 3 (mastered), got {skill_dict.get(skill)}")
+
+    # Level 0 (excluded) checks
+    excluded_required = ["Jira", "Confluence", "GCP", "Looker Studio"]
+    excluded_dict = {t["tool"]: t for t in data.get("excluded_skills", {}).get("tools", [])}
+    for tool in excluded_required:
+        if tool not in excluded_dict:
+            errors.append(f"Excluded skill '{tool}' not in exclusion list")
+
+    if errors:
+        error_msg = "Master CV V3 validation FAILED:\n" + "\n".join(f"  • {e}" for e in errors)
+        raise ValueError(error_msg)
+
+    logger.info("Master CV V3 validation PASSED ✓")
+
 
 
 def validate_adaptation(adaptation: dict, master_cv: dict) -> dict:

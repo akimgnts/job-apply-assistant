@@ -1,0 +1,548 @@
+{
+  "metadata": {
+    "version": "V3",
+    "locked_date": "2026-08-28",
+    "source": "c8606019-Akim_Guentas_MASTER_CV_V3_SOURCE_DE_VERITE_1.html",
+    "header": "MASTER CV V3 — SOURCE DE VÉRITÉ INTERNE — VERROUILLÉ 28/08/2026 — SÉLECTIONNER ~30–40% PAR OFFRE",
+    "status": "IMMUTABLE - NO MODIFICATIONS ALLOWED"
+  },
+  "profile": {
+    "name": "Akim Guentas",
+    "title_short": "BUSINESS × DATA × AUTOMATION/IA",
+    "location": "Paris, Île-de-France",
+    "email": "akimguentas13@gmail.com",
+    "phone": "07 83 75 04 83",
+    "linkedin": "linkedin.com/in/akimguentas",
+    "github": "github.com/akimgnts",
+    "portfolio": "madebyakim.com"
+  },
+  "positioning": {
+    "summary": "ni uniquement Data Analyst, ni uniquement Automation, ni uniquement Business Analyst — je suis à l'interface des trois. Deux ans chez Sidel à transformer de la donnée commerciale/client en dashboards et recommandations métier, une activité freelance réelle (MadeByAkim) à concevoir des produits Data/IA de bout en bout, et une double culture business/technique qui permet de porter un sujet du cadrage à la mise en production.",
+    "positioning_options": [
+      "Data Analyst / Analytics & AI",
+      "Chef de projet Data",
+      "Business Analyst / Data Analyst",
+      "Data / Databricks / Automation",
+      "Marketing de l'offre & Data",
+      "Growth / Data"
+    ]
+  },
+  "experiences": [
+    {
+      "id": 0,
+      "title": "Data & Business Analyst — International Stakeholder Reporting",
+      "company": "Sidel — Groupe Tetra Laval",
+      "context": "International B2B industrial environment",
+      "dates": "2023 – 2025",
+      "location": "Octeville-sur-Mer / International",
+      "sections": [
+        {
+          "section_title": "Data & BI",
+          "bullets": [
+            {
+              "text": "Conception et déploiement de 6+ dashboards Power BI utilisés chaque semaine par des dizaines de collaborateurs et managers de différentes fonctions métier.",
+              "tags": ["DATA/BI"],
+              "level": 3
+            },
+            {
+              "text": "Automatisation d'un reporting hebdomadaire auparavant traité sous Excel en 5–6 h, ramenant le processus à environ 1 h/semaine, contrôle des résultats inclus — soit environ 80 % de temps de traitement économisé.",
+              "tags": ["DATA/BI", "AUTOMATION/IA"],
+              "level": 3
+            },
+            {
+              "text": "Développement de dashboards Power BI et de reportings décisionnels pour les équipes Marketing, Sales et Management d'un groupe industriel international.",
+              "tags": ["DATA/BI"],
+              "level": 3
+            },
+            {
+              "text": "Consolidation et analyse de données clients, commerciales et Installed Base avec Excel, Power Query, Power BI, Python et SQL ; contrôle de cohérence et amélioration de la qualité des données.",
+              "tags": ["DATA/BI", "DATA QUALITY"],
+              "level": 3
+            },
+            {
+              "text": "Construction de mesures et KPI sous DAX pour fiabiliser les indicateurs affichés aux équipes métier",
+              "tags": ["DATA/BI"],
+              "level": 2
+            },
+            {
+              "text": "Modélisation des données en amont des dashboards (star schema, tables de faits et dimensions) pour structurer les modèles Power BI",
+              "tags": ["DATA/BI"],
+              "level": 2
+            }
+          ]
+        },
+        {
+          "section_title": "Cas d'usage BI — Pilotage commercial / CRM",
+          "bullets": [
+            {
+              "text": "Conception d'un dashboard de pilotage commercial permettant aux responsables de suivre rapidement l'activité de leurs équipes : performance par commercial, rendez-vous, nouvelles opportunités, évolution et touchpoints clients.",
+              "tags": ["DATA/BI", "MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Exploitation de l'historique des interactions clients afin d'aider les commerciaux à prioriser les relances selon la date du dernier contact et le contexte business.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Transformation des données CRM en priorités commerciales directement actionnables par les équipes Sales.",
+              "tags": ["DATA/BI"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Cas d'usage BI — Event Analytics Europe",
+          "bullets": [
+            {
+              "text": "Conception d'un dashboard Power BI de pilotage des salons européens, utilisable par les équipes Communication pour suivre les événements passés et à venir.",
+              "tags": ["DATA/BI", "EVENTS/CONTENT"],
+              "level": 3
+            },
+            {
+              "text": "Rapprochement de plusieurs sources auparavant séparées : données de présence/contacts collectées sur les salons et réponses aux questionnaires de satisfaction.",
+              "tags": ["DATA/BI", "DATA QUALITY"],
+              "level": 3
+            },
+            {
+              "text": "Construction d'un funnel événementiel et commercial suivant visites, contacts, prises de contact, rendez-vous et progression vers les opportunités commerciales.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Centralisation des KPI de performance événementielle et de satisfaction dans un reporting continuellement actualisé à l'échelle Europe.",
+              "tags": ["AUTOMATION/IA"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Initiative exploratoire — Installed Base / Service / Spare Parts",
+          "status": "non-finalisé / non-déployé",
+          "note": "Toujours conserver cette précision lorsqu'il est utilisé dans un CV ou en entretien.",
+          "bullets": [
+            {
+              "text": "Exploration d'un cas d'usage exploitant les données d'Installed Base et les caractéristiques d'utilisation des équipements (cycles, cadence, fonctionnement) afin d'anticiper des besoins potentiels liés à l'usure.",
+              "tags": ["DATA/BI", "MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Réflexion sur l'utilisation de ces signaux techniques propriétaires pour identifier et prioriser des opportunités de relance Service / spare parts auprès des clients.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Projet exploratoire uniquement : ne jamais le présenter comme modèle prédictif finalisé ou solution mise en production.",
+              "tags": ["PM/DELIVERY"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Business & Marketing",
+          "bullets": [
+            {
+              "text": "Analyse d'un portefeuille Wines & Spirits de 61 comptes en croisant équipements installés, services et potentiel commercial afin d'identifier opportunités et priorités.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Suivi des leads, KPI marketing, NPS et retours clients ; production de synthèses, recommandations et présentations adaptées aux métiers.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            },
+            {
+              "text": "Traduction d'analyses Installed Base en priorités commerciales exploitables par les équipes Sales.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Stakeholders & International",
+          "bullets": [
+            {
+              "text": "Coordination de sujets transverses et présentation des résultats en français et en anglais auprès de parties prenantes internationales.",
+              "tags": ["STAKEHOLDER/INTL"],
+              "level": 3
+            },
+            {
+              "text": "Préparation de supports de présentation pour comités et réunions avec des interlocuteurs Marketing, Sales et Management dans plusieurs pays.",
+              "tags": ["STAKEHOLDER/INTL"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Business Analyst / Product",
+          "bullets": [
+            {
+              "text": "Recueil et formalisation de besoins utilisateurs, notamment sous forme de user stories, pour des besoins de reporting et d'outillage interne.",
+              "tags": ["BA/PRODUCT"],
+              "level": 3
+            },
+            {
+              "text": "Conception autonome de dashboards à partir du besoin métier : choix et ajout de KPI pertinents, règles de calcul, filtres, structure de restitution et évolutions fonctionnelles.",
+              "tags": ["BA/PRODUCT"],
+              "level": 3
+            },
+            {
+              "text": "Réalisation des phases de recette/tests, vérification des résultats, identification des anomalies et correction autonome lorsque possible avant diffusion.",
+              "tags": ["BA/PRODUCT"],
+              "level": 3
+            },
+            {
+              "text": "Collaboration transverse avec les équipes IT, CRM, Service après-vente, Sales, Communication et Marketing pour cadrer les besoins, résoudre les problèmes de données et rendre les livrables exploitables.",
+              "tags": ["BA/PRODUCT"],
+              "level": 3
+            },
+            {
+              "text": "Fonctionnement en mode Agile (sprints, priorisation Kanban) sur le suivi des sujets reporting",
+              "tags": ["BA/PRODUCT"],
+              "level": 2
+            }
+          ]
+        },
+        {
+          "section_title": "Contenu & Événementiel",
+          "bullets": [
+            {
+              "text": "Production de contenus et supports analytiques pour les salons professionnels internationaux Hispack Barcelona et PPMA Birmingham.",
+              "tags": ["EVENTS/CONTENT"],
+              "level": 3
+            },
+            {
+              "text": "Contribution à la mise en forme de synthèses et recommandations diffusées aux équipes métier.",
+              "tags": ["EVENTS/CONTENT"],
+              "level": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "AI Transformation Consultant & Product Builder",
+      "company": "MadeByAkim (freelance)",
+      "dates": "2024 – Aujourd'hui",
+      "location": "Paris / Remote",
+      "sections": [
+        {
+          "section_title": "Angle Data/IA",
+          "bullets": [
+            {
+              "text": "Analyse des besoins métiers et traduction en cas d'usage Data/IA, règles fonctionnelles et architectures.",
+              "tags": ["DATA/BI", "AUTOMATION/IA"],
+              "level": 3
+            },
+            {
+              "text": "Conception de solutions de bout en bout avec Python, FastAPI, PostgreSQL, SQL et APIs REST : ingestion, transformation, stockage et restitution.",
+              "tags": ["DATA/BI"],
+              "level": 3
+            },
+            {
+              "text": "Développement de pipelines intégrant contrôle qualité, normalisation, classification, scoring et validation humaine avant persistance en base.",
+              "tags": ["DATA QUALITY"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Angle Automation",
+          "bullets": [
+            {
+              "text": "Automatisation avec n8n, Make, Google Apps Script, webhooks et APIs afin de réduire les tâches manuelles et fiabiliser les traitements.",
+              "tags": ["AUTOMATION/IA"],
+              "level": 3
+            },
+            {
+              "text": "Orchestration agentique et multi-agent (parsing, analyse, scoring, génération documentaire) sur des workflows métier réels.",
+              "tags": ["AUTOMATION/IA"],
+              "level": 3
+            }
+          ]
+        },
+        {
+          "section_title": "Angle Product / Project Management",
+          "bullets": [
+            {
+              "text": "Cadrage de bout en bout de chaque produit : besoin métier → architecture → développement → mise en production, en autonomie.",
+              "tags": ["PM/DELIVERY"],
+              "level": 3
+            },
+            {
+              "text": "Gestion de plusieurs projets en parallèle (Elevia, Job Apply Assistant, Nuit Blanche) avec priorisation et arbitrages de scope.",
+              "tags": ["PM/DELIVERY"],
+              "level": 3
+            },
+            {
+              "text": "Mise en place de tests, logs, documentation, versioning Git, Docker et déploiement (Coolify) pour assurer robustesse, traçabilité et maintenabilité.",
+              "tags": ["PM/DELIVERY"],
+              "level": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Business Development & Reporting",
+      "company": "Vassard OMB Mobilier",
+      "dates": "2022 – 2023",
+      "sections": [
+        {
+          "section_title": "Main",
+          "bullets": [
+            {
+              "text": "Structuration des données CRM et du reporting pour améliorer la visibilité commerciale et le pilotage de la prospection.",
+              "tags": ["DATA/BI"],
+              "level": 3
+            },
+            {
+              "text": "Qualification des besoins clients, analyse d'opportunités et accompagnement du développement commercial B2B.",
+              "tags": ["MARKETING/BUSINESS"],
+              "level": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": 0,
+      "title": "Elevia — Plateforme de recommandation & Data Quality",
+      "company": "MadeByAkim — projet produit",
+      "dates": "2025 – Aujourd'hui",
+      "stack": "Python · FastAPI · PostgreSQL · OpenAI · LangChain · SQL · APIs",
+      "bullets": [
+        {
+          "text": "Conception d'un moteur combinant extraction structurée, matching sémantique, classification et scoring explicable (Python, FastAPI, PostgreSQL, OpenAI, LangChain, ESCO).",
+          "tags": ["DATA/BI", "AUTOMATION/IA"],
+          "level": 3
+        },
+        {
+          "text": "10+ cycles d'évaluation sur 30 profils et 1 000+ offres pour mesurer la pertinence métier et réduire les faux positifs.",
+          "tags": ["DATA QUALITY"],
+          "level": 3
+        },
+        {
+          "text": "Intégration d'ESCO, normalisation des compétences et workflows de replay pour conserver un système testable et auditable.",
+          "tags": ["DATA QUALITY"],
+          "level": 3
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Job Apply Assistant — Pipeline Data & IA multi-agent",
+      "company": "MadeByAkim — projet produit",
+      "dates": "2025 – Aujourd'hui",
+      "stack": "Telegram · OpenAI · PostgreSQL · Jinja2 · SQLAlchemy · Coolify",
+      "bullets": [
+        {
+          "text": "Transformation d'un processus manuel d'environ 45 minutes en un workflow automatisé d'environ 5 minutes.",
+          "tags": ["AUTOMATION/IA"],
+          "level": 3
+        },
+        {
+          "text": "Architecture multi-agent couvrant parsing, analyse d'offre, matching, positionnement, génération documentaire et suivi.",
+          "tags": ["AUTOMATION/IA", "PM/DELIVERY"],
+          "level": 3
+        },
+        {
+          "text": "Persistance PostgreSQL, migrations Alembic et schémas structurés assurant traçabilité et reproductibilité.",
+          "tags": ["DATA QUALITY"],
+          "level": 3
+        },
+        {
+          "text": "Notifications Telegram, déploiement Docker/Coolify.",
+          "tags": ["AUTOMATION/IA"],
+          "level": 3
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Nuit Blanche — Automatisation de production de contenus",
+      "company": "MadeByAkim — projet ponctuel",
+      "dates": "2024",
+      "bullets": [
+        {
+          "text": "Conception d'un workflow transformant des données événementielles en livrables visuels (Google Sheets, Apps Script) : validation, filtres, priorisation et génération automatisée.",
+          "tags": ["AUTOMATION/IA"],
+          "level": 3
+        }
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "category": "BI & Data Viz",
+      "level": 3,
+      "skills": ["Power BI", "Power Query"]
+    },
+    {
+      "category": "Data Engineering",
+      "level": 3,
+      "skills": ["SQL", "Python", "PostgreSQL"]
+    },
+    {
+      "category": "Développement",
+      "level": 3,
+      "skills": ["FastAPI", "SQLAlchemy", "Alembic", "REST APIs", "Git/GitHub", "Docker", "Coolify"]
+    },
+    {
+      "category": "Automation & IA",
+      "level": 3,
+      "skills": ["n8n", "Make", "Google Apps Script", "webhooks", "APIs", "agents IA", "orchestration multi-agent", "OpenAI API"]
+    },
+    {
+      "category": "Bureautique",
+      "level": 3,
+      "skills": ["Excel avancé", "PowerPoint"]
+    },
+    {
+      "category": "BI avancé",
+      "level": 2,
+      "skills": ["DAX (mesures et KPI)"]
+    },
+    {
+      "category": "Data Modeling",
+      "level": 2,
+      "skills": ["Modélisation dimensionnelle", "star schema", "tables de faits/dimensions"]
+    },
+    {
+      "category": "Gestion de projet",
+      "level": 2,
+      "skills": ["Agile", "Scrum", "Kanban"]
+    },
+    {
+      "category": "Data Viz",
+      "level": 2,
+      "skills": ["Tableau (intermédiaire)"]
+    },
+    {
+      "category": "Data Engineering cloud",
+      "level": 1,
+      "skills": ["Databricks (pratique/formation, pas plusieurs années)", "BigQuery (pratique initiale)", "AWS (notions/pratique initiale)"]
+    },
+    {
+      "category": "Architecture data",
+      "level": 1,
+      "skills": ["Architecture medallion (Bronze/Silver/Gold) — notions uniquement"]
+    },
+    {
+      "category": "RPA / Low-code",
+      "level": 1,
+      "skills": ["UiPath", "Microsoft Power Platform", "Power Automate", "Power Apps"]
+    }
+  ],
+  "excluded_skills": {
+    "timestamp_locked": "2026-08-27",
+    "reason": "Non-défendable ou outillage non pertinent",
+    "tools": [
+      {
+        "tool": "Jira",
+        "reason": "L'Agile/Scrum/Kanban est réel, l'outillage Atlassian ne l'est pas"
+      },
+      {
+        "tool": "Confluence",
+        "reason": "L'Agile/Scrum/Kanban est réel, l'outillage Atlassian ne l'est pas"
+      },
+      {
+        "tool": "GCP",
+        "reason": "Non défendable"
+      },
+      {
+        "tool": "Looker Studio",
+        "reason": "Non défendable"
+      }
+    ],
+    "instruction": "Ne jamais réintroduire, même sur mot-clé d'offre. Si une offre les demande explicitement, ne pas les ajouter au CV — le signaler à l'oral si pertinent, jamais les écrire."
+  },
+  "education": [
+    {
+      "title": "MSc Business Intelligence & Analytics / Data Analyst for Marketing",
+      "school": "Eugenia School",
+      "year": "2025"
+    },
+    {
+      "title": "Bachelor Responsable Commerce & Marketing",
+      "school": "EM Normandie",
+      "year": "2023"
+    },
+    {
+      "title": "BTS Management Commercial Opérationnel",
+      "year": "2021"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Dataiku ML Practitioner"
+    },
+    {
+      "name": "Python for Machine Learning"
+    },
+    {
+      "name": "Fine-Tuning Large Language Models"
+    }
+  ],
+  "languages": [
+    {
+      "name": "French",
+      "level": "Native"
+    },
+    {
+      "name": "English",
+      "level": "Professional Working Proficiency"
+    },
+    {
+      "name": "Spanish",
+      "level": "Intermediate"
+    }
+  ],
+  "quantified_results": {
+    "timestamp_locked": "2026-08-28",
+    "results": [
+      {
+        "company": "Sidel",
+        "fact": "6+ dashboards Power BI"
+      },
+      {
+        "company": "Sidel",
+        "fact": "utilisés chaque semaine par des dizaines de collaborateurs et managers"
+      },
+      {
+        "company": "Sidel",
+        "fact": "reporting Excel 5–6 h/semaine → environ 1 h/semaine après automatisation (~80 % de réduction du temps de traitement)"
+      },
+      {
+        "company": "Sidel",
+        "fact": "analyse Wines & Spirits sur 61 comptes"
+      },
+      {
+        "project": "Elevia",
+        "fact": "10+ cycles d'évaluation sur 30 profils et 1 000+ offres/opportunités"
+      },
+      {
+        "project": "Job Apply Assistant",
+        "fact": "processus manuel d'environ 45 min → workflow automatisé d'environ 5 min"
+      }
+    ],
+    "guards": "Ne jamais remplacer « des dizaines » par un nombre précis sans nouveau fait fourni ; ne pas inventer de gain de temps pour le dashboard Event Analytics Europe ; conserver le statut exploratoire/non déployé du projet Installed Base / usure / spare parts."
+  },
+  "usage_rules": {
+    "timestamp_locked": "2026-08-28",
+    "rules": [
+      "Aucun CV n'est envoyé directement depuis ce Master",
+      "Pour chaque offre : identifier la famille de poste visée",
+      "Sélectionner ~30–40% des bullets par tag pertinent",
+      "Réécrire le headline et le premier paragraphe pour cette focale précise",
+      "Garder les faits identiques (dates, chiffres, entreprises, niveaux de maîtrise)",
+      "On ne change jamais le parcours, on change l'angle de lecture",
+      "Un mot-clé d'offre ne fait jamais monter un niveau de compétence",
+      "Si l'offre demande Jira et que le niveau verrouillé est 'retiré', le CV généré ne doit pas le faire apparaître"
+    ]
+  }
+}
