@@ -123,16 +123,17 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 <h2 class="section-title">Technical Skills</h2>
 
 <div class="two-cols">
-  {% if adaptation.get('skill_section_order') %}
-    {% for skill_label in adaptation.skill_section_order %}
-      {% set visibility = adaptation.get('skill_section_emphasis', {}).get(skill_label, 'normal') %}
-      {% for skill in master_cv.skills %}
-        {% if skill.label == skill_label %}
-        <div class="skill-block" style="{% if visibility == 'low' %}opacity: 0.7; font-size: 0.95em;{% endif %}">
-          <div class="skill-label">{{ skill.label }}</div>
-          <div class="skill-text">{{ skill.content }}</div>
-        </div>
-        {% endif %}
+  {% if adaptation.get('skill_groups') and adaptation.get('skill_section_order') %}
+    {% for group_name in adaptation.skill_section_order %}
+      {% set skills_in_group = adaptation.skill_groups.get(group_name, []) %}
+      {% for skill_label in skills_in_group %}
+        {% for skill in master_cv.skills %}
+          {% if skill.label == skill_label %}
+          <div class="skill-block">
+            <div class="skill-label">{{ skill.label }}</div>
+          </div>
+          {% endif %}
+        {% endfor %}
       {% endfor %}
     {% endfor %}
   {% else %}

@@ -210,7 +210,7 @@ class GenerationAgent:
                     # V2 format: no bullet selection, use all bullets
                     project_bullets[str(proj_id)] = all_bullets
 
-        return {
+        result = {
             "title": source_adaptation.get("title", ""),
             "summary": source_adaptation.get("summary", ""),
             "experience_order": experience_order,
@@ -380,9 +380,9 @@ class GenerationAgent:
             f"{len(selected_project_blocks)} projects"
         )
 
-        # Convert to template format
+        # Convert to template format with job_analysis for skill grouping
         return GenerationAgent._convert_source_adaptation_to_template_format(
-            source_adaptation, master_cv
+            source_adaptation, master_cv, language="fr", job_analysis=job_analysis
         )
 
     @staticmethod
