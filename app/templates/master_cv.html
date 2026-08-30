@@ -68,7 +68,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 {% endif %}
 
 <section class="section">
-<h2 class="section-title">Experience</h2>
+<h2 class="section-title">{{ titles.experience or "EXPERIENCE" }}</h2>
 
 {% for exp_id in adaptation.experience_order %}
   {% if master_cv.experiences_by_id[exp_id] %}
@@ -94,7 +94,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 </section>
 
 <section class="section">
-<h2 class="section-title">Projects</h2>
+<h2 class="section-title">{{ titles.projects or "PROJECTS" }}</h2>
 
 {% for proj_id in adaptation.project_order %}
   {% if master_cv.projects_by_id[proj_id] %}
@@ -120,7 +120,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 </section>
 
 <section class="section">
-<h2 class="section-title">Technical Skills</h2>
+<h2 class="section-title">{{ titles.skills or "TECHNICAL SKILLS" }}</h2>
 
 <div class="two-cols">
   {% if adaptation.get('skill_groups') and adaptation.get('skill_section_order') %}
@@ -151,7 +151,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 <div class="bottom-grid">
 
 <section class="section">
-<h2 class="section-title">Education</h2>
+<h2 class="section-title">{{ titles.education or "EDUCATION" }}</h2>
 
 {% for edu in master_cv.education %}
 <div class="edu-item">
@@ -163,7 +163,7 @@ li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
 </section>
 
 <section class="section">
-<h2 class="section-title">Certifications & Languages</h2>
+<h2 class="section-title">{{ titles.certifications or "CERTIFICATIONS & LANGUAGES" }}</h2>
 
 <div class="simple-text">
 {% for cert in master_cv.certifications %}

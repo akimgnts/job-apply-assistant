@@ -5,7 +5,11 @@ from app.config import config
 from app.services.openai_service import generate_text, generate_cv_payload
 from app.services.document_service import render_cv, render_letter, render_mail, save_document, get_output_path
 from app.services.master_cv_service import load_master_cv, validate_adaptation
-from app.services.language_service import detect_job_offer_language, translate_bullet_to_english, get_translated_section_titles
+from app.services.language_service import (
+    detect_job_offer_language,
+    translate_bullet_to_english,
+    get_translated_section_titles,
+)
 from app.services.skill_grouping_service import build_skill_groups_for_template
 from app.prompts.generation_prompt import get_cv_payload_prompt, get_cv_prompt, get_mail_prompt
 from app.agents.matching_agent import MatchingAgent
@@ -289,12 +293,15 @@ class GenerationAgent:
         master_cv: dict,
         positioning: str,
         job_analysis: dict = None,
+        cv_language: str = "fr",
     ) -> dict:
         """Build intelligent fallback when CVAdaptationAgent fails.
 
         Uses relevance-based selection (not first-N, not exhaustive).
         Scores bullets against job offer and selects most relevant.
         Different job offers produce different selections.
+
+        cv_language: Detected job offer language (fr/en) for output consistency
         """
         from app.services.summary_service import build_deterministic_summary
         from app.services.intelligent_selection_service import RelevanceScorer
@@ -381,8 +388,9 @@ class GenerationAgent:
         )
 
         # Convert to template format with job_analysis for skill grouping
+        # Use detected offer language (fr/en) for CV output consistency
         return GenerationAgent._convert_source_adaptation_to_template_format(
-            source_adaptation, master_cv, language="fr", job_analysis=job_analysis
+            source_adaptation, master_cv, language=cv_language, job_analysis=job_analysis
         )
 
     @staticmethod
@@ -656,7 +664,7 @@ class GenerationAgent:
         except Exception as e:
             logger.error(f"CV adaptation failed: {e}, using fallback")
             try:
-                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning, analysis)
+                adaptation = GenerationAgent._build_fallback_adaptation(master_cv, positioning, analysis, cv_language)
             except Exception as fallback_error:
                 logger.error(f"Fallback adaptation also failed: {fallback_error}, using minimal adaptation")
                 # Absolute fallback: minimal safe adaptation that doesn't need master_cv
@@ -675,6 +683,7 @@ class GenerationAgent:
 
         # Build context for master_cv.html template
         candidate = GenerationAgent._build_candidate_info(db)
+        section_titles = get_translated_section_titles(cv_language)
 
         context = {
             "candidate": candidate,
@@ -682,6 +691,7 @@ class GenerationAgent:
             "master_cv": master_cv,
             "positioning": positioning,
             "analysis_job_title": analysis.get("job_title", "") if analysis else "",
+            "titles": section_titles,
         }
 
         # Render master_cv.html with adaptation payload
