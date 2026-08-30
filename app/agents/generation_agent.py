@@ -112,7 +112,14 @@ class GenerationAgent:
             master_cv.get("skills", [])
         )
 
+        # Template expects skill_section_order (not skill_groups)
         adaptation["skill_groups"] = skill_groups
+
+        # Add skill_section_order for template conditional (line 126 of master_cv.html)
+        if skill_groups:
+            adaptation["skill_section_order"] = list(skill_groups.keys())
+            adaptation["skill_section_emphasis"] = {}
+
         logger.info(f"SKILLS: Added {len(skill_groups)} skill groups to adaptation")
 
         return adaptation
