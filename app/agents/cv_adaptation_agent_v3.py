@@ -403,6 +403,9 @@ Return JSON ONLY:
         # Option: Check if Master CV has a pre-written summary
         # (For now, use minimal template)
 
+        if not positioning:
+            return "Experienced professional with strong technical background."
+
         parts = positioning.split("|")
         primary = parts[0].strip()
         secondary = parts[1].strip() if len(parts) > 1 else ""
