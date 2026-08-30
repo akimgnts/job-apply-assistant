@@ -1,5 +1,6 @@
 import json
 import logging
+import unicodedata
 from openai import AsyncOpenAI
 from app.config import config
 
@@ -7,11 +8,26 @@ logger = logging.getLogger(__name__)
 
 client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
 
+
+def _normalize_text(text: str) -> str:
+    """Remove accents and normalize Unicode for OpenAI API compatibility.
+
+    Fixes: UnicodeEncodeError when prompt contains French accents.
+    """
+    if not text:
+        return text
+    # Decompose accented characters and remove combining marks
+    nfd = unicodedata.normalize('NFD', text)
+    return ''.join(c for c in nfd if unicodedata.category(c) != 'Mn')
+
 async def call_openai(prompt: str, json_mode: bool = False) -> str:
     try:
+        # Normalize Unicode to prevent encoding errors (e.g., French accents)
+        normalized_prompt = _normalize_text(prompt)
+
         kwargs = {
             "model": config.OPENAI_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [{"role": "user", "content": normalized_prompt}],
             "temperature": 0.7,
             "timeout": config.OPENAI_TIMEOUT_SECONDS,
         }
