@@ -231,3 +231,69 @@ class ConversationHistory(Base):
     content = Column(Text, nullable=False)
     metadata_json = Column("metadata", JSON, default=dict)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+
+class Company(Base):
+    """Employer aggregation for Job Market Radar MVP.
+
+    Groups job offers by company; tracks recruitment activity.
+    """
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    website = Column(String(500), nullable=True)
+    job_count_this_week = Column(Integer, default=0)
+    skill_frequency = Column(JSON, default=dict)  # {"Python": 3, "SQL": 2, ...}
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    job_offers = relationship("JobOffer", back_populates="company")
+    contacts = relationship("CompanyContact", back_populates="company")
+
+
+class JobOffer(Base):
+    """Scraped job posting linked to a company.
+
+    MVP Phase 1: stores URL, title, required_skills, raw_text from trafilatura.
+    """
+    __tablename__ = "job_offers"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    job_title = Column(String(255), nullable=False)
+    job_url = Column(Text, nullable=False, unique=True)
+    source = Column(String(50), nullable=False)  # "indeed", "linkedin", "website", etc.
+    raw_text = Column(Text, nullable=True)  # trafilatura output
+    required_skills = Column(JSON, default=list)  # ["Python", "SQL", ...]
+    posted_date = Column(DateTime, nullable=True)
+    status = Column(String(20), default="active")  # "active", "closed", "archived"
+    last_scraped_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company", back_populates="job_offers")
+
+
+class CompanyContact(Base):
+    """Hiring contact at a company (manual verification for MVP Phase 1).
+
+    source_url is mandatory: LinkedIn profile, company careers page, etc.
+    verification_status tracks lead quality.
+    """
+    __tablename__ = "company_contacts"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    contact_name = Column(String(255), nullable=False)
+    role_raw = Column(String(255), nullable=False)  # Free text: "Talent Acquisition Manager"
+    role_category = Column(String(100), nullable=True)  # Normalized: "recruiter", "manager", etc.
+    email = Column(String(255), nullable=True)
+    linkedin_url = Column(String(500), nullable=True)
+    source_url = Column(String(500), nullable=False)  # MANDATORY: LinkedIn/website/careers
+    data_source = Column(String(50), nullable=False)  # "manual_verified", "linkedin", "website"
+    verification_status = Column(String(20), default="verified")  # "verified", "pending", "invalid"
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company", back_populates="contacts")
