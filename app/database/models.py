@@ -299,3 +299,29 @@ class CompanyContact(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     company = relationship("Company", back_populates="contacts")
+
+
+class OutreachDraft(Base):
+    """Outreach message draft (Phase 6).
+
+    Generated from company intelligence + contact + job analysis.
+    Grounded against Master CV evidence before status = READY.
+    """
+    __tablename__ = "outreach_drafts"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    contact_id = Column(Integer, ForeignKey("company_contacts.id"), nullable=False)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True)
+    channel = Column(String(50), default="email")  # "email", "linkedin", etc.
+    subject_line = Column(String(200), nullable=True)
+    message_text = Column(Text, nullable=False)
+    evidence_ids = Column(JSON, default=list)  # ["SIDEL.DATA_&_BI.001", ...]
+    grounding_result = Column(JSON, nullable=True)  # {grounded: bool, unsupported_claims: [...]}
+    status = Column(String(50), default="DRAFT")  # "DRAFT", "READY", "NEEDS_REVIEW", "ARCHIVED"
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company")
+    contact = relationship("CompanyContact")
+    job_offer = relationship("JobOffer")
