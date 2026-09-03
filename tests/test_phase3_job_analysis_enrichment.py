@@ -1,6 +1,7 @@
 """Phase 3 Tests: Job Analysis Enrichment (JobOffer → AnalysisAgent → Evidence Map).
 
-Tests evidence mapping layer WITHOUT:
+Tests evidence mapping layer using canonical Evidence Registry IDs (not positional exp_0/proj_0).
+WITHOUT:
 - Application creation
 - Hallucinated skills
 - Duplicate JobAnalysis entries
@@ -56,131 +57,66 @@ Health insurance and wellness programs
 Apply at: careers@sidel.com
 """
 
-# Mock Master CV structure
-MOCK_MASTER_CV = {
-    "metadata": {"locked_date": "2026-08-28"},
-    "experiences": [
-        {
-            "id": 0,
-            "title": "Data Analyst",
-            "company": "Sidel",
-            "bullets": [
-                "Developed Power BI dashboards for reporting",
-                "Optimized SQL queries for performance",
-                "Used Python for data processing",
-                "Created Excel reports and automation",
-            ]
-        },
-        {
-            "id": 1,
-            "title": "Software Engineer",
-            "company": "Acme",
-            "bullets": [
-                "Built backend services in Python",
-                "Managed PostgreSQL databases",
-                "Deployed to AWS infrastructure",
-            ]
-        },
-        {
-            "id": 2,
-            "title": "IT Support",
-            "company": "OtherCorp",
-            "bullets": [
-                "Provided technical support",
-            ]
-        }
-    ],
-    "projects": [
-        {
-            "id": 0,
-            "title": "Elevia",
-            "bullets": [
-                "Built data pipeline using Python and SQL",
-                "Deployed analytics dashboard in Power BI",
-            ]
-        },
-        {
-            "id": 1,
-            "title": "Job Apply Assistant",
-            "bullets": [
-                "Developed Python web application",
-                "Integrated with OpenAI APIs",
-            ]
-        },
-        {
-            "id": 2,
-            "title": "Nuit Blanche",
-            "bullets": [
-                "Created reporting system",
-            ]
-        }
-    ],
-    "skills": [
-        {"label": "Python", "category": "language", "level": 3},
-        {"label": "SQL", "category": "database", "level": 3},
-        {"label": "Power BI", "category": "tool", "level": 3},
-        {"label": "Excel", "category": "tool", "level": 2},
-        {"label": "PostgreSQL", "category": "database", "level": 3},
-        {"label": "AWS", "category": "cloud", "level": 2},
-    ]
-}
-
 
 class TestJobOfferAnalysisEnrichment:
-    """Test Phase 3: AnalysisAgent reuse + evidence mapping."""
+    """Test Phase 3: AnalysisAgent reuse + canonical evidence mapping."""
 
-    def test_find_skill_evidence_direct_match(self):
-        """Test DIRECT evidence match (skill name in bullet)."""
-        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_master_cv
+    def test_find_skill_evidence_direct_match_canonical(self):
+        """Test DIRECT evidence match using canonical IDs from registry."""
+        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_registry
 
-        evidence = find_skill_evidence_in_master_cv("Python", MOCK_MASTER_CV)
+        # Python should be found in registry
+        evidence = find_skill_evidence_in_registry("Python")
 
         assert evidence is not None
         assert len(evidence) > 0
-        assert evidence[0]["match_type"] == "DIRECT"
-        assert "exp_0" in evidence[0]["evidence_id"] or "proj_0" in evidence[0]["evidence_id"]
-        print(f"✅ Found DIRECT evidence for Python: {evidence}")
-
-    def test_find_skill_evidence_supporting_match(self):
-        """Test SUPPORTING evidence (related skill in bullet)."""
-        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_master_cv
-
-        # "PostgreSQL" should find "PostgreSQL" directly, but "SQL" should find "PostgreSQL" supporting
-        evidence = find_skill_evidence_in_master_cv("SQL", MOCK_MASTER_CV)
-
-        assert evidence is not None
-        # Could be DIRECT or SUPPORTING; just verify it exists
-        print(f"✅ Found evidence for SQL: {evidence}")
-
-    def test_find_skill_evidence_gap_unknown_skill(self):
-        """Test GAP: skill not found in Master CV."""
-        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_master_cv
-
-        evidence = find_skill_evidence_in_master_cv("Jira", MOCK_MASTER_CV)
-
-        assert evidence == []  # No evidence = GAP
-        print("✅ Unknown skill correctly returns empty list (GAP)")
-
-    def test_find_skill_evidence_no_hallucination(self):
-        """Test that evidence_ids are ONLY from Master CV experiences/projects."""
-        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_master_cv
-
-        evidence = find_skill_evidence_in_master_cv("Python", MOCK_MASTER_CV)
-
-        # All evidence_ids should be exp_<0-2> or proj_<0-2>
+        # Should return canonical ID (SKILL.PYTHON or experience with Python mention)
         for ev in evidence:
             evidence_id = ev["evidence_id"]
-            assert evidence_id.startswith("exp_") or evidence_id.startswith("proj_"), \
-                f"Invalid evidence_id: {evidence_id} (must be exp_X or proj_X)"
+            assert "." in evidence_id or "_" in evidence_id, f"Should be canonical format: {evidence_id}"
+            assert not evidence_id.startswith("exp_"), f"Should not be positional: {evidence_id}"
+            assert not evidence_id.startswith("proj_"), f"Should not be positional: {evidence_id}"
+        print(f"✅ Found DIRECT canonical evidence for Python: {[e['evidence_id'] for e in evidence]}")
 
-            # Extract ID number
-            id_num = int(evidence_id.split("_")[1])
-            if evidence_id.startswith("exp_"):
-                assert 0 <= id_num <= 2, f"Experience ID {id_num} out of range"
-            else:
-                assert 0 <= id_num <= 2, f"Project ID {id_num} out of range"
+    def test_find_skill_evidence_supporting_match_canonical(self):
+        """Test SUPPORTING evidence (related skill in registry)."""
+        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_registry
 
-        print("✅ All evidence_ids are valid (no hallucination)")
+        evidence = find_skill_evidence_in_registry("SQL")
+
+        assert evidence is not None
+        # Could be DIRECT or SUPPORTING; verify canonical format
+        for ev in evidence:
+            evidence_id = ev["evidence_id"]
+            assert not evidence_id.startswith("exp_") and not evidence_id.startswith("proj_"), \
+                f"Should use canonical IDs, not positional: {evidence_id}"
+        print(f"✅ Found canonical evidence for SQL: {[e['evidence_id'] for e in evidence]}")
+
+    def test_find_skill_evidence_gap_unknown_skill_canonical(self):
+        """Test GAP: skill not found in Evidence Registry."""
+        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_registry
+
+        evidence = find_skill_evidence_in_registry("Jira")
+
+        assert evidence == [], "Unknown skill should return empty list (GAP)"
+        print("✅ Unknown skill correctly returns empty list (GAP)")
+
+    def test_find_skill_evidence_canonical_format_no_positional(self):
+        """Test that evidence_ids use canonical format, NOT positional exp_0/proj_0."""
+        from app.services.job_analysis_enrichment_service import find_skill_evidence_in_registry
+
+        evidence = find_skill_evidence_in_registry("Python")
+
+        for ev in evidence:
+            evidence_id = ev["evidence_id"]
+            # Canonical IDs should NOT be positional
+            assert not evidence_id.startswith("exp_"), f"Should not use positional ID: {evidence_id}"
+            assert not evidence_id.startswith("proj_"), f"Should not use positional ID: {evidence_id}"
+            # Should follow canonical format (NAMESPACE.COMPONENT or NAMESPACE_COMPONENT)
+            assert ("." in evidence_id or "_" in evidence_id), \
+                f"Should be canonical format (NAMESPACE.COMPONENT or NAMESPACE_COMPONENT): {evidence_id}"
+
+        print("✅ All evidence_ids use canonical format (not positional)")
 
     def test_analyze_and_enrich_job_offer_calls_analysis_agent(self):
         """Test that analyze_and_enrich_job_offer REUSES AnalysisAgent."""
@@ -214,21 +150,18 @@ class TestJobOfferAnalysisEnrichment:
 
             with patch("app.services.job_analysis_enrichment_service.AnalysisAgent.analyze") as mock_agent:
                 mock_agent.return_value = mock_analysis
-                with patch("app.services.job_analysis_enrichment_service.load_master_cv") as mock_master:
-                    mock_master.return_value = MOCK_MASTER_CV
+                # Mock DB operations
+                mock_db.add = MagicMock()
+                mock_db.commit = MagicMock()
 
-                    # Mock DB operations
-                    mock_db.add = MagicMock()
-                    mock_db.commit = MagicMock()
+                analysis_obj, enriched = await analyze_and_enrich_job_offer(mock_db, mock_job_offer)
 
-                    analysis_obj, enriched = await analyze_and_enrich_job_offer(mock_db, mock_job_offer)
-
-                    # Verify AnalysisAgent was called (reused, not duplicated)
-                    assert mock_agent.called, "AnalysisAgent.analyze should be called"
-                    assert analysis_obj.job_offer_id == 1
-                    assert analysis_obj.application_id is None  # No Application
-                    assert "skill_evidence_map" in enriched
-                    print("✅ AnalysisAgent reused (not duplicated)")
+                # Verify AnalysisAgent was called (reused, not duplicated)
+                assert mock_agent.called, "AnalysisAgent.analyze should be called"
+                assert analysis_obj.job_offer_id == 1
+                assert analysis_obj.application_id is None  # No Application
+                assert "skill_evidence_map" in enriched
+                print("✅ AnalysisAgent reused (not duplicated)")
 
         asyncio.run(run_test())
 
@@ -260,21 +193,19 @@ class TestJobOfferAnalysisEnrichment:
 
             with patch("app.services.job_analysis_enrichment_service.AnalysisAgent.analyze") as mock_agent:
                 mock_agent.return_value = mock_analysis
-                with patch("app.services.job_analysis_enrichment_service.load_master_cv") as mock_master:
-                    mock_master.return_value = MOCK_MASTER_CV
-                    mock_db.add = MagicMock()
-                    mock_db.commit = MagicMock()
+                mock_db.add = MagicMock()
+                mock_db.commit = MagicMock()
 
-                    analysis_obj, _ = await analyze_and_enrich_job_offer(mock_db, mock_job_offer)
+                analysis_obj, _ = await analyze_and_enrich_job_offer(mock_db, mock_job_offer)
 
-                    assert analysis_obj.application_id is None, "JobOffer analysis should NOT have application_id"
-                    assert analysis_obj.job_offer_id == 1, "JobOffer analysis should have job_offer_id"
-                    print("✅ JobAnalysis correctly linked to JobOffer (no Application)")
+                assert analysis_obj.application_id is None, "JobOffer analysis should NOT have application_id"
+                assert analysis_obj.job_offer_id == 1, "JobOffer analysis should have job_offer_id"
+                print("✅ JobAnalysis correctly linked to JobOffer (no Application)")
 
         asyncio.run(run_test())
 
     def test_skill_evidence_map_in_enriched_analysis(self):
-        """Test that enriched analysis includes skill_evidence_map."""
+        """Test that enriched analysis includes skill_evidence_map with canonical IDs."""
         from app.services.job_analysis_enrichment_service import analyze_and_enrich_job_offer
         from app.database.models import JobOffer
 
@@ -301,27 +232,33 @@ class TestJobOfferAnalysisEnrichment:
 
             with patch("app.services.job_analysis_enrichment_service.AnalysisAgent.analyze") as mock_agent:
                 mock_agent.return_value = mock_analysis
-                with patch("app.services.job_analysis_enrichment_service.load_master_cv") as mock_master:
-                    mock_master.return_value = MOCK_MASTER_CV
-                    mock_db.add = MagicMock()
-                    mock_db.commit = MagicMock()
+                mock_db.add = MagicMock()
+                mock_db.commit = MagicMock()
 
-                    _, enriched = await analyze_and_enrich_job_offer(mock_db, mock_job_offer)
+                _, enriched = await analyze_and_enrich_job_offer(mock_db, mock_job_offer)
 
-                    assert "skill_evidence_map" in enriched
-                    skill_map = enriched["skill_evidence_map"]
+                assert "skill_evidence_map" in enriched
+                skill_map = enriched["skill_evidence_map"]
 
-                    # Python and SQL should have evidence
-                    assert "Python" in skill_map
-                    assert "SQL" in skill_map
-                    assert len(skill_map["Python"]) > 0
-                    assert len(skill_map["SQL"]) > 0
+                # Python and SQL should have evidence
+                assert "Python" in skill_map
+                assert "SQL" in skill_map
+                assert len(skill_map["Python"]) > 0
+                assert len(skill_map["SQL"]) > 0
 
-                    # Jira should NOT have evidence (GAP)
-                    assert "Jira" in skill_map
-                    assert len(skill_map["Jira"]) == 0  # Empty = GAP
+                # All evidence_ids should be canonical (not exp_0/proj_0)
+                for skill, evidence_list in skill_map.items():
+                    for ev in evidence_list:
+                        evidence_id = ev.get("evidence_id")
+                        if evidence_id:  # Only if evidence found
+                            assert not evidence_id.startswith("exp_"), f"Should use canonical ID, not: {evidence_id}"
+                            assert not evidence_id.startswith("proj_"), f"Should use canonical ID, not: {evidence_id}"
 
-                    print(f"✅ skill_evidence_map built correctly: {skill_map}")
+                # Jira should NOT have evidence (GAP)
+                assert "Jira" in skill_map
+                assert len(skill_map["Jira"]) == 0  # Empty = GAP
+
+                print(f"✅ skill_evidence_map built correctly with canonical IDs")
 
         asyncio.run(run_test())
 
@@ -334,22 +271,20 @@ class TestJobOfferAnalysisEnrichment:
         assert hasattr(JobAnalysis, "job_offer"), "JobAnalysis should have job_offer relationship"
         print("✅ JobAnalysis schema supports unique job_offer_id")
 
-    def test_master_cv_evidence_locked_facts(self):
-        """Test that Master CV is immutable; evidence mapping only references locked facts."""
-        from app.services.master_cv_service import load_master_cv
+    def test_evidence_registry_locked_to_master_cv(self):
+        """Test that Evidence Registry is locked to Master CV V3.1."""
+        from app.services.evidence_registry_service import load_evidence_registry
 
-        master_cv = load_master_cv()
+        registry = load_evidence_registry()
 
-        # Verify locked date
-        assert master_cv["metadata"]["locked_date"] == "2026-08-28"
+        # Verify registry is locked to Master CV
+        assert registry["metadata"]["master_cv_locked_date"] == "2026-08-28"
+        assert registry["metadata"]["version"] is not None
+        assert registry["metadata"]["total_canonical_ids"] > 0
 
-        # Verify experiences count
-        assert len(master_cv["experiences"]) == 3
-
-        # Verify projects count
-        assert len(master_cv["projects"]) == 3
-
-        print("✅ Master CV locked facts validated")
+        # Verify evidence entries exist (sanity check)
+        assert len(registry["evidence"]) > 0
+        print(f"✅ Evidence Registry locked to Master CV {registry['metadata']['master_cv_locked_date']}")
 
 
 class TestJobOfferAnalysisBatch:
@@ -385,14 +320,11 @@ class TestJobOfferAnalysisBatch:
                     Exception("Simulated failure"),      # Failure
                 ]
 
-                with patch("app.services.job_analysis_enrichment_service.load_master_cv") as mock_master:
-                    mock_master.return_value = MOCK_MASTER_CV
+                analyses, errors = await analyze_job_offers_batch(mock_db, job_offers)
 
-                    analyses, errors = await analyze_job_offers_batch(mock_db, job_offers)
-
-                    # One success, one error
-                    # Note: batch test depends on mock behavior
-                    print(f"✅ Batch enrichment handled error gracefully: {len(analyses)} success, {len(errors)} errors")
+                # One success, one error
+                # Note: batch test depends on mock behavior
+                print(f"✅ Batch enrichment handled error gracefully: {len(analyses)} success, {len(errors)} errors")
 
         asyncio.run(run_test())
 

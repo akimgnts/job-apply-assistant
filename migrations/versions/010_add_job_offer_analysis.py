@@ -9,6 +9,7 @@ Phase 3: Link JobAnalysis to JobOffer (not just Application).
 - Add job_offer_id nullable FK to job_offers.id
 - Keep application_id (legacy support for Application-based analyses)
 - Either job_offer_id or application_id must be set (enforced at app layer)
+- skill_evidence_map stored in analysis_json (single source of truth)
 - Add index on job_offer_id for query performance
 """
 from alembic import op
@@ -22,7 +23,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    """Add job_offer_id column to job_analyses table."""
+    """Add job_offer_id FK to job_analyses table."""
 
     # Add job_offer_id FK column
     op.add_column(

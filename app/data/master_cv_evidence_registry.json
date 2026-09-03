@@ -1,0 +1,683 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created_at": "2026-09-03T10:22:09.828715",
+    "master_cv_locked_date": "2026-08-28",
+    "total_canonical_ids": 84,
+    "description": "Canonical Evidence Registry: stable IDs mapped to Master CV V3.1. Used by Phase 3 for deterministic evidence mapping."
+  },
+  "evidence": {
+    "SIDEL.DATA_&_BI.001": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Data & BI",
+      "field": "bullets",
+      "text": "Conception et déploiement de 6+ dashboards Power BI utilisés chaque semaine par des dizaines de collaborateurs et managers de différentes fonctions métier.",
+      "fingerprint": "58200dea8ca11d96"
+    },
+    "SIDEL.DATA_&_BI.002": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Data & BI",
+      "field": "bullets",
+      "text": "Automatisation d'un reporting hebdomadaire auparavant traité sous Excel en 5–6 h, ramenant le processus à environ 1 h/semaine, contrôle des résultats inclus — soit environ 80 % de temps de traitement économisé.",
+      "fingerprint": "3dd8442fe4bd0fb8"
+    },
+    "SIDEL.DATA_&_BI.003": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Data & BI",
+      "field": "bullets",
+      "text": "Développement de dashboards Power BI et de reportings décisionnels pour les équipes Marketing, Sales et Management d'un groupe industriel international.",
+      "fingerprint": "8cdf0aeca39b9a74"
+    },
+    "SIDEL.DATA_&_BI.004": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Data & BI",
+      "field": "bullets",
+      "text": "Consolidation et analyse de données clients, commerciales et Installed Base avec Excel, Power Query, Power BI, Python et SQL ; contrôle de cohérence et amélioration de la qualité des données.",
+      "fingerprint": "84e73b774a35c852"
+    },
+    "SIDEL.DATA_&_BI.005": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Data & BI",
+      "field": "bullets",
+      "text": "Construction de mesures et KPI sous DAX pour fiabiliser les indicateurs affichés aux équipes métier",
+      "fingerprint": "dae1937de6e5bd49"
+    },
+    "SIDEL.DATA_&_BI.006": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Data & BI",
+      "field": "bullets",
+      "text": "Modélisation des données en amont des dashboards (star schema, tables de faits et dimensions) pour structurer les modèles Power BI",
+      "fingerprint": "49ef5619292ee328"
+    },
+    "SIDEL.CAS_D'USAGE_BI.007": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Pilotage commercial / CRM",
+      "field": "bullets",
+      "text": "Conception d'un dashboard de pilotage commercial permettant aux responsables de suivre rapidement l'activité de leurs équipes : performance par commercial, rendez-vous, nouvelles opportunités, évolution et touchpoints clients.",
+      "fingerprint": "03af28cbe1d58634"
+    },
+    "SIDEL.CAS_D'USAGE_BI.008": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Pilotage commercial / CRM",
+      "field": "bullets",
+      "text": "Exploitation de l'historique des interactions clients afin d'aider les commerciaux à prioriser les relances selon la date du dernier contact et le contexte business.",
+      "fingerprint": "13a3f94b00f80582"
+    },
+    "SIDEL.CAS_D'USAGE_BI.009": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Pilotage commercial / CRM",
+      "field": "bullets",
+      "text": "Transformation des données CRM en priorités commerciales directement actionnables par les équipes Sales.",
+      "fingerprint": "346ade94288e036f"
+    },
+    "SIDEL.CAS_D'USAGE_BI.010": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Event Analytics Europe",
+      "field": "bullets",
+      "text": "Conception d'un dashboard Power BI de pilotage des salons européens, utilisable par les équipes Communication pour suivre les événements passés et à venir.",
+      "fingerprint": "36f06004087e4755"
+    },
+    "SIDEL.CAS_D'USAGE_BI.011": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Event Analytics Europe",
+      "field": "bullets",
+      "text": "Rapprochement de plusieurs sources auparavant séparées : données de présence/contacts collectées sur les salons et réponses aux questionnaires de satisfaction.",
+      "fingerprint": "30d6083909ae4211"
+    },
+    "SIDEL.CAS_D'USAGE_BI.012": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Event Analytics Europe",
+      "field": "bullets",
+      "text": "Construction d'un funnel événementiel et commercial suivant visites, contacts, prises de contact, rendez-vous et progression vers les opportunités commerciales.",
+      "fingerprint": "3c7d9c6d65bac118"
+    },
+    "SIDEL.CAS_D'USAGE_BI.013": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Cas d'usage BI — Event Analytics Europe",
+      "field": "bullets",
+      "text": "Centralisation des KPI de performance événementielle et de satisfaction dans un reporting continuellement actualisé à l'échelle Europe.",
+      "fingerprint": "5961558bd7f5dc0c"
+    },
+    "SIDEL.INITIATIVE_EXPLORATO.014": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Initiative exploratoire — Installed Base / Service / Spare Parts",
+      "field": "bullets",
+      "text": "Exploration d'un cas d'usage exploitant les données d'Installed Base et les caractéristiques d'utilisation des équipements (cycles, cadence, fonctionnement) afin d'anticiper des besoins potentiels liés à l'usure.",
+      "fingerprint": "95a711d632a31d2a"
+    },
+    "SIDEL.INITIATIVE_EXPLORATO.015": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Initiative exploratoire — Installed Base / Service / Spare Parts",
+      "field": "bullets",
+      "text": "Réflexion sur l'utilisation de ces signaux techniques propriétaires pour identifier et prioriser des opportunités de relance Service / spare parts auprès des clients.",
+      "fingerprint": "28441795f0df97ea"
+    },
+    "SIDEL.INITIATIVE_EXPLORATO.016": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Initiative exploratoire — Installed Base / Service / Spare Parts",
+      "field": "bullets",
+      "text": "Projet exploratoire uniquement : ne jamais le présenter comme modèle prédictif finalisé ou solution mise en production.",
+      "fingerprint": "58a3eae57ec0a931"
+    },
+    "SIDEL.BUSINESS_&_MARKETING.017": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business & Marketing",
+      "field": "bullets",
+      "text": "Analyse d'un portefeuille Wines & Spirits de 61 comptes en croisant équipements installés, services et potentiel commercial afin d'identifier opportunités et priorités.",
+      "fingerprint": "1f9da2dd565ed4e9"
+    },
+    "SIDEL.BUSINESS_&_MARKETING.018": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business & Marketing",
+      "field": "bullets",
+      "text": "Suivi des leads, KPI marketing, NPS et retours clients ; production de synthèses, recommandations et présentations adaptées aux métiers.",
+      "fingerprint": "2022ce623551914c"
+    },
+    "SIDEL.BUSINESS_&_MARKETING.019": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business & Marketing",
+      "field": "bullets",
+      "text": "Traduction d'analyses Installed Base en priorités commerciales exploitables par les équipes Sales.",
+      "fingerprint": "2fd8a95026b0e567"
+    },
+    "SIDEL.STAKEHOLDERS_&_INTER.020": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Stakeholders & International",
+      "field": "bullets",
+      "text": "Coordination de sujets transverses et présentation des résultats en français et en anglais auprès de parties prenantes internationales.",
+      "fingerprint": "821f930da971ba89"
+    },
+    "SIDEL.STAKEHOLDERS_&_INTER.021": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Stakeholders & International",
+      "field": "bullets",
+      "text": "Préparation de supports de présentation pour comités et réunions avec des interlocuteurs Marketing, Sales et Management dans plusieurs pays.",
+      "fingerprint": "c95e6aff3811273c"
+    },
+    "SIDEL.BUSINESS_ANALYST_/_P.022": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business Analyst / Product",
+      "field": "bullets",
+      "text": "Recueil et formalisation de besoins utilisateurs, notamment sous forme de user stories, pour des besoins de reporting et d'outillage interne.",
+      "fingerprint": "0f9178fb2857a4fb"
+    },
+    "SIDEL.BUSINESS_ANALYST_/_P.023": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business Analyst / Product",
+      "field": "bullets",
+      "text": "Conception autonome de dashboards à partir du besoin métier : choix et ajout de KPI pertinents, règles de calcul, filtres, structure de restitution et évolutions fonctionnelles.",
+      "fingerprint": "2777b7112791424c"
+    },
+    "SIDEL.BUSINESS_ANALYST_/_P.024": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business Analyst / Product",
+      "field": "bullets",
+      "text": "Réalisation des phases de recette/tests, vérification des résultats, identification des anomalies et correction autonome lorsque possible avant diffusion.",
+      "fingerprint": "e43c16b7a8b2686e"
+    },
+    "SIDEL.BUSINESS_ANALYST_/_P.025": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business Analyst / Product",
+      "field": "bullets",
+      "text": "Collaboration transverse avec les équipes IT, CRM, Service après-vente, Sales, Communication et Marketing pour cadrer les besoins, résoudre les problèmes de données et rendre les livrables exploitables.",
+      "fingerprint": "a042646d22c46157"
+    },
+    "SIDEL.BUSINESS_ANALYST_/_P.026": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Business Analyst / Product",
+      "field": "bullets",
+      "text": "Fonctionnement en mode Agile (sprints, priorisation Kanban) sur le suivi des sujets reporting",
+      "fingerprint": "0c3779be5a63d9ce"
+    },
+    "SIDEL.CONTENU_&_ÉVÉNEMENTI.027": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Contenu & Événementiel",
+      "field": "bullets",
+      "text": "Production de contenus et supports analytiques pour les salons professionnels internationaux Hispack Barcelona et PPMA Birmingham.",
+      "fingerprint": "aae2ccaa1873196b"
+    },
+    "SIDEL.CONTENU_&_ÉVÉNEMENTI.028": {
+      "source_type": "experience",
+      "source_company": "Sidel — Groupe Tetra Laval",
+      "source_title": "Data & Business Analyst — International Stakeholder Reporting",
+      "source_section": "Contenu & Événementiel",
+      "field": "bullets",
+      "text": "Contribution à la mise en forme de synthèses et recommandations diffusées aux équipes métier.",
+      "fingerprint": "5aaf8db0c0c1cecb"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_DATA/IA.029": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Data/IA",
+      "field": "bullets",
+      "text": "Analyse des besoins métiers et traduction en cas d'usage Data/IA, règles fonctionnelles et architectures.",
+      "fingerprint": "deafbfabc52c871d"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_DATA/IA.030": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Data/IA",
+      "field": "bullets",
+      "text": "Conception de solutions de bout en bout avec Python, FastAPI, PostgreSQL, SQL et APIs REST : ingestion, transformation, stockage et restitution.",
+      "fingerprint": "613751160e25d9be"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_DATA/IA.031": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Data/IA",
+      "field": "bullets",
+      "text": "Développement de pipelines intégrant contrôle qualité, normalisation, classification, scoring et validation humaine avant persistance en base.",
+      "fingerprint": "12e82886b82738ba"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_AUTOMATION.032": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Automation",
+      "field": "bullets",
+      "text": "Automatisation avec n8n, Make, Google Apps Script, webhooks et APIs afin de réduire les tâches manuelles et fiabiliser les traitements.",
+      "fingerprint": "2d9384b1c547daad"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_AUTOMATION.033": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Automation",
+      "field": "bullets",
+      "text": "Orchestration agentique et multi-agent (parsing, analyse, scoring, génération documentaire) sur des workflows métier réels.",
+      "fingerprint": "cda5ef5f4b24bf2f"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_PRODUCT_/_PROJ.034": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Product / Project Management",
+      "field": "bullets",
+      "text": "Cadrage de bout en bout de chaque produit : besoin métier → architecture → développement → mise en production, en autonomie.",
+      "fingerprint": "931a7d60829b1674"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_PRODUCT_/_PROJ.035": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Product / Project Management",
+      "field": "bullets",
+      "text": "Gestion de plusieurs projets en parallèle (Elevia, Job Apply Assistant, Nuit Blanche) avec priorisation et arbitrages de scope.",
+      "fingerprint": "837c0b251197224e"
+    },
+    "MADEBYAKIM_(FREELANCE).ANGLE_PRODUCT_/_PROJ.036": {
+      "source_type": "experience",
+      "source_company": "MadeByAkim (freelance)",
+      "source_title": "AI Transformation Consultant & Product Builder",
+      "source_section": "Angle Product / Project Management",
+      "field": "bullets",
+      "text": "Mise en place de tests, logs, documentation, versioning Git, Docker et déploiement (Coolify) pour assurer robustesse, traçabilité et maintenabilité.",
+      "fingerprint": "42b891b4dbba80c5"
+    },
+    "VASSARD_OMB_MOBILIER.MAIN.037": {
+      "source_type": "experience",
+      "source_company": "Vassard OMB Mobilier",
+      "source_title": "Business Development & Reporting",
+      "source_section": "Main",
+      "field": "bullets",
+      "text": "Structuration des données CRM et du reporting pour améliorer la visibilité commerciale et le pilotage de la prospection.",
+      "fingerprint": "454d8b3b20c24ba2"
+    },
+    "VASSARD_OMB_MOBILIER.MAIN.038": {
+      "source_type": "experience",
+      "source_company": "Vassard OMB Mobilier",
+      "source_title": "Business Development & Reporting",
+      "source_section": "Main",
+      "field": "bullets",
+      "text": "Qualification des besoins clients, analyse d'opportunités et accompagnement du développement commercial B2B.",
+      "fingerprint": "f5083647f99f50e1"
+    },
+    "PROJECT.ELEVIA.001": {
+      "source_type": "project",
+      "source_title": "Elevia — Plateforme de recommandation & Data Quality",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "Conception d'un moteur combinant extraction structurée, matching sémantique, classification et scoring explicable (Python, FastAPI, PostgreSQL, OpenAI, LangChain, ESCO).",
+      "fingerprint": "f4578c1d37a52374"
+    },
+    "PROJECT.ELEVIA.002": {
+      "source_type": "project",
+      "source_title": "Elevia — Plateforme de recommandation & Data Quality",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "10+ cycles d'évaluation sur 30 profils et 1 000+ offres pour mesurer la pertinence métier et réduire les faux positifs.",
+      "fingerprint": "1fa824c136e81a05"
+    },
+    "PROJECT.ELEVIA.003": {
+      "source_type": "project",
+      "source_title": "Elevia — Plateforme de recommandation & Data Quality",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "Intégration d'ESCO, normalisation des compétences et workflows de replay pour conserver un système testable et auditable.",
+      "fingerprint": "af6a2ff582c74188"
+    },
+    "PROJECT.JOB_APPLY_ASSISTANT.001": {
+      "source_type": "project",
+      "source_title": "Job Apply Assistant — Pipeline Data & IA multi-agent",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "Transformation d'un processus manuel d'environ 45 minutes en un workflow automatisé d'environ 5 minutes.",
+      "fingerprint": "13e17a5e115cebd5"
+    },
+    "PROJECT.JOB_APPLY_ASSISTANT.002": {
+      "source_type": "project",
+      "source_title": "Job Apply Assistant — Pipeline Data & IA multi-agent",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "Architecture multi-agent couvrant parsing, analyse d'offre, matching, positionnement, génération documentaire et suivi.",
+      "fingerprint": "286f4dd8d88e1efe"
+    },
+    "PROJECT.JOB_APPLY_ASSISTANT.003": {
+      "source_type": "project",
+      "source_title": "Job Apply Assistant — Pipeline Data & IA multi-agent",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "Persistance PostgreSQL, migrations Alembic et schémas structurés assurant traçabilité et reproductibilité.",
+      "fingerprint": "ee802b6a93d7fc0c"
+    },
+    "PROJECT.JOB_APPLY_ASSISTANT.004": {
+      "source_type": "project",
+      "source_title": "Job Apply Assistant — Pipeline Data & IA multi-agent",
+      "source_company": "MadeByAkim — projet produit",
+      "field": "bullets",
+      "text": "Notifications Telegram, déploiement Docker/Coolify.",
+      "fingerprint": "f0b4be42c5e8fa6e"
+    },
+    "PROJECT.NUIT_BLANCHE.001": {
+      "source_type": "project",
+      "source_title": "Nuit Blanche — Automatisation de production de contenus",
+      "source_company": "MadeByAkim — projet ponctuel",
+      "field": "bullets",
+      "text": "Conception d'un workflow transformant des données événementielles en livrables visuels (Google Sheets, Apps Script) : validation, filtres, priorisation et génération automatisée.",
+      "fingerprint": "219fb09faf2cadcf"
+    },
+    "SKILL.POWER_BI": {
+      "source_type": "skill",
+      "source_skill": "Power BI",
+      "source_category": "BI & Data Viz",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.POWER_QUERY": {
+      "source_type": "skill",
+      "source_skill": "Power Query",
+      "source_category": "BI & Data Viz",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.SQL": {
+      "source_type": "skill",
+      "source_skill": "SQL",
+      "source_category": "Data Engineering",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.PYTHON": {
+      "source_type": "skill",
+      "source_skill": "Python",
+      "source_category": "Data Engineering",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.POSTGRESQL": {
+      "source_type": "skill",
+      "source_skill": "PostgreSQL",
+      "source_category": "Data Engineering",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.FASTAPI": {
+      "source_type": "skill",
+      "source_skill": "FastAPI",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.SQLALCHEMY": {
+      "source_type": "skill",
+      "source_skill": "SQLAlchemy",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.ALEMBIC": {
+      "source_type": "skill",
+      "source_skill": "Alembic",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.REST_APIS": {
+      "source_type": "skill",
+      "source_skill": "REST APIs",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.GIT/GITHUB": {
+      "source_type": "skill",
+      "source_skill": "Git/GitHub",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.DOCKER": {
+      "source_type": "skill",
+      "source_skill": "Docker",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.COOLIFY": {
+      "source_type": "skill",
+      "source_skill": "Coolify",
+      "source_category": "Développement",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.N8N": {
+      "source_type": "skill",
+      "source_skill": "n8n",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.MAKE": {
+      "source_type": "skill",
+      "source_skill": "Make",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.GOOGLE_APPS_SCRIPT": {
+      "source_type": "skill",
+      "source_skill": "Google Apps Script",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.WEBHOOKS": {
+      "source_type": "skill",
+      "source_skill": "webhooks",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.APIS": {
+      "source_type": "skill",
+      "source_skill": "APIs",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.AGENTS_IA": {
+      "source_type": "skill",
+      "source_skill": "agents IA",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.ORCHESTRATION_MULTI-AGENT": {
+      "source_type": "skill",
+      "source_skill": "orchestration multi-agent",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.OPENAI_API": {
+      "source_type": "skill",
+      "source_skill": "OpenAI API",
+      "source_category": "Automation & IA",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.EXCEL_AVANCÉ": {
+      "source_type": "skill",
+      "source_skill": "Excel avancé",
+      "source_category": "Bureautique",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.POWERPOINT": {
+      "source_type": "skill",
+      "source_skill": "PowerPoint",
+      "source_category": "Bureautique",
+      "source_level": 3,
+      "field": "skills"
+    },
+    "SKILL.DAX_(MESURES_ET_KPI)": {
+      "source_type": "skill",
+      "source_skill": "DAX (mesures et KPI)",
+      "source_category": "BI avancé",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.MODÉLISATION_DIMENSIONNELLE": {
+      "source_type": "skill",
+      "source_skill": "Modélisation dimensionnelle",
+      "source_category": "Data Modeling",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.STAR_SCHEMA": {
+      "source_type": "skill",
+      "source_skill": "star schema",
+      "source_category": "Data Modeling",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.TABLES_DE_FAITS/DIMENSIONS": {
+      "source_type": "skill",
+      "source_skill": "tables de faits/dimensions",
+      "source_category": "Data Modeling",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.AGILE": {
+      "source_type": "skill",
+      "source_skill": "Agile",
+      "source_category": "Gestion de projet",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.SCRUM": {
+      "source_type": "skill",
+      "source_skill": "Scrum",
+      "source_category": "Gestion de projet",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.KANBAN": {
+      "source_type": "skill",
+      "source_skill": "Kanban",
+      "source_category": "Gestion de projet",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.TABLEAU_(INTERMÉDIAIRE)": {
+      "source_type": "skill",
+      "source_skill": "Tableau (intermédiaire)",
+      "source_category": "Data Viz",
+      "source_level": 2,
+      "field": "skills"
+    },
+    "SKILL.DATABRICKS_(PRATIQUE/FORMATION,_PAS_PLUSIEURS_ANNÉES)": {
+      "source_type": "skill",
+      "source_skill": "Databricks (pratique/formation, pas plusieurs années)",
+      "source_category": "Data Engineering cloud",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.BIGQUERY_(PRATIQUE_INITIALE)": {
+      "source_type": "skill",
+      "source_skill": "BigQuery (pratique initiale)",
+      "source_category": "Data Engineering cloud",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.AWS_(NOTIONS/PRATIQUE_INITIALE)": {
+      "source_type": "skill",
+      "source_skill": "AWS (notions/pratique initiale)",
+      "source_category": "Data Engineering cloud",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.ARCHITECTURE_MEDALLION_(BRONZE/SILVER/GOLD)_—_NOTIONS_UNIQUEMENT": {
+      "source_type": "skill",
+      "source_skill": "Architecture medallion (Bronze/Silver/Gold) — notions uniquement",
+      "source_category": "Architecture data",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.UIPATH": {
+      "source_type": "skill",
+      "source_skill": "UiPath",
+      "source_category": "RPA / Low-code",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.MICROSOFT_POWER_PLATFORM": {
+      "source_type": "skill",
+      "source_skill": "Microsoft Power Platform",
+      "source_category": "RPA / Low-code",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.POWER_AUTOMATE": {
+      "source_type": "skill",
+      "source_skill": "Power Automate",
+      "source_category": "RPA / Low-code",
+      "source_level": 1,
+      "field": "skills"
+    },
+    "SKILL.POWER_APPS": {
+      "source_type": "skill",
+      "source_skill": "Power Apps",
+      "source_category": "RPA / Low-code",
+      "source_level": 1,
+      "field": "skills"
+    }
+  }
+}

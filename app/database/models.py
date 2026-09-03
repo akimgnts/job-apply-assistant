@@ -123,7 +123,6 @@ class JobAnalysis(Base):
     ats_keywords = Column(JSON, default=list)
     missing_points = Column(JSON, default=list)
     strengths = Column(JSON, default=list)
-    skill_evidence_map = Column(JSON, default=dict)  # {"skill": [{"evidence_id": "exp_0", "match_type": "DIRECT", "evidence_text": "..."}]}
     created_at = Column(DateTime, default=datetime.utcnow)
 
     application = relationship("Application", back_populates="analyses")
