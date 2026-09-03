@@ -6,8 +6,10 @@ Create Date: 2026-09-03
 
 Phase 3: Link JobAnalysis to JobOffer (not just Application).
 
+- Alter application_id to nullable (was NOT NULL in migration 001)
+  * Enables Radar analyses: job_offer_id=X, application_id=NULL
+  * Maintains backward compat: Application flows still use application_id
 - Add job_offer_id nullable FK to job_offers.id
-- Keep application_id (legacy support for Application-based analyses)
 - Either job_offer_id or application_id must be set (enforced at app layer)
 - skill_evidence_map stored in analysis_json (single source of truth)
 - Add index on job_offer_id for query performance
@@ -23,7 +25,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    """Add job_offer_id FK to job_analyses table."""
+    """Add job_offer_id FK and make application_id nullable for Radar analysis."""
+
+    # Alter application_id to nullable (was NOT NULL in migration 001)
+    # Required for Radar analyses: job_offer_id=X, application_id=NULL
+    op.alter_column(
+        'job_analyses',
+        'application_id',
+        existing_type=sa.Integer(),
+        nullable=True
+    )
 
     # Add job_offer_id FK column
     op.add_column(
@@ -49,7 +60,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Revert job_offer_id column and related constraints."""
+    """Revert job_offer_id column, constraints, and application_id nullability."""
 
     # Drop index
     op.drop_index('ix_job_analyses_job_offer_id', table_name='job_analyses')
@@ -63,3 +74,11 @@ def downgrade() -> None:
 
     # Drop column
     op.drop_column('job_analyses', 'job_offer_id')
+
+    # Restore application_id to NOT NULL (original migration 001 definition)
+    op.alter_column(
+        'job_analyses',
+        'application_id',
+        existing_type=sa.Integer(),
+        nullable=False
+    )
