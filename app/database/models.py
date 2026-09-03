@@ -114,7 +114,8 @@ class JobAnalysis(Base):
     __tablename__ = "job_analyses"
 
     id = Column(Integer, primary_key=True)
-    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=True)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True)
     analysis_json = Column(JSON, nullable=False)
     missions = Column(JSON, default=list)
     required_skills = Column(JSON, default=list)
@@ -122,9 +123,11 @@ class JobAnalysis(Base):
     ats_keywords = Column(JSON, default=list)
     missing_points = Column(JSON, default=list)
     strengths = Column(JSON, default=list)
+    skill_evidence_map = Column(JSON, default=dict)  # {"skill": [{"evidence_id": "exp_0", "match_type": "DIRECT", "evidence_text": "..."}]}
     created_at = Column(DateTime, default=datetime.utcnow)
 
     application = relationship("Application", back_populates="analyses")
+    job_offer = relationship("JobOffer", foreign_keys=[job_offer_id])
 
 class GeneratedDocument(Base):
     __tablename__ = "generated_documents"
