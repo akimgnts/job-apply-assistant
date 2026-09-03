@@ -110,11 +110,38 @@ class Application(Base):
     analyses = relationship("JobAnalysis", back_populates="application")
     documents = relationship("GeneratedDocument", back_populates="application")
 
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False, unique=True)
+    domain = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    job_offers = relationship("JobOffer", back_populates="company")
+
+
+class JobOffer(Base):
+    __tablename__ = "job_offers"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    job_title = Column(String(255), nullable=False)
+    job_url = Column(Text, nullable=False, unique=True)
+    source = Column(String(50), nullable=False)  # 'website', 'linkedin', 'indeed', etc.
+    raw_text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    company = relationship("Company", back_populates="job_offers")
+    analyses = relationship("JobAnalysis", back_populates="job_offer")
+
+
 class JobAnalysis(Base):
     __tablename__ = "job_analyses"
 
     id = Column(Integer, primary_key=True)
-    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=True)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True)
     analysis_json = Column(JSON, nullable=False)
     missions = Column(JSON, default=list)
     required_skills = Column(JSON, default=list)
@@ -122,9 +149,11 @@ class JobAnalysis(Base):
     ats_keywords = Column(JSON, default=list)
     missing_points = Column(JSON, default=list)
     strengths = Column(JSON, default=list)
+    skill_evidence_map = Column(JSON, default=dict)  # {skill: [{evidence_id, match_type, evidence_text}, ...]}
     created_at = Column(DateTime, default=datetime.utcnow)
 
     application = relationship("Application", back_populates="analyses")
+    job_offer = relationship("JobOffer", back_populates="analyses")
 
 class GeneratedDocument(Base):
     __tablename__ = "generated_documents"
