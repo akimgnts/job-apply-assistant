@@ -1,6 +1,10 @@
 # Phase 4 Company Intelligence Example
 
-This fixture demonstrates realistic Phase 4 output based on the Sidel example and other job market data.
+**FIXTURE-BASED DEMONSTRATION DATA**
+
+This fixture demonstrates realistic Phase 4 output structure using the Sidel example and fictional companies (TechCorp, Enterprise A, DataCorp, StartupXYZ). 
+
+**These companies are NOT production Radar results.** They are demonstration data showing how Phase 4 ranking works. Production results would reflect actual JobOffers + JobAnalyses in the database.
 
 ## Data Setup
 

@@ -7,9 +7,35 @@ Deterministic signals:
 - Recurring skills (aggregate from all offer analyses)
 - Candidate fit (DIRECT/SUPPORTING/GAP scoring from skill_evidence_map)
 - Recruitment intensity (LOW/MEDIUM/HIGH based on offer count and recency)
-- Company priority score (explainable ranking formula)
+- Company priority score (0-100, normalized, explainable ranking formula)
 
 No LLM, no external data, no lead discovery. Pure aggregation of existing Radar signals.
+
+PRIORITY SCORE FORMULA (Normalized to 0–100):
+Raw score components:
+  fit_base = avg_fit × 40 (0–40 points, fit = 0.0–1.0)
+  offer_volume = min(relevant_offers × 10, 30) (0–30 points)
+  best_fit_bonus = (best_fit - 0.6) × 20 if best_fit >= 0.6 else 0 (0–8 points)
+  intensity_bonus = {HIGH: 10, MEDIUM: 5, LOW: 0} (0–10 points)
+
+Raw maximum = 40 + 30 + 8 + 10 = 88
+Normalized score = (raw_score / 88) × 100 → [0, 100]
+
+STRONG MATCH THRESHOLD:
+Offer is marked as "strong_match" if offer_fit >= 0.75 (75% fit)
+Deterministic: DIRECT evidence = 1.0, SUPPORTING = 0.6, GAP = 0.0
+
+ROADMAP:
+Phase 4: Company Intelligence (this phase) — identify target companies
+Phase 5: Lead Discovery & Verification — find real hiring contacts at those companies
+  * Search for people at target companies
+  * Verify role / company / source_url
+  * Store LinkedIn URL when publicly available
+  * Store email only if genuinely / publicly available
+  * NO invented data, NO fake contacts
+Phase 6: Outreach & Personalization — generate evidence-grounded messages
+  * Create personalized emails based on verified contacts
+  * No outreach generation in Phase 5
 """
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
@@ -19,6 +45,10 @@ import logging
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+# Score thresholds (deterministic constants)
+STRONG_MATCH_THRESHOLD = 0.75  # Offer is "strong match" if fit >= 0.75
+RAW_PRIORITY_SCORE_MAX = 88  # Theoretical raw maximum before normalization
 
 # Skill relevance categories
 RELEVANT_SKILL_KEYWORDS = {
@@ -147,6 +177,42 @@ def calculate_offer_fit(analysis_json: dict) -> tuple[float, dict]:
     })
 
 
+def calculate_priority_score(avg_fit: float, relevant_offers: int, best_fit: float, intensity: str) -> int:
+    """Calculate normalized priority score (0-100).
+
+    Raw score formula:
+    - fit_base = avg_fit × 40 (0-40 points)
+    - offer_volume = min(relevant_offers × 10, 30) (0-30 points)
+    - best_fit_bonus = (best_fit - 0.6) × 20 if best_fit >= 0.6 else 0 (0-8 points)
+    - intensity_bonus = {HIGH: 10, MEDIUM: 5, LOW: 0} (0-10 points)
+
+    Raw maximum = 88
+    Normalized score = (raw_score / 88) × 100 → [0, 100]
+
+    Args:
+        avg_fit: Average offer fit (0.0-1.0)
+        relevant_offers: Count of relevant offers
+        best_fit: Best offer fit score (0.0-1.0)
+        intensity: "HIGH", "MEDIUM", or "LOW"
+
+    Returns:
+        Priority score, normalized to 0-100
+    """
+    score_components = {
+        "fit_base": avg_fit * 40,  # 0-40 points
+        "offer_volume": min(relevant_offers * 10, 30),  # 0-30 points
+        "best_fit_bonus": max(0, (best_fit - 0.6) * 20) if best_fit >= 0.6 else 0,  # 0-8 points
+        "intensity_bonus": {"HIGH": 10, "MEDIUM": 5, "LOW": 0}[intensity],  # 0-10 points
+    }
+
+    raw_score = sum(score_components.values())
+
+    # Normalize to 0-100
+    normalized_score = (raw_score / RAW_PRIORITY_SCORE_MAX) * 100
+
+    return int(round(normalized_score))
+
+
 def get_recruitment_intensity(
     total_offers: int,
     relevant_offers: int,
@@ -190,7 +256,7 @@ def get_company_intelligence(db: Session, company_id: int) -> dict:
                 "total": int,
                 "active": int,
                 "relevant": int,
-                "strong_match": int (fit >= 0.7)
+                "strong_match": int (fit >= 0.75, deterministic threshold)
             },
             "skills": {
                 "skill_name": count,
@@ -259,7 +325,7 @@ def get_company_intelligence(db: Session, company_id: int) -> dict:
             offer_fit, _ = calculate_offer_fit(analysis.analysis_json)
             fit_scores.append(offer_fit)
 
-            if offer_fit >= 0.7:
+            if offer_fit >= STRONG_MATCH_THRESHOLD:
                 strong_matches.append(offer)
 
     # Aggregate fit metrics
@@ -269,14 +335,8 @@ def get_company_intelligence(db: Session, company_id: int) -> dict:
     # Recruitment intensity
     intensity = get_recruitment_intensity(total_offers, len(relevant_offers))
 
-    # Build priority score (0-100)
-    score_components = {
-        "fit_base": avg_fit * 40,  # 0-40 points
-        "offer_volume": min(len(relevant_offers) * 10, 30),  # 0-30 points (3+ offers = 30)
-        "best_fit_bonus": max(0, (best_fit - 0.6) * 20) if best_fit >= 0.6 else 0,  # 0-10 points
-        "intensity_bonus": {"HIGH": 10, "MEDIUM": 5, "LOW": 0}[intensity],  # 0-10 points
-    }
-    priority_score = sum(score_components.values())
+    # Build priority score (0-100, normalized)
+    priority_score = calculate_priority_score(avg_fit, len(relevant_offers), best_fit, intensity)
 
     # Build reasons
     reasons = []
