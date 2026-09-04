@@ -325,3 +325,60 @@ class OutreachDraft(Base):
     company = relationship("Company")
     contact = relationship("CompanyContact")
     job_offer = relationship("JobOffer")
+
+
+class CrawlRun(Base):
+    """Crawl execution record (Phase 2B).
+
+    Tracks job discovery runs: pages discovered, candidates found, jobs ingested.
+    Enables incremental crawling and operational observability.
+    """
+    __tablename__ = "crawl_runs"
+
+    id = Column(Integer, primary_key=True)
+    source_name = Column(String(50), nullable=False)  # "career_site"
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)  # NULL = multi-company
+    started_at = Column(DateTime, default=datetime.utcnow)
+    finished_at = Column(DateTime, nullable=True)
+    duration_seconds = Column(Integer, nullable=True)
+    status = Column(String(20), default="IN_PROGRESS")  # "IN_PROGRESS", "SUCCESS", "PARTIAL", "FAILED"
+    pages_discovered = Column(Integer, default=0)
+    job_candidates = Column(Integer, default=0)
+    jobs_extracted = Column(Integer, default=0)
+    jobs_new = Column(Integer, default=0)
+    jobs_existing = Column(Integer, default=0)
+    jobs_closed = Column(Integer, default=0)
+    urls_errors = Column(Integer, default=0)
+    summary = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    company = relationship("Company")
+
+
+class CareerCrawlUrl(Base):
+    """Discovered career site URL tracking (Phase 2B).
+
+    Separates crawl discovery state from normalized job offers.
+    Enables incremental crawling, closed-offer detection, deduplication.
+    """
+    __tablename__ = "career_crawl_urls"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    discovered_url = Column(String(2000), nullable=False)
+    normalized_url = Column(String(2000), nullable=False)
+    url_hash = Column(String(64), nullable=False, unique=True, index=True)
+    page_title = Column(String(500), nullable=True)
+    is_job_candidate = Column(Integer, default=0)  # Boolean: deterministic detection result
+    detection_signals = Column(JSON, nullable=True)  # {url_pattern: bool, schema: bool, ...}
+    detection_score = Column(Integer, nullable=True)  # 0-100, deterministic only
+    status = Column(String(20), default="DISCOVERED")  # DISCOVERED, CANDIDATE, INGESTED, CLOSED, IGNORED, ERROR
+    first_seen_at = Column(DateTime, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, nullable=True)
+    crawl_run_id = Column(Integer, ForeignKey("crawl_runs.id"), nullable=True)
+    error_message = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company")
+    crawl_run = relationship("CrawlRun")
