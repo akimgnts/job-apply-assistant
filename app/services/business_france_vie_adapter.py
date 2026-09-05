@@ -5,7 +5,7 @@ Public REST API at civiweb-api-prd.azurewebsites.net.
 """
 
 import logging
-import json
+import os
 from typing import Optional
 import aiohttp
 
@@ -18,7 +18,7 @@ from app.models.job_source_adapter import (
 logger = logging.getLogger(__name__)
 
 API_URL = "https://civiweb-api-prd.azurewebsites.net/api/Offers/search"
-API_KEY = "l+KwpoLPiXlsjxNT/NQ2iOFz8+iuygxAODs9FeAEWYM="
+API_KEY = os.getenv("BUSINESS_FRANCE_VIE_API_KEY", "")
 
 
 class BusinessFranceVieAdapter(JobSourceAdapter):
@@ -40,74 +40,92 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             await self.session.close()
 
     async def discover_jobs(self, context: dict) -> list[DiscoveredJobUrl]:
-        """Discover jobs from Business France VIE API.
+        """Discover jobs from Business France VIE API with pagination.
 
         Context:
-            max_per_company: int (default 100)
+            max_per_company: int (default 500, no limit)
         """
         await self._ensure_session()
 
-        max_results = context.get("max_per_company", 100)
+        if not API_KEY:
+            logger.error("BUSINESS_FRANCE_VIE_API_KEY not set")
+            return []
+
+        max_results = context.get("max_per_company", 500)
         discovered = []
+        page_size = 100
+        skip = 0
 
         try:
-            logger.info("Discovering Business France VIE jobs")
-
-            payload = {
-                "limit": min(max_results, 100),
-                "skip": 0,
-                "query": None,
-                "teletravail": ["0"],
-                "porteEnv": ["0"],
-                "activitySectorId": [],
-                "companiesSizes": [],
-                "countriesIds": [],
-                "entreprisesIds": [0],
-                "geographicZones": [],
-                "missionStartDate": None,
-                "missionsDurations": [],
-                "missionsTypesIds": [],
-                "specializationsIds": [],
-                "studiesLevelId": []
-            }
+            logger.info("Discovering Business France VIE jobs (paginated)")
 
             headers = {
                 "x-api-key": API_KEY,
                 "Content-Type": "application/json"
             }
 
-            async with self.session.post(API_URL, headers=headers, json=payload, timeout=10) as resp:
-                if resp.status != 200:
-                    logger.warning(f"Business France VIE returned {resp.status}")
-                    return discovered
+            while len(discovered) < max_results:
+                payload = {
+                    "limit": min(page_size, max_results - len(discovered)),
+                    "skip": skip,
+                    "query": None,
+                    "teletravail": ["0"],
+                    "porteEnv": ["0"],
+                    "activitySectorId": [],
+                    "companiesSizes": [],
+                    "countriesIds": [],
+                    "entreprisesIds": [0],
+                    "geographicZones": [],
+                    "missionStartDate": None,
+                    "missionsDurations": [],
+                    "missionsTypesIds": [],
+                    "specializationsIds": [],
+                    "studiesLevelId": []
+                }
 
-                data = await resp.json()
-                offers = data.get("result", [])
+                async with self.session.post(API_URL, headers=headers, json=payload, timeout=10) as resp:
+                    if resp.status != 200:
+                        logger.warning(f"Business France VIE returned {resp.status}")
+                        break
 
-                for offer in offers:
-                    offer_id = offer.get("id")
-                    title = offer.get("missionTitle", "Unknown")
-                    company = offer.get("organizationName", "Unknown")
-                    city = offer.get("cityName", "")
-                    duration = offer.get("missionDuration")
+                    data = await resp.json()
+                    offers = data.get("result", [])
 
-                    offer_url = f"https://mon-vie-via.businessfrance.fr/offre/{offer_id}"
+                    if not offers:
+                        break
 
-                    discovered.append(
-                        DiscoveredJobUrl(
-                            url=offer_url,
-                            metadata={
-                                "title": title,
-                                "company": company,
-                                "city": city,
-                                "duration": duration,
-                                "offer_id": offer_id,
-                                "source": "business_france_vie",
-                            },
+                    for offer in offers:
+                        if len(discovered) >= max_results:
+                            break
+
+                        offer_id = offer.get("id")
+                        title = offer.get("missionTitle", "Unknown")
+                        company = offer.get("organizationName", "Unknown")
+                        city = offer.get("cityName", "")
+                        duration = offer.get("missionDuration")
+
+                        offer_url = f"https://mon-vie-via.businessfrance.fr/offre/{offer_id}"
+
+                        discovered.append(
+                            DiscoveredJobUrl(
+                                url=offer_url,
+                                metadata={
+                                    "title": title,
+                                    "company": company,
+                                    "city": city,
+                                    "duration": duration,
+                                    "offer_id": offer_id,
+                                    "source": "business_france_vie",
+                                },
+                            )
                         )
-                    )
 
-                logger.info(f"Discovered {len(offers)} jobs from Business France VIE")
+                    if len(offers) < page_size:
+                        break
+
+                    skip += page_size
+
+            logger.info(f"Discovered {len(discovered)} total jobs from Business France VIE")
 
         except Exception as e:
             logger.error(f"Business France VIE discovery error: {e}")

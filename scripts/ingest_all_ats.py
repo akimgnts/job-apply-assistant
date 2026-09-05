@@ -7,6 +7,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 sys.path.insert(0, "/Users/akimguentas/job-apply-assistant")
 
 from app.services.lever_adapter import LeverAdapter
@@ -68,7 +71,8 @@ def main():
 
         print(f"\n{name} ({ats})...")
         try:
-            discovered, all_offers = asyncio.run(ingest_ats(ats, slug))
+            max_per = 500 if ats == "business_france_vie" else 50
+            discovered, all_offers = asyncio.run(ingest_ats(ats, slug, max_per=max_per))
             print(f"  Discovered: {len(discovered)}")
             print(f"  Extracted: {len(all_offers)}")
 
