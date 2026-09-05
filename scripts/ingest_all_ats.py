@@ -12,6 +12,7 @@ sys.path.insert(0, "/Users/akimguentas/job-apply-assistant")
 from app.services.lever_adapter import LeverAdapter
 from app.services.greenhouse_adapter import GreenhouseAdapter
 from app.services.ashby_adapter import AshbyAdapter
+from app.services.business_france_vie_adapter import BusinessFranceVieAdapter
 from app.database.db import SessionLocal
 from app.database.models import JobOffer
 from hashlib import sha256
@@ -30,6 +31,9 @@ async def ingest_ats(ats_type, company_slug, max_per=50):
     elif ats_type == "ashby":
         adapter = AshbyAdapter()
         discovered = await adapter.discover_jobs({"company_slugs": [company_slug], "max_per_company": max_per})
+    elif ats_type == "business_france_vie":
+        adapter = BusinessFranceVieAdapter()
+        discovered = await adapter.discover_jobs({"max_per_company": max_per})
     else:
         raise ValueError(f"Unknown ATS: {ats_type}")
 

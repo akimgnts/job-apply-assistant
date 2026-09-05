@@ -34,6 +34,16 @@
       "last_success_at": "2026-09-05T03:56:04Z",
       "last_job_count": 50,
       "last_error": null
+    },
+    {
+      "company_name": "Business France VIE",
+      "ats_type": "business_france_vie",
+      "company_slug": "bfvie",
+      "careers_url": "https://mon-vie-via.businessfrance.fr/",
+      "enabled": true,
+      "last_success_at": null,
+      "last_job_count": 0,
+      "last_error": null
     }
   ]
 }
