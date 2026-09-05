@@ -17,18 +17,12 @@ from app.models.job_source_adapter import (
 
 logger = logging.getLogger(__name__)
 
-# Popular companies with Ashby boards
+# Popular companies with Ashby boards (verified slug names)
 ASHBY_COMPANIES = [
-    ("greenhouse", "Greenhouse"),
-    ("notion-company", "Notion"),
-    ("stripe-company", "Stripe"),
-    ("anthropic", "Anthropic"),
-    ("loom", "Loom"),
-    ("midjourney", "Midjourney"),
+    ("notion", "Notion"),
     ("perplexity", "Perplexity"),
-    ("figma-company", "Figma"),
-    ("retool-company", "Retool"),
-    ("vimeo", "Vimeo"),
+    ("loom", "Loom"),
+    ("anthropic", "Anthropic"),
 ]
 
 
@@ -51,73 +45,42 @@ class AshbyAdapter(JobSourceAdapter):
             await self.session.close()
 
     async def discover_jobs(self, context: dict) -> list[DiscoveredJobUrl]:
-        """Discover jobs from Ashby boards.
+        """Discover jobs from Ashby job boards.
 
         Context:
-            company_ids: list of Ashby company IDs (optional, defaults to known)
+            company_slugs: list of Ashby company board slugs (optional, defaults to known)
             max_per_company: int (default 50)
         """
         await self._ensure_session()
 
-        company_ids = context.get("company_ids", [company_id for company_id, _ in ASHBY_COMPANIES])
+        company_slugs = context.get("company_slugs", [slug for slug, _ in ASHBY_COMPANIES])
         max_per_company = context.get("max_per_company", 50)
 
         discovered = []
 
-        for company_id in company_ids[:10]:
+        for slug in company_slugs[:10]:
             try:
-                logger.info(f"Discovering Ashby jobs for {company_id}")
-                # Ashby GraphQL endpoint
-                graphql_url = "https://api.ashby.io/graphql.public"
+                logger.info(f"Discovering Ashby jobs for {slug}")
+                # Ashby REST API endpoint
+                api_url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
 
-                query = {
-                    "query": """
-                    query GetJobs($companyId: String!) {
-                        jobs(input: {companyId: $companyId}) {
-                            edges {
-                                node {
-                                    id
-                                    title
-                                    descriptionPlain
-                                    jobUrl
-                                    location {
-                                        name
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    """,
-                    "variables": {"companyId": company_id}
-                }
-
-                async with self.session.post(
-                    graphql_url,
-                    json=query,
-                    timeout=10,
-                    headers={"Content-Type": "application/json"}
-                ) as resp:
+                async with self.session.get(api_url, timeout=10) as resp:
                     if resp.status != 200:
-                        logger.warning(f"Ashby {company_id} returned {resp.status}")
+                        logger.warning(f"Ashby {slug} returned {resp.status}")
                         continue
 
                     data = await resp.json()
+                    jobs = data.get("jobs", [])
 
-                    # Handle errors in GraphQL response
-                    if "errors" in data:
-                        logger.warning(f"Ashby GraphQL error for {company_id}: {data['errors']}")
-                        continue
-
-                    edges = data.get("data", {}).get("jobs", {}).get("edges", [])
-
-                    for edge in edges[:max_per_company]:
-                        job = edge.get("node", {})
+                    for job in jobs[:max_per_company]:
                         job_id = job.get("id")
                         title = job.get("title", "Unknown")
-                        job_url = job.get("jobUrl", "")
+                        job_url = job.get("jobUrl") or job.get("url", "")
+                        location = job.get("location", {})
+                        location_name = location.get("name") if isinstance(location, dict) else location
 
                         if not job_url:
-                            job_url = f"https://jobs.ashby.com/{company_id}/{job_id}"
+                            job_url = f"https://jobs.ashby.com/{slug}/{job_id}"
 
                         discovered.append(
                             DiscoveredJobUrl(
@@ -125,73 +88,52 @@ class AshbyAdapter(JobSourceAdapter):
                                 metadata={
                                     "title": title,
                                     "job_id": job_id,
-                                    "company_id": company_id,
-                                    "location": job.get("location", {}).get("name"),
+                                    "company_slug": slug,
+                                    "location": location_name,
                                     "source": "ashby",
                                 },
                             )
                         )
 
-                    logger.info(f"Discovered {len(edges[:max_per_company])} jobs from {company_id}")
+                    logger.info(f"Discovered {len(jobs[:max_per_company])} jobs from {slug}")
 
             except Exception as e:
-                logger.error(f"Ashby discovery error for {company_id}: {e}")
+                logger.error(f"Ashby discovery error for {slug}: {e}")
 
         return discovered
 
     async def extract_job(self, discovered: DiscoveredJobUrl) -> dict:
-        """Extract job details from Ashby job page."""
+        """Extract job details from Ashby API metadata."""
         await self._ensure_session()
 
         url = discovered.url
 
-        try:
-            async with self.session.get(url, timeout=10) as resp:
-                if resp.status != 200:
-                    raise Exception(f"HTTP {resp.status}")
+        result = {
+            "url": url,
+            "source_url": url,
+            "job_id": discovered.metadata.get("job_id"),
+            "company_slug": discovered.metadata.get("company_slug"),
+            "extraction_method": "ashby_api_metadata",
+            "extraction_confidence": 0.95,
+        }
 
-                html = await resp.text()
+        # Extract title from metadata
+        title = discovered.metadata.get("title", "Ashby Job")
+        result["title"] = title
 
-                result = {
-                    "url": url,
-                    "source_url": url,
-                    "job_id": discovered.metadata.get("job_id"),
-                    "company_id": discovered.metadata.get("company_id"),
-                    "extraction_method": "ashby_html",
-                    "extraction_confidence": 0.7,
-                }
+        # Location from API metadata
+        location = discovered.metadata.get("location")
+        if location:
+            result["location"] = location
 
-                # Extract title
-                title = discovered.metadata.get("title", "Ashby Job")
-                result["title"] = title
-
-                # Location from metadata
-                location = discovered.metadata.get("location")
-                if location:
-                    result["location"] = location
-                    result["extraction_confidence"] += 0.1
-
-                return result
-
-        except Exception as e:
-            logger.error(f"Ashby extraction error for {url}: {e}")
-            return {
-                "url": url,
-                "source_url": url,
-                "job_id": discovered.metadata.get("job_id"),
-                "company_id": discovered.metadata.get("company_id"),
-                "title": discovered.metadata.get("title", "Ashby Job"),
-                "location": discovered.metadata.get("location"),
-                "extraction_method": "ashby_error",
-                "extraction_confidence": 0.0,
-            }
+        return result
 
     async def normalize_job(self, extracted: dict) -> NormalizedJobOffer:
         """Normalize Ashby job to canonical schema."""
-        # Map company ID to name
-        id_to_name = dict(ASHBY_COMPANIES)
-        company_id = extracted.get("company_id", "")
-        company_name = id_to_name.get(company_id, company_id.title())
+        # Map company slug to name
+        slug_to_name = dict(ASHBY_COMPANIES)
+        company_slug = extracted.get("company_slug", "")
+        company_name = slug_to_name.get(company_slug, company_slug.title())
 
         return NormalizedJobOffer(
             job_title=extracted.get("title") or "Ashby Job",
@@ -201,6 +143,6 @@ class AshbyAdapter(JobSourceAdapter):
             location=extracted.get("location"),
             contract_type=extracted.get("contract_type"),
             external_job_id=extracted.get("job_id"),
-            raw_text=f"Company ID: {company_id}",
+            raw_text=f"Company Slug: {company_slug}",
             description=extracted.get("description"),
         )

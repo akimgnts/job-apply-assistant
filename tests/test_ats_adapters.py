@@ -121,10 +121,9 @@ class TestAshbyAdapter:
 
         extracted = {
             "title": "Backend Engineer",
-            "company_name": "Anthropic",
             "source_url": "https://jobs.ashby.com/anthropic/xyz789",
             "job_id": "xyz789",
-            "company_id": "anthropic",
+            "company_slug": "anthropic",
             "location": "San Francisco",
         }
 

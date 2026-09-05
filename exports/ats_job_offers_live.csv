@@ -1,75 +1,1008 @@
-job_title,company_name,location,contract_type,posted_date,job_url,source,external_job_id,created_at
-Job opportunities,Unknown,N/A,N/A,N/A,https://www.sidel.com/about/careers/vacancies/,sidel_careers_direct,N/A,2026-09-04T12:04:39.094507
-Business analyst F/H,Enedis,Amiens (80),N/A,N/A,https://to.indeed.com/aaltcvr9rb7w,indeed,JOBSEARCH_343,2026-09-04T17:09:06.862212
-Ingénieur Data Analyst H/F,UEM,Metz (57),N/A,N/A,https://to.indeed.com/aamnlxhb4wj8,indeed,JOBSEARCH_344,2026-09-04T17:09:06.875447
-Stage Data Analyst et Data Visualization – Intelligence Artificielle / Business Intelligence (H/F),MONSTOCK,Bezannes (51),N/A,N/A,https://to.indeed.com/aak2bfq8r7bt,indeed,JOBSEARCH_345,2026-09-04T17:09:06.877002
-Consultant Senior Business Intelligence F/H,Rydge Conseil,Courbevoie (92),N/A,N/A,https://to.indeed.com/aapft4hkynq4,indeed,JOBSEARCH_346,2026-09-04T17:09:06.878780
-Business Analyst CRM (F/H),Konica Minolta,Saint-Grégoire (35),N/A,N/A,https://to.indeed.com/aasqyt7bx26h,indeed,JOBSEARCH_347,2026-09-04T17:09:06.880179
-Sugar Senior Analyst- F/H,Tereos,Moussy-le-Vieux (77),N/A,N/A,https://to.indeed.com/aalt8dmd872d,indeed,JOBSEARCH_348,2026-09-04T17:09:06.881514
-Business Analyst Expert - Trading Data & Reporting - F/H,INGENIANCE,Paris (75),N/A,N/A,https://to.indeed.com/aaxnst7zpqhd,indeed,JOBSEARCH_349,2026-09-04T17:09:06.882565
-CDD - Data Analyst H/F,Groupement Mousquetaires,Vert-le-Grand (91),N/A,N/A,https://to.indeed.com/aagwcjyws49n,indeed,JOBSEARCH_350,2026-09-04T17:09:06.883572
-Data Analyst (H/F) - CDI,Caisse d'Epargne,Montpellier (34),N/A,N/A,https://to.indeed.com/aargstz4pc2h,indeed,JOBSEARCH_351,2026-09-04T17:09:06.884549
-Analyste développeur (F/H) - Domaine Data engineering,Euro-Information,Nantes (44),N/A,N/A,https://to.indeed.com/aa2g2wcnsbdt,indeed,JOBSEARCH_352,2026-09-04T17:09:06.885682
-Ingénieur Data H/F,Groupe ADSN,Venelles (13),N/A,N/A,https://to.indeed.com/aazwz4gkk7s9,indeed,JOBSEARCH_353,2026-09-04T17:11:28.779224
-"Cheffe/Chef de projet informatique (F/H) - Domaine data, administration SAP BO",Euro-Information,Nantes (44),N/A,N/A,https://to.indeed.com/aajgvc9mv9t2,indeed,JOBSEARCH_354,2026-09-04T17:11:28.788731
-Manager data produits F/H/X,Socomec Group,Benfeld (67),N/A,N/A,https://to.indeed.com/aazctcmz6y89,indeed,JOBSEARCH_355,2026-09-04T17:11:28.790535
-Chargé de projets Data et IA (H/F),Merval,Nantes (44),N/A,N/A,https://to.indeed.com/aat897kk2lyf,indeed,JOBSEARCH_356,2026-09-04T17:11:28.792286
-Tech Lead Business Intelligence (H/F),FACYLITIES MULTI SERVICES,Toulouse (31),N/A,N/A,https://to.indeed.com/aa6zky98cm94,indeed,JOBSEARCH_357,2026-09-04T17:11:28.794695
-Manager BI / Data Analytics [Luxe-Retail] (H/F),ADONE CONSEIL,Paris (75),N/A,N/A,https://to.indeed.com/aaqdjj7nlz72,indeed,JOBSEARCH_358,2026-09-04T17:11:28.796252
-Business Analyst CRM (F/H),Konica Minolta,Saint-Grégoire (35),N/A,N/A,https://to.indeed.com/aajmgh89cvnt,indeed,JOBSEARCH_359,2026-09-04T17:11:28.797697
-NWPB Data and Business Intelligence Lead (F/H),Nestlé,Issy-les-Moulineaux (92),N/A,N/A,https://to.indeed.com/aa8dgndbrkdw,indeed,JOBSEARCH_360,2026-09-04T17:11:28.798967
-Consultant Senior Business Intelligence F/H,Rydge Conseil,Courbevoie (92),N/A,N/A,https://to.indeed.com/aackn86htsrf,indeed,JOBSEARCH_361,2026-09-04T17:11:28.799931
-"Responsable produit Data, outils et reporting (F/H)",Thélem assurances,Chécy (45),N/A,N/A,https://to.indeed.com/aarnkwz62tnx,indeed,JOBSEARCH_362,2026-09-04T17:11:28.800874
-Data/AI Product Manager,UPFLUENCE,Lyon (69),N/A,N/A,https://to.indeed.com/aa8jk9wyn98q,indeed,JOBSEARCH_363,2026-09-04T17:11:28.801981
-Business Analyst Engineer F/H,Matmut,Rouen (76),N/A,N/A,https://to.indeed.com/aarhhpk64prm,indeed,JOBSEARCH_364,2026-09-04T17:11:28.803250
-Lead AI (F/H),Studi,Montpellier (34),N/A,N/A,https://to.indeed.com/aah2lh69v4xw,indeed,JOBSEARCH_365,2026-09-04T17:11:28.804512
-Ingénieur Data Analyst H/F,UEM,Metz (57),N/A,N/A,https://to.indeed.com/aash2s74vg87,indeed,JOBSEARCH_366,2026-09-04T17:11:28.805984
-Data Officer (F/H) - data factory,Euro-Information,Nantes (44),N/A,N/A,https://to.indeed.com/aaqp9l8dhlgx,indeed,JOBSEARCH_367,2026-09-04T17:11:28.807439
-Data Engineer / AI Engineer (CDI),Kosmos Digital,Villeneuve-Loubet (06),N/A,N/A,https://to.indeed.com/aak46bvvn9yf,indeed,JOBSEARCH_368,2026-09-04T17:11:28.808848
-Junior Data Center Delivery Engineer,Next U Systems for EnerFusion Finland Oy,Île-de-France,N/A,N/A,https://to.indeed.com/aa2lfycf2g7p,indeed,JOBSEARCH_369,2026-09-04T17:11:28.810313
-Ingénieur·e Data (H/F),Inetum,Lille (59),N/A,N/A,https://to.indeed.com/aaftmwt2fvwv,indeed,JOBSEARCH_370,2026-09-04T17:11:28.811758
-Data Officer (F/H) - data factory,Euro-Information,Villeneuve-d'Ascq (59),N/A,N/A,https://to.indeed.com/aa7hyw2hqjgw,indeed,JOBSEARCH_371,2026-09-04T17:11:28.813241
-Data Center Delivery and Operation Roles 数据中心交付岗&运维岗,EZSVS France SARL,Île-de-France,N/A,N/A,https://to.indeed.com/aaf7tznqlyqf,indeed,JOBSEARCH_372,2026-09-04T17:11:28.814613
-Responsable Projets Data Risques de Crédit (F/H),Groupe BPCE,Paris (75),N/A,N/A,https://to.indeed.com/aaldqdh2rlck,indeed,JOBSEARCH_373,2026-09-04T17:11:28.819490
-Responsable Projets Data Risques de Crédit F/H,Groupe BPCE,Paris (75),N/A,N/A,https://to.indeed.com/aahlk79ltc7k,indeed,JOBSEARCH_374,2026-09-04T17:11:28.821113
-​​Market Reach Business Intelligence Product Developer​,Hilti Group,Boulogne-Billancourt (92),N/A,N/A,https://to.indeed.com/aackcdrqm7yd,indeed,JOBSEARCH_375,2026-09-04T17:11:28.822675
-Data Scientist,Sanofi,Lyon (69),N/A,N/A,https://to.indeed.com/aajmk2j4lkjb,indeed,JOBSEARCH_376,2026-09-04T17:11:28.823942
-Apprenticeship | Reporting Analyst / Developer,AXA / France,Paris (75),N/A,N/A,https://to.indeed.com/aa4c6ssyxh26,indeed,JOBSEARCH_377,2026-09-04T17:11:28.825105
-Business Developer H/F,EM CONSEIL,Marseille (13),N/A,N/A,https://to.indeed.com/aawctnypfbgz,indeed,JOBSEARCH_378,2026-09-04T17:11:28.826296
-Business Developer Transport H/F,RDV TRANSPORTS,Marck (62),N/A,N/A,https://to.indeed.com/aavy7ffyjtkw,indeed,JOBSEARCH_379,2026-09-04T17:11:28.827553
-Stage - Monitoring Digital Twin des éoliennes (h/f),Siemens Gamesa,Saint-Étienne-du-Rouvray (76),N/A,N/A,https://to.indeed.com/aacqzgjqldrp,indeed,JOBSEARCH_380,2026-09-04T17:11:28.829077
-Alternance - Innovation F/H,Framatome,La Défense (92),N/A,N/A,https://to.indeed.com/aa9pkwz2qkpj,indeed,JOBSEARCH_381,2026-09-04T17:11:28.830508
-Data/AI Product Manager,UPFLUENCE,Lyon (69),N/A,N/A,https://to.indeed.com/aa764pcbhf74,indeed,JOBSEARCH_382,2026-09-04T17:11:28.831830
-Senior P&C Performance & Planning Analyst,SCOR,Paris (75),N/A,N/A,https://to.indeed.com/aawbyqt7xpv2,indeed,JOBSEARCH_383,2026-09-04T17:11:28.833167
-Data Engineer - Marketing Digital & eCommerce H/F - CDI - Paris (17ème),Rexel,Paris (75),N/A,N/A,https://to.indeed.com/aadd8yfhfy69,indeed,JOBSEARCH_384,2026-09-04T17:11:28.834531
-Investment Reporting Officer confirmed,SCOR,Paris (75),N/A,N/A,https://to.indeed.com/aarp46pwvxmg,indeed,JOBSEARCH_385,2026-09-04T17:11:28.835854
-Data Engineer (Databricks /Azure),Groupement Mousquetaires,Châtillon (92),N/A,N/A,https://to.indeed.com/aafykdyfc9pt,indeed,JOBSEARCH_386,2026-09-04T17:11:28.837310
-Data Architect,Rexel,Paris (75),N/A,N/A,https://to.indeed.com/aanmvstrjx4w,indeed,JOBSEARCH_387,2026-09-04T17:11:28.838669
-Data Product Owner,Solocal,Boulogne-Billancourt (92),N/A,N/A,https://to.indeed.com/aakhsdntsj7d,indeed,JOBSEARCH_388,2026-09-04T17:11:28.839904
-Data Modeler – Finance,SCOR,Paris (75),N/A,N/A,https://to.indeed.com/aa88kvcrb4j6,indeed,JOBSEARCH_389,2026-09-04T17:11:28.841109
-Growth Engineer – Apprentissage (f/h),Officéo,Paris (75),N/A,N/A,https://to.indeed.com/aa2yptpjx6yt,indeed,JOBSEARCH_390,2026-09-04T17:11:28.842279
-Consultant(e) Data Engineer Industriel Sénior H/F,MERCATO DE L'EMPLOI,Champs-sur-Marne (77),N/A,N/A,https://to.indeed.com/aazcr4xdjzxb,indeed,JOBSEARCH_391,2026-09-04T17:11:28.843536
-Ingénieur Data Analyst H/F,UEM,Metz (57),N/A,N/A,https://to.indeed.com/aa4sx96vcvfp,indeed,JOBSEARCH_392,2026-09-04T17:11:28.844872
-Manager BI / Data Analytics [Luxe-Retail] (H/F),ADONE CONSEIL,Paris (75),N/A,N/A,https://to.indeed.com/aawkztwscr82,indeed,JOBSEARCH_393,2026-09-04T17:11:28.846179
-Data Scientist H/F,CGI FINANCE,Lille (59),N/A,N/A,https://to.indeed.com/aaxfbpzzrsm9,indeed,JOBSEARCH_394,2026-09-04T17:11:28.847496
-Data scientist- F/H,Tereos,Moussy-le-Vieux (77),N/A,N/A,https://to.indeed.com/aawptslshw6y,indeed,JOBSEARCH_395,2026-09-04T17:11:28.848830
-Data scientist H/F,GROUPE AFNOR,Saint-Denis (93),N/A,N/A,https://to.indeed.com/aakb2k98yghx,indeed,JOBSEARCH_396,2026-09-04T17:11:28.850268
-Data Scientist F/H,Atos,Tours (37),N/A,N/A,https://to.indeed.com/aayvcpxz8jl7,indeed,JOBSEARCH_397,2026-09-04T17:11:28.852607
-Stage Data Analyst et Data Visualization – Intelligence Artificielle / Business Intelligence (H/F),MONSTOCK,Bezannes (51),N/A,N/A,https://to.indeed.com/aamzb2prqn4s,indeed,JOBSEARCH_398,2026-09-04T17:11:28.854312
-Data Scientist (F/H) - OCR Factory,Euro-Information,Laxou (54),N/A,N/A,https://to.indeed.com/aagjnk9q877y,indeed,JOBSEARCH_399,2026-09-04T17:11:28.855599
-Head of Data Science,Groupement Mousquetaires,Châtillon (92),N/A,N/A,https://to.indeed.com/aar6npc27r4s,indeed,JOBSEARCH_400,2026-09-04T17:11:28.857080
-Business Analyst Expert - Trading Data & Reporting - F/H,INGENIANCE,Paris (75),N/A,N/A,https://to.indeed.com/aacwysj4lw7l,indeed,JOBSEARCH_401,2026-09-04T17:11:28.858663
-AEO and GEO Marketing Manager,Stripe,Remote in United States,Permanent,N/A,https://stripe.com/careers/listing/aeo-and-geo-marketing-manager/7844214,stripe,7844214,2026-09-04T17:33:19.669707
-AI Engineer,Stripe,Toronto,Permanent,N/A,https://stripe.com/careers/listing/ai-engineer/8044460,stripe,8044460,2026-09-04T17:33:19.699454
-APAC Executive Marketing,Stripe,Singapore,Permanent,N/A,https://stripe.com/careers/listing/apac-executive-marketing/7764914,stripe,7764914,2026-09-04T17:33:19.702047
-ARG Engineering Manager,Stripe,Remote in United States,Permanent,N/A,https://stripe.com/careers/listing/arg-engineering-manager/8113337,stripe,8113337,2026-09-04T17:33:19.703755
-AV Events Manager,Stripe,South San Francisco HQ,Permanent,N/A,https://stripe.com/careers/listing/av-events-manager/8078126,stripe,8078126,2026-09-04T17:33:19.705708
-Abuse Investigator,Stripe,Dublin HQ,Permanent,N/A,https://stripe.com/careers/listing/abuse-investigator/8172508,stripe,8172508,2026-09-04T17:33:19.707099
-"Account Executive, Grower - Iberia Market",Stripe,Madrid,Permanent,N/A,https://stripe.com/careers/listing/account-executive-grower-iberia-market/8138662,stripe,8138662,2026-09-04T17:33:19.708481
-"Account Executive - Enterprise, Grower",Stripe,Chicago,Permanent,N/A,https://stripe.com/careers/listing/account-executive-enterprise-grower/7993151,stripe,7993151,2026-09-04T17:33:19.709874
-Account Executive - LATAM,Stripe,Mexico City,Permanent,N/A,https://stripe.com/careers/listing/account-executive-latam/8122192,stripe,8122192,2026-09-04T17:33:19.711252
-"Account Executive - SEA, Platforms (Grower)",Stripe,Singapore,Permanent,N/A,https://stripe.com/careers/listing/account-executive-sea-platforms-grower/8108891,stripe,8108891,2026-09-04T17:33:19.712536
-Account Executive Product - Tax,Stripe,Singapore,Permanent,N/A,https://stripe.com/careers/listing/account-executive-product-tax/8175830,stripe,8175830,2026-09-04T17:33:19.713814
-"Account Executive, AI Startups (Hunter)",Stripe,South San Francisco HQ,Permanent,N/A,https://stripe.com/careers/listing/account-executive-ai-startups-hunter/8130725,stripe,8130725,2026-09-04T17:33:19.715077
-"Account Executive, Bridge",Stripe,New York,Permanent,N/A,https://stripe.com/careers/listing/account-executive-bridge/8077887,stripe,8077887,2026-09-04T17:33:19.716357
-"Account Executive, Commercial (Grower)",Stripe,Chicago,Permanent,N/A,https://stripe.com/careers/listing/account-executive-commercial-grower/8123027,stripe,8123027,2026-09-04T17:33:19.717629
+id,company_id,job_title,job_url,source,raw_text,required_skills,posted_date,status,created_at,updated_at
+221,1,AI Applications Engineer,https://jobs.ashbyhq.com/notion/bc9a9573-e963-48a7-b7b9-a32017f28916,ashby,"Company: Notion
+Location: San Francisco, California
+ID: bc9a9573-e963-48a7-b7b9-a32017f28916",,,active,2026-09-05T01:56:04.894650,2026-09-05T01:56:04.894652
+251,1,APAC Campaigns & Content Lead,https://jobs.ashbyhq.com/notion/fef0c5d0-6744-40e6-aeae-0c5644f6af5e,ashby,"Company: Notion
+Location: Sydney, Australia
+ID: fef0c5d0-6744-40e6-aeae-0c5644f6af5e",,,active,2026-09-05T01:56:04.932963,2026-09-05T01:56:04.932965
+234,1,"Business Development Manager, Product & Platform",https://jobs.ashbyhq.com/notion/f603aedb-1454-4a75-b2f0-a3afb2a8f973,ashby,"Company: Notion
+Location: New York, New York
+ID: f603aedb-1454-4a75-b2f0-a3afb2a8f973",,,active,2026-09-05T01:56:04.911843,2026-09-05T01:56:04.911844
+241,1,Business Development Representative,https://jobs.ashbyhq.com/notion/a59ae31e-059e-4f6b-84a7-0fa9db88c72b,ashby,"Company: Notion
+Location: Sydney, Australia
+ID: a59ae31e-059e-4f6b-84a7-0fa9db88c72b",,,active,2026-09-05T01:56:04.920465,2026-09-05T01:56:04.920466
+217,1,Business Development Representative,https://jobs.ashbyhq.com/notion/c64a2cda-4c84-45bd-823d-f9141c316733,ashby,"Company: Notion
+Location: Tokyo, Japan 
+ID: c64a2cda-4c84-45bd-823d-f9141c316733",,,active,2026-09-05T01:56:04.888942,2026-09-05T01:56:04.888943
+247,1,"Business Development Representative, CEE",https://jobs.ashbyhq.com/notion/8d2532a9-a1a8-48ec-8de3-b3646bd70423,ashby,"Company: Notion
+Location: Dublin, Ireland
+ID: 8d2532a9-a1a8-48ec-8de3-b3646bd70423",,,active,2026-09-05T01:56:04.928012,2026-09-05T01:56:04.928014
+233,1,"Business Development Representative, Korea",https://jobs.ashbyhq.com/notion/759a9c5a-cdd6-4d05-8eaf-e78eabc34293,ashby,"Company: Notion
+Location: Seoul, South Korea
+ID: 759a9c5a-cdd6-4d05-8eaf-e78eabc34293",,,active,2026-09-05T01:56:04.910619,2026-09-05T01:56:04.910620
+214,1,"Business Development Representative, New York",https://jobs.ashbyhq.com/notion/05e14247-17c4-4e98-9a13-53828a4e2f13,ashby,"Company: Notion
+Location: New York, New York
+ID: 05e14247-17c4-4e98-9a13-53828a4e2f13",,,active,2026-09-05T01:56:04.884338,2026-09-05T01:56:04.884340
+215,1,"Business Development Representative, San Francisco",https://jobs.ashbyhq.com/notion/b21fef72-4864-4a3e-a627-91557a0f8a36,ashby,"Company: Notion
+Location: San Francisco, California
+ID: b21fef72-4864-4a3e-a627-91557a0f8a36",,,active,2026-09-05T01:56:04.885898,2026-09-05T01:56:04.885900
+239,1,Business Operations & Strategy Lead,https://jobs.ashbyhq.com/notion/ef4d9a34-153f-47a7-ba9f-f9a9de821066,ashby,"Company: Notion
+Location: San Francisco, California
+ID: ef4d9a34-153f-47a7-ba9f-f9a9de821066",,,active,2026-09-05T01:56:04.918050,2026-09-05T01:56:04.918051
+260,1,"Country Manager, Taiwan",https://jobs.ashbyhq.com/notion/671ea859-ae45-46fb-9421-97d401cb987a,ashby,"Company: Notion
+Location: Taiwan
+ID: 671ea859-ae45-46fb-9421-97d401cb987a",,,active,2026-09-05T01:56:04.944104,2026-09-05T01:56:04.944106
+255,1,Customer Experience Strategy & Operations Lead,https://jobs.ashbyhq.com/notion/8bb5da67-0b4d-4894-83eb-56d31e9bc662,ashby,"Company: Notion
+Location: New York, New York
+ID: 8bb5da67-0b4d-4894-83eb-56d31e9bc662",,,active,2026-09-05T01:56:04.937895,2026-09-05T01:56:04.937897
+254,1,CX Knowledge Architect,https://jobs.ashbyhq.com/notion/4c7683fa-fe37-44d9-aa3f-2f57a37c11f8,ashby,"Company: Notion
+Location: New York, New York
+ID: 4c7683fa-fe37-44d9-aa3f-2f57a37c11f8",,,active,2026-09-05T01:56:04.936617,2026-09-05T01:56:04.936619
+232,1,"Demand & Campaigns Lead, EMEA",https://jobs.ashbyhq.com/notion/edb12109-aa32-461a-b764-1850a2314e0d,ashby,"Company: Notion
+Location: Dublin, Ireland
+ID: edb12109-aa32-461a-b764-1850a2314e0d",,,active,2026-09-05T01:56:04.909392,2026-09-05T01:56:04.909393
+243,1,Developer Advocate,https://jobs.ashbyhq.com/notion/0cc39c60-4c89-4213-954e-d77ced4cb7e7,ashby,"Company: Notion
+Location: New York, New York
+ID: 0cc39c60-4c89-4213-954e-d77ced4cb7e7",,,active,2026-09-05T01:56:04.922962,2026-09-05T01:56:04.922964
+222,1,"Engineering Manager, Mobile AI",https://jobs.ashbyhq.com/notion/3979a6f5-2abb-447b-bd3a-0565b06bae24,ashby,"Company: Notion
+Location: New York, New York
+ID: 3979a6f5-2abb-447b-bd3a-0565b06bae24",,,active,2026-09-05T01:56:04.896611,2026-09-05T01:56:04.896612
+253,1,"Engineering Manager, Search & Context Platform",https://jobs.ashbyhq.com/notion/eb46a31c-a258-4b19-afe6-f2c65eaa2dcc,ashby,"Company: Notion
+Location: San Francisco, California
+ID: eb46a31c-a258-4b19-afe6-f2c65eaa2dcc",,,active,2026-09-05T01:56:04.935355,2026-09-05T01:56:04.935357
+238,1,Enterprise Technical Support Engineer,https://jobs.ashbyhq.com/notion/15f37b73-d217-469a-adfc-2e50cc9e2374,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 15f37b73-d217-469a-adfc-2e50cc9e2374",,,active,2026-09-05T01:56:04.916818,2026-09-05T01:56:04.916820
+227,1,Forward Deployed Engineer,https://jobs.ashbyhq.com/notion/4bc0802c-b5e0-411c-be01-daaea2bc3ae0,ashby,"Company: Notion
+Location: Tokyo, Japan 
+ID: 4bc0802c-b5e0-411c-be01-daaea2bc3ae0",,,active,2026-09-05T01:56:04.903057,2026-09-05T01:56:04.903058
+218,1,"Forward Deployed Engineer, GTM, AMER",https://jobs.ashbyhq.com/notion/10437426-14c8-4c45-8075-67959ce80393,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 10437426-14c8-4c45-8075-67959ce80393",,,active,2026-09-05T01:56:04.890313,2026-09-05T01:56:04.890315
+240,1,Global Strategic Partner Manager,https://jobs.ashbyhq.com/notion/ed0afe5b-df69-400c-bf48-81d2269da4fd,ashby,"Company: Notion
+Location: San Francisco, California
+ID: ed0afe5b-df69-400c-bf48-81d2269da4fd",,,active,2026-09-05T01:56:04.919259,2026-09-05T01:56:04.919261
+259,1,Head of Early Career Recruiting,https://jobs.ashbyhq.com/notion/076371b1-e9b0-4ad7-b67b-ae9e4572f65a,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 076371b1-e9b0-4ad7-b67b-ae9e4572f65a",,,active,2026-09-05T01:56:04.942880,2026-09-05T01:56:04.942881
+236,1,"Outcomes Architect Manager, Tokyo",https://jobs.ashbyhq.com/notion/785573a1-93b9-4f7e-b84a-c224d1d98b66,ashby,"Company: Notion
+Location: Tokyo, Japan 
+ID: 785573a1-93b9-4f7e-b84a-c224d1d98b66",,,active,2026-09-05T01:56:04.914327,2026-09-05T01:56:04.914329
+228,1,Partner Strategy & Operations Lead,https://jobs.ashbyhq.com/notion/5dc7695e-139e-4679-a213-a733ee1d62d5,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 5dc7695e-139e-4679-a213-a733ee1d62d5",,,active,2026-09-05T01:56:04.904329,2026-09-05T01:56:04.904330
+252,1,People Analytics Lead - Recruiting,https://jobs.ashbyhq.com/notion/6597b600-7781-46e6-b70a-a9af4fb2b61b,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 6597b600-7781-46e6-b70a-a9af4fb2b61b",,,active,2026-09-05T01:56:04.934160,2026-09-05T01:56:04.934161
+216,1,Product Designer,https://jobs.ashbyhq.com/notion/d177d052-ef57-4900-acf2-d58e9eded620,ashby,"Company: Notion
+Location: San Francisco, California
+ID: d177d052-ef57-4900-acf2-d58e9eded620",,,active,2026-09-05T01:56:04.887565,2026-09-05T01:56:04.887567
+229,1,Product Operations Manager,https://jobs.ashbyhq.com/notion/8b82e596-e828-45db-94d5-b76acc89e749,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 8b82e596-e828-45db-94d5-b76acc89e749",,,active,2026-09-05T01:56:04.905583,2026-09-05T01:56:04.905584
+257,1,Rapid User Researcher,https://jobs.ashbyhq.com/notion/f3faba46-776a-4938-8c9b-5aebb495aa39,ashby,"Company: Notion
+Location: San Francisco, California
+ID: f3faba46-776a-4938-8c9b-5aebb495aa39",,,active,2026-09-05T01:56:04.940369,2026-09-05T01:56:04.940370
+225,1,"Regional General Manager, DACH",https://jobs.ashbyhq.com/notion/951a7b72-4cb3-4726-be5e-5359269d4929,ashby,"Company: Notion
+Location: Munich, Germany
+ID: 951a7b72-4cb3-4726-be5e-5359269d4929",,,active,2026-09-05T01:56:04.900536,2026-09-05T01:56:04.900538
+245,1,"Regional Partner Manager, DACH",https://jobs.ashbyhq.com/notion/6ba79c2f-1f18-49b6-acaa-53100e105556,ashby,"Company: Notion
+Location: Munich, Germany
+ID: 6ba79c2f-1f18-49b6-acaa-53100e105556",,,active,2026-09-05T01:56:04.925358,2026-09-05T01:56:04.925360
+246,1,"Regional Partner Manager, France",https://jobs.ashbyhq.com/notion/bdd71456-876d-4ec2-96cf-de8a401e3e19,ashby,"Company: Notion
+Location: Paris, France
+ID: bdd71456-876d-4ec2-96cf-de8a401e3e19",,,active,2026-09-05T01:56:04.926606,2026-09-05T01:56:04.926608
+219,1,Sales Recruiter,https://jobs.ashbyhq.com/notion/f663839e-46ac-44ad-9720-da2b6aa28093,ashby,"Company: Notion
+Location: San Francisco, California
+ID: f663839e-46ac-44ad-9720-da2b6aa28093",,,active,2026-09-05T01:56:04.891806,2026-09-05T01:56:04.891808
+249,1,"Security Engineer, Corporate Security",https://jobs.ashbyhq.com/notion/477768e1-37af-49bc-a4de-6564e0a4ec54,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 477768e1-37af-49bc-a4de-6564e0a4ec54",,,active,2026-09-05T01:56:04.930428,2026-09-05T01:56:04.930429
+226,1,"Security Engineer, Detection and Response, Dublin",https://jobs.ashbyhq.com/notion/06e1d3a8-2706-4ed9-9fe6-8b69607de18e,ashby,"Company: Notion
+Location: Dublin, Ireland
+ID: 06e1d3a8-2706-4ed9-9fe6-8b69607de18e",,,active,2026-09-05T01:56:04.901803,2026-09-05T01:56:04.901805
+248,1,"Security Engineer, Detection and Response, San Francisco",https://jobs.ashbyhq.com/notion/c0fcf37b-e00f-4aae-a2e0-b008f9939a7e,ashby,"Company: Notion
+Location: San Francisco, California
+ID: c0fcf37b-e00f-4aae-a2e0-b008f9939a7e",,,active,2026-09-05T01:56:04.929227,2026-09-05T01:56:04.929228
+231,1,Senior Treasury Manager,https://jobs.ashbyhq.com/notion/6f5d0bc7-dd9e-48fd-9a1d-733ad391e151,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 6f5d0bc7-dd9e-48fd-9a1d-733ad391e151",,,active,2026-09-05T01:56:04.908110,2026-09-05T01:56:04.908111
+250,1,"Software Engineer, AI Product Security",https://jobs.ashbyhq.com/notion/def3f337-5593-491c-b34d-e0b53f2a5cac,ashby,"Company: Notion
+Location: San Francisco, California
+ID: def3f337-5593-491c-b34d-e0b53f2a5cac",,,active,2026-09-05T01:56:04.931736,2026-09-05T01:56:04.931738
+235,1,"Software Engineer, AI Workflows",https://jobs.ashbyhq.com/notion/17330e14-83db-49a4-ae31-411690d97dba,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 17330e14-83db-49a4-ae31-411690d97dba",,,active,2026-09-05T01:56:04.913050,2026-09-05T01:56:04.913051
+237,1,"Software Engineer, Collections Experience",https://jobs.ashbyhq.com/notion/5d8c1ec6-e9ea-416b-9715-880bf5037abc,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 5d8c1ec6-e9ea-416b-9715-880bf5037abc",,,active,2026-09-05T01:56:04.915587,2026-09-05T01:56:04.915588
+230,1,"Software Engineer, Developer Experience",https://jobs.ashbyhq.com/notion/49bdf081-6e20-4323-8c73-6d6b19544ff5,ashby,"Company: Notion
+Location: Hyderabad, India
+ID: 49bdf081-6e20-4323-8c73-6d6b19544ff5",,,active,2026-09-05T01:56:04.906847,2026-09-05T01:56:04.906848
+258,1,"Software Engineer, Developer Experience (Go Lead)",https://jobs.ashbyhq.com/notion/876c69a9-be0a-4a71-bf4a-04cbc9c6328e,ashby,"Company: Notion
+Location: New York, New York
+ID: 876c69a9-be0a-4a71-bf4a-04cbc9c6328e",,,active,2026-09-05T01:56:04.941620,2026-09-05T01:56:04.941621
+213,1,"Software Engineer, Developer Platform",https://jobs.ashbyhq.com/notion/1fc309c8-da20-4ff2-84c7-8b863ece2b0a,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 1fc309c8-da20-4ff2-84c7-8b863ece2b0a",,,active,2026-09-05T01:56:04.879275,2026-09-05T01:56:04.879279
+261,1,"Software Engineer, Early Career",https://jobs.ashbyhq.com/notion/297b4ece-765f-4eea-b1b8-46057cb6501f,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 297b4ece-765f-4eea-b1b8-46057cb6501f",,,active,2026-09-05T01:56:04.945353,2026-09-05T01:56:04.945354
+242,1,"Software Engineer, Early Career (AI)",https://jobs.ashbyhq.com/notion/85947779-6b87-466a-98bc-30a640448c28,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 85947779-6b87-466a-98bc-30a640448c28",,,active,2026-09-05T01:56:04.921721,2026-09-05T01:56:04.921723
+223,1,"Software Engineer, Infrastructure ",https://jobs.ashbyhq.com/notion/42f18ccd-c4c8-4a85-8c1f-de12c575fe87,ashby,"Company: Notion
+Location: Hyderabad, India
+ID: 42f18ccd-c4c8-4a85-8c1f-de12c575fe87",,,active,2026-09-05T01:56:04.897904,2026-09-05T01:56:04.897906
+220,1,"Solutions Consultant Manager, Commercial (Sales Leadership)",https://jobs.ashbyhq.com/notion/e95ff317-92fe-4e34-88da-a83fe093f017,ashby,"Company: Notion
+Location: Tokyo, Japan 
+ID: e95ff317-92fe-4e34-88da-a83fe093f017",,,active,2026-09-05T01:56:04.893209,2026-09-05T01:56:04.893211
+224,1,"Solutions Consultant Manager, Enterprise (Sales Leadership)",https://jobs.ashbyhq.com/notion/9fe70944-f84f-421c-8168-bbf21d4b4ca4,ashby,"Company: Notion
+Location: Tokyo, Japan 
+ID: 9fe70944-f84f-421c-8168-bbf21d4b4ca4",,,active,2026-09-05T01:56:04.899199,2026-09-05T01:56:04.899201
+244,1,Startup Program & Experience Lead,https://jobs.ashbyhq.com/notion/c35370d3-ac9c-4ad7-947b-77ad6e9e176c,ashby,"Company: Notion
+Location: San Francisco, California
+ID: c35370d3-ac9c-4ad7-947b-77ad6e9e176c",,,active,2026-09-05T01:56:04.924137,2026-09-05T01:56:04.924139
+262,1,"Technical Recruiter, Early Career",https://jobs.ashbyhq.com/notion/e3e0c9e9-4c9a-4390-b713-27d465bce2f1,ashby,"Company: Notion
+Location: San Francisco, California
+ID: e3e0c9e9-4c9a-4390-b713-27d465bce2f1",,,active,2026-09-05T01:56:04.946554,2026-09-05T01:56:04.946556
+256,1,"User Researcher, AI Evaluations",https://jobs.ashbyhq.com/notion/0e9114bd-4603-4bdf-a86f-a7a4f390fae8,ashby,"Company: Notion
+Location: San Francisco, California
+ID: 0e9114bd-4603-4bdf-a86f-a7a4f390fae8",,,active,2026-09-05T01:56:04.939143,2026-09-05T01:56:04.939144
+167,1,Abuse Investigator,https://stripe.com/jobs/search?gh_jid=8172487,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8172487",,,active,2026-09-05T01:56:00.756402,2026-09-05T01:56:00.756413
+177,1,"Account Executive - Enterprise, Grower",https://stripe.com/jobs/search?gh_jid=7993151,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7993151",,,active,2026-09-05T01:56:00.782714,2026-09-05T01:56:00.782715
+196,1,Account Executive - LATAM,https://stripe.com/jobs/search?gh_jid=8122192,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8122192",,,active,2026-09-05T01:56:00.807021,2026-09-05T01:56:00.807023
+193,1,"Account Executive , Grower - Iberia Market ",https://stripe.com/jobs/search?gh_jid=8138662,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8138662",,,active,2026-09-05T01:56:00.803196,2026-09-05T01:56:00.803197
+168,1,"Account Executive, AI Sales",https://stripe.com/jobs/search?gh_jid=7532733,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7532733",,,active,2026-09-05T01:56:00.770146,2026-09-05T01:56:00.770149
+169,1,"Account Executive, AI Startups (Hunter)",https://stripe.com/jobs/search?gh_jid=8130725,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8130725",,,active,2026-09-05T01:56:00.771928,2026-09-05T01:56:00.771930
+170,1,"Account Executive, Bridge ",https://stripe.com/jobs/search?gh_jid=8077887,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8077887",,,active,2026-09-05T01:56:00.773515,2026-09-05T01:56:00.773517
+171,1,"Account Executive, Commercial (Grower)",https://stripe.com/jobs/search?gh_jid=8123027,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8123027",,,active,2026-09-05T01:56:00.775020,2026-09-05T01:56:00.775022
+172,1,"Account Executive, Commercial Hunter",https://stripe.com/jobs/search?gh_jid=8141211,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8141211",,,active,2026-09-05T01:56:00.776468,2026-09-05T01:56:00.776469
+173,1,"Account Executive, Commercial Hunter (Japanese Fluency)",https://stripe.com/jobs/search?gh_jid=7789539,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7789539",,,active,2026-09-05T01:56:00.778158,2026-09-05T01:56:00.778160
+174,1,"Account Executive, Cross Border China",https://stripe.com/jobs/search?gh_jid=7893199,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7893199",,,active,2026-09-05T01:56:00.779529,2026-09-05T01:56:00.779530
+178,1,"Account Executive, Enterprise - Grower",https://stripe.com/jobs/search?gh_jid=7997555,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7997555",,,active,2026-09-05T01:56:00.783726,2026-09-05T01:56:00.783728
+182,1,"Account Executive, Enterprise - Hunter",https://stripe.com/jobs/search?gh_jid=7994330,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7994330",,,active,2026-09-05T01:56:00.788819,2026-09-05T01:56:00.788821
+175,1,"Account Executive, Enterprise (Canada) ",https://stripe.com/jobs/search?gh_jid=8119822,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8119822",,,active,2026-09-05T01:56:00.780581,2026-09-05T01:56:00.780582
+176,1,"Account Executive, Enterprise (DACH Market)  ",https://stripe.com/jobs/search?gh_jid=7825578,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7825578",,,active,2026-09-05T01:56:00.781570,2026-09-05T01:56:00.781572
+179,1,"Account Executive, Enterprise (Grower) ",https://stripe.com/jobs/search?gh_jid=8107136,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8107136",,,active,2026-09-05T01:56:00.784718,2026-09-05T01:56:00.784720
+180,1,"Account Executive, Enterprise Grower (Israel)",https://stripe.com/jobs/search?gh_jid=8114458,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8114458",,,active,2026-09-05T01:56:00.785710,2026-09-05T01:56:00.785711
+181,1,"Account Executive, Enterprise Grower, Platforms (Israel)",https://stripe.com/jobs/search?gh_jid=8129956,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8129956",,,active,2026-09-05T01:56:00.787432,2026-09-05T01:56:00.787434
+183,1,"Account Executive, Enterprise Hunter (Japanese fluency)",https://stripe.com/jobs/search?gh_jid=7528816,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7528816",,,active,2026-09-05T01:56:00.790149,2026-09-05T01:56:00.790151
+184,1,"Account Executive, Enterprise Platforms (Grower)",https://stripe.com/jobs/search?gh_jid=7576967,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7576967",,,active,2026-09-05T01:56:00.791436,2026-09-05T01:56:00.791438
+185,1,"Account Executive, Enterprise Platforms, Hunter",https://stripe.com/jobs/search?gh_jid=8077971,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8077971",,,active,2026-09-05T01:56:00.792692,2026-09-05T01:56:00.792694
+186,1,"Account Executive, Enterprise Platforms, Tier 2 Grower",https://stripe.com/jobs/search?gh_jid=8075473,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8075473",,,active,2026-09-05T01:56:00.794034,2026-09-05T01:56:00.794036
+187,1,"Account Executive, Existing Business ",https://stripe.com/jobs/search?gh_jid=8114155,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8114155",,,active,2026-09-05T01:56:00.795309,2026-09-05T01:56:00.795310
+188,1,"Account Executive, Existing Business (Central Eastern Europe)",https://stripe.com/jobs/search?gh_jid=8119697,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8119697",,,active,2026-09-05T01:56:00.796664,2026-09-05T01:56:00.796666
+189,1,"Account Executive, Existing Business, Platforms",https://stripe.com/jobs/search?gh_jid=7922618,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7922618",,,active,2026-09-05T01:56:00.797946,2026-09-05T01:56:00.797948
+190,1,"Account Executive, Financial Services, Grower ",https://stripe.com/jobs/search?gh_jid=8048193,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8048193",,,active,2026-09-05T01:56:00.799393,2026-09-05T01:56:00.799395
+191,1,"Account Executive, Funded Startups — Hunter, Italy",https://stripe.com/jobs/search?gh_jid=8121419,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8121419",,,active,2026-09-05T01:56:00.800671,2026-09-05T01:56:00.800672
+192,1,"Account Executive, Funded Startups - Israel",https://stripe.com/jobs/search?gh_jid=8121421,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8121421",,,active,2026-09-05T01:56:00.801938,2026-09-05T01:56:00.801939
+194,1,"Account Executive, hunter",https://stripe.com/jobs/search?gh_jid=8079514,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8079514",,,active,2026-09-05T01:56:00.804524,2026-09-05T01:56:00.804526
+195,1,"Account Executive, Hunter (Central Eastern Europe)",https://stripe.com/jobs/search?gh_jid=8130052,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8130052",,,active,2026-09-05T01:56:00.805778,2026-09-05T01:56:00.805780
+197,1,"Account Executive, Platforms (Existing Business)",https://stripe.com/jobs/search?gh_jid=7456957,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7456957",,,active,2026-09-05T01:56:00.808286,2026-09-05T01:56:00.808287
+198,1,"Account Executive, Platforms (Hunter) ",https://stripe.com/jobs/search?gh_jid=7298935,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7298935",,,active,2026-09-05T01:56:00.809505,2026-09-05T01:56:00.809507
+199,1,"Account Executive, Platforms Hunter (Central Eastern Europe)",https://stripe.com/jobs/search?gh_jid=8121659,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8121659",,,active,2026-09-05T01:56:00.810777,2026-09-05T01:56:00.810778
+200,1,"Account Executive, Platforms Hunter (German fluency)",https://stripe.com/jobs/search?gh_jid=8129702,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8129702",,,active,2026-09-05T01:56:00.812035,2026-09-05T01:56:00.812037
+201,1,"Account Executive, Privy",https://stripe.com/jobs/search?gh_jid=8041076,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8041076",,,active,2026-09-05T01:56:00.813299,2026-09-05T01:56:00.813300
+202,1,"Account Executive, Product - Link",https://stripe.com/jobs/search?gh_jid=8049828,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8049828",,,active,2026-09-05T01:56:00.814551,2026-09-05T01:56:00.814552
+208,1,"Account Executive, Product Sales - Issuing and Treasury",https://stripe.com/jobs/search?gh_jid=7456716,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7456716",,,active,2026-09-05T01:56:00.821914,2026-09-05T01:56:00.821915
+211,1,"Account Executive, Product Sales - Money Management  APAC",https://stripe.com/jobs/search?gh_jid=8068746,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8068746",,,active,2026-09-05T01:56:00.825587,2026-09-05T01:56:00.825588
+212,1,"Account Executive, Product Sales - Optimised Checkout ",https://stripe.com/jobs/search?gh_jid=8040940,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8040940",,,active,2026-09-05T01:56:00.826801,2026-09-05T01:56:00.826803
+203,1,"Account Executive, Product Sales (Billing)",https://stripe.com/jobs/search?gh_jid=7984339,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7984339",,,active,2026-09-05T01:56:00.815804,2026-09-05T01:56:00.815805
+207,1,"Account Executive, Product Sales (Data Pipeline) ",https://stripe.com/jobs/search?gh_jid=8113687,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8113687",,,active,2026-09-05T01:56:00.820671,2026-09-05T01:56:00.820673
+205,1,"Account Executive, Product Sales (Data)",https://stripe.com/jobs/search?gh_jid=8114153,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8114153",,,active,2026-09-05T01:56:00.818221,2026-09-05T01:56:00.818222
+206,1,"Account Executive, Product Sales (Data) ",https://stripe.com/jobs/search?gh_jid=8114738,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8114738",,,active,2026-09-05T01:56:00.819432,2026-09-05T01:56:00.819434
+210,1,"Account Executive, Product Sales-  Money Management ANZ",https://stripe.com/jobs/search?gh_jid=8068744,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8068744",,,active,2026-09-05T01:56:00.824363,2026-09-05T01:56:00.824365
+204,1,"Account Executive, Product Sales, Billing",https://stripe.com/jobs/search?gh_jid=7393169,greenhouse,"Company: Stripe
+Location: Remote
+ID: 7393169",,,active,2026-09-05T01:56:00.817013,2026-09-05T01:56:00.817014
+209,1,"Account Executive, Product Sales, Metronome (Hunter) ",https://stripe.com/jobs/search?gh_jid=8029043,greenhouse,"Company: Stripe
+Location: Remote
+ID: 8029043",,,active,2026-09-05T01:56:00.823139,2026-09-05T01:56:00.823141
+40,1,Alternance - Innovation F/H,https://to.indeed.com/aa9pkwz2qkpj,indeed,"Company: Framatome
+Location: La Défense (92)
+Job Type: Full-time
+Posted: May 18, 2026
+Indeed ID: JOBSEARCH_381",,,active,2026-09-04T17:11:28.830508,2026-09-04T17:11:28.830510
+11,1,Analyste développeur (F/H) - Domaine Data engineering,https://to.indeed.com/aa2g2wcnsbdt,indeed,"Company: Euro-Information
+Location: Nantes (44)
+Job Type: Permanent
+Posted: August 20, 2026
+Indeed ID: JOBSEARCH_352",,,active,2026-09-04T17:09:06.885682,2026-09-04T17:09:06.885683
+36,1,Apprenticeship | Reporting Analyst / Developer,https://to.indeed.com/aa4c6ssyxh26,indeed,"Company: AXA / France
+Location: Paris (75)
+Job Type: Apprenticeship
+Posted: February 21, 2026
+Indeed ID: JOBSEARCH_377",,,active,2026-09-04T17:11:28.825105,2026-09-04T17:11:28.825107
+6,1,Business Analyst CRM (F/H),https://to.indeed.com/aasqyt7bx26h,indeed,"Company: Konica Minolta
+Location: Saint-Grégoire (35)
+Job Type: Permanent
+Posted: August 20, 2026
+Indeed ID: JOBSEARCH_347",,,active,2026-09-04T17:09:06.880179,2026-09-04T17:09:06.880180
+18,1,Business Analyst CRM (F/H),https://to.indeed.com/aajmgh89cvnt,indeed,"Company: Konica Minolta
+Location: Saint-Grégoire (35)
+Job Type: Permanent
+Posted: August 20, 2026
+Indeed ID: JOBSEARCH_359",,,active,2026-09-04T17:11:28.797697,2026-09-04T17:11:28.797699
+23,1,Business Analyst Engineer F/H,https://to.indeed.com/aarhhpk64prm,indeed,"Company: Matmut
+Location: Rouen (76)
+Job Type: Permanent
+Posted: March 06, 2026
+Indeed ID: JOBSEARCH_364",,,active,2026-09-04T17:11:28.803250,2026-09-04T17:11:28.803252
+60,1,Business Analyst Expert - Trading Data & Reporting - F/H,https://to.indeed.com/aacwysj4lw7l,indeed,"Company: INGENIANCE
+Location: Paris (75)
+Job Type: Permanent
+Posted: September 04, 2026
+Indeed ID: JOBSEARCH_401",,,active,2026-09-04T17:11:28.858663,2026-09-04T17:11:28.858664
+8,1,Business Analyst Expert - Trading Data & Reporting - F/H,https://to.indeed.com/aaxnst7zpqhd,indeed,"Company: INGENIANCE
+Location: Paris (75)
+Job Type: Permanent
+Posted: September 04, 2026
+Indeed ID: JOBSEARCH_349",,,active,2026-09-04T17:09:06.882565,2026-09-04T17:09:06.882566
+2,1,Business analyst F/H,https://to.indeed.com/aaltcvr9rb7w,indeed,"Company: Enedis
+Location: Amiens (80)
+Job Type: Permanent
+Posted: July 31, 2026
+Indeed ID: JOBSEARCH_343",,,active,2026-09-04T17:09:06.862212,2026-09-04T17:09:06.862216
+37,1,Business Developer H/F,https://to.indeed.com/aawctnypfbgz,indeed,"Company: EM CONSEIL
+Location: Marseille (13)
+Job Type: Permanent
+Posted: August 21, 2026
+Indeed ID: JOBSEARCH_378",,,active,2026-09-04T17:11:28.826296,2026-09-04T17:11:28.826298
+38,1,Business Developer Transport H/F,https://to.indeed.com/aavy7ffyjtkw,indeed,"Company: RDV TRANSPORTS
+Location: Marck (62)
+Job Type: Permanent
+Posted: July 21, 2026
+Indeed ID: JOBSEARCH_379",,,active,2026-09-04T17:11:28.827553,2026-09-04T17:11:28.827555
+9,1,CDD - Data Analyst H/F,https://to.indeed.com/aagwcjyws49n,indeed,"Company: Groupement Mousquetaires
+Location: Vert-le-Grand (91)
+Job Type: Full-time
+Posted: June 02, 2026
+Indeed ID: JOBSEARCH_350",,,active,2026-09-04T17:09:06.883572,2026-09-04T17:09:06.883573
+15,1,Chargé de projets Data et IA (H/F),https://to.indeed.com/aat897kk2lyf,indeed,"Company: Merval
+Location: Nantes (44)
+Job Type: Permanent
+Posted: April 23, 2026
+Indeed ID: JOBSEARCH_356",,,active,2026-09-04T17:11:28.792286,2026-09-04T17:11:28.792288
+13,1,"Cheffe/Chef de projet informatique (F/H) - Domaine data, administration SAP BO",https://to.indeed.com/aajgvc9mv9t2,indeed,"Company: Euro-Information
+Location: Nantes (44)
+Job Type: Permanent
+Posted: February 19, 2026
+Indeed ID: JOBSEARCH_354",,,active,2026-09-04T17:11:28.788731,2026-09-04T17:11:28.788733
+5,1,Consultant Senior Business Intelligence F/H,https://to.indeed.com/aapft4hkynq4,indeed,"Company: Rydge Conseil
+Location: Courbevoie (92)
+Job Type: Full-time
+Posted: August 25, 2026
+Indeed ID: JOBSEARCH_346",,,active,2026-09-04T17:09:06.878780,2026-09-04T17:09:06.878781
+20,1,Consultant Senior Business Intelligence F/H,https://to.indeed.com/aackn86htsrf,indeed,"Company: Rydge Conseil
+Location: Courbevoie (92)
+Job Type: Full-time
+Posted: August 25, 2026
+Indeed ID: JOBSEARCH_361",,,active,2026-09-04T17:11:28.799931,2026-09-04T17:11:28.799932
+50,1,Consultant(e) Data Engineer Industriel Sénior H/F,https://to.indeed.com/aazcr4xdjzxb,indeed,"Company: MERCATO DE L'EMPLOI
+Location: Champs-sur-Marne (77)
+Job Type: Permanent
+Posted: August 26, 2026
+Indeed ID: JOBSEARCH_391",,,active,2026-09-04T17:11:28.843536,2026-09-04T17:11:28.843538
+10,1,Data Analyst (H/F) - CDI,https://to.indeed.com/aargstz4pc2h,indeed,"Company: Caisse d'Epargne
+Location: Montpellier (34)
+Job Type: Permanent
+Posted: August 28, 2026
+Indeed ID: JOBSEARCH_351",,,active,2026-09-04T17:09:06.884549,2026-09-04T17:09:06.884550
+46,1,Data Architect,https://to.indeed.com/aanmvstrjx4w,indeed,"Company: Rexel
+Location: Paris (75)
+Job Type: Full-time
+Posted: August 28, 2026
+Indeed ID: JOBSEARCH_387",,,active,2026-09-04T17:11:28.838669,2026-09-04T17:11:28.838670
+31,1,Data Center Delivery and Operation Roles 数据中心交付岗&运维岗,https://to.indeed.com/aaf7tznqlyqf,indeed,"Company: EZSVS France SARL
+Location: Île-de-France
+Job Type: Full-time
+Posted: August 26, 2026
+Indeed ID: JOBSEARCH_372",,,active,2026-09-04T17:11:28.814613,2026-09-04T17:11:28.814614
+43,1,Data Engineer - Marketing Digital & eCommerce H/F - CDI - Paris (17ème),https://to.indeed.com/aadd8yfhfy69,indeed,"Company: Rexel
+Location: Paris (75)
+Job Type: Full-time
+Posted: June 05, 2026
+Indeed ID: JOBSEARCH_384",,,active,2026-09-04T17:11:28.834531,2026-09-04T17:11:28.834533
+45,1,Data Engineer (Databricks /Azure),https://to.indeed.com/aafykdyfc9pt,indeed,"Company: Groupement Mousquetaires
+Location: Châtillon (92)
+Job Type: Full-time
+Posted: March 04, 2026
+Indeed ID: JOBSEARCH_386",,,active,2026-09-04T17:11:28.837310,2026-09-04T17:11:28.837312
+27,1,Data Engineer / AI Engineer (CDI),https://to.indeed.com/aak46bvvn9yf,indeed,"Company: Kosmos Digital
+Location: Villeneuve-Loubet (06)
+Job Type: Permanent
+Posted: May 17, 2026
+Indeed ID: JOBSEARCH_368",,,active,2026-09-04T17:11:28.808848,2026-09-04T17:11:28.808849
+48,1,Data Modeler – Finance,https://to.indeed.com/aa88kvcrb4j6,indeed,"Company: SCOR
+Location: Paris (75)
+Job Type: N/A
+Posted: July 22, 2026
+Indeed ID: JOBSEARCH_389",,,active,2026-09-04T17:11:28.841109,2026-09-04T17:11:28.841110
+26,1,Data Officer (F/H) - data factory,https://to.indeed.com/aaqp9l8dhlgx,indeed,"Company: Euro-Information
+Location: Nantes (44)
+Job Type: Permanent
+Posted: February 19, 2026
+Indeed ID: JOBSEARCH_367",,,active,2026-09-04T17:11:28.807439,2026-09-04T17:11:28.807441
+30,1,Data Officer (F/H) - data factory,https://to.indeed.com/aa7hyw2hqjgw,indeed,"Company: Euro-Information
+Location: Villeneuve-d'Ascq (59)
+Job Type: Permanent
+Posted: February 19, 2026
+Indeed ID: JOBSEARCH_371",,,active,2026-09-04T17:11:28.813241,2026-09-04T17:11:28.813243
+47,1,Data Product Owner,https://to.indeed.com/aakhsdntsj7d,indeed,"Company: Solocal
+Location: Boulogne-Billancourt (92)
+Job Type: Permanent
+Posted: July 07, 2026
+Indeed ID: JOBSEARCH_388",,,active,2026-09-04T17:11:28.839904,2026-09-04T17:11:28.839906
+35,1,Data Scientist,https://to.indeed.com/aajmk2j4lkjb,indeed,"Company: Sanofi
+Location: Lyon (69)
+Job Type: N/A
+Posted: April 21, 2026
+Indeed ID: JOBSEARCH_376",,,active,2026-09-04T17:11:28.823942,2026-09-04T17:11:28.823943
+58,1,Data Scientist (F/H) - OCR Factory,https://to.indeed.com/aagjnk9q877y,indeed,"Company: Euro-Information
+Location: Laxou (54)
+Job Type: Permanent
+Posted: July 23, 2026
+Indeed ID: JOBSEARCH_399",,,active,2026-09-04T17:11:28.855599,2026-09-04T17:11:28.855600
+56,1,Data Scientist F/H,https://to.indeed.com/aayvcpxz8jl7,indeed,"Company: Atos
+Location: Tours (37)
+Job Type: Full-time
+Posted: June 16, 2026
+Indeed ID: JOBSEARCH_397",,,active,2026-09-04T17:11:28.852607,2026-09-04T17:11:28.852608
+55,1,Data scientist H/F,https://to.indeed.com/aakb2k98yghx,indeed,"Company: GROUPE AFNOR
+Location: Saint-Denis (93)
+Job Type: N/A
+Posted: March 05, 2026
+Indeed ID: JOBSEARCH_396",,,active,2026-09-04T17:11:28.850268,2026-09-04T17:11:28.850269
+53,1,Data Scientist H/F,https://to.indeed.com/aaxfbpzzrsm9,indeed,"Company: CGI FINANCE
+Location: Lille (59)
+Job Type: Permanent
+Posted: August 03, 2026
+Indeed ID: JOBSEARCH_394",,,active,2026-09-04T17:11:28.847496,2026-09-04T17:11:28.847498
+54,1,Data scientist- F/H,https://to.indeed.com/aawptslshw6y,indeed,"Company: Tereos
+Location: Moussy-le-Vieux (77)
+Job Type: Permanent
+Posted: August 26, 2026
+Indeed ID: JOBSEARCH_395",,,active,2026-09-04T17:11:28.848830,2026-09-04T17:11:28.848831
+22,1,Data/AI Product Manager,https://to.indeed.com/aa8jk9wyn98q,indeed,"Company: UPFLUENCE
+Location: Lyon (69)
+Job Type: Full-time
+Posted: December 23, 2025
+Indeed ID: JOBSEARCH_363",,,active,2026-09-04T17:11:28.801981,2026-09-04T17:11:28.801983
+41,1,Data/AI Product Manager,https://to.indeed.com/aa764pcbhf74,indeed,"Company: UPFLUENCE
+Location: Lyon (69)
+Job Type: Full-time
+Posted: December 23, 2025
+Indeed ID: JOBSEARCH_382",,,active,2026-09-04T17:11:28.831830,2026-09-04T17:11:28.831832
+49,1,Growth Engineer – Apprentissage (f/h),https://to.indeed.com/aa2yptpjx6yt,indeed,"Company: Officéo
+Location: Paris (75)
+Job Type: Apprenticeship
+Posted: August 20, 2026
+Indeed ID: JOBSEARCH_390",,,active,2026-09-04T17:11:28.842279,2026-09-04T17:11:28.842281
+59,1,Head of Data Science,https://to.indeed.com/aar6npc27r4s,indeed,"Company: Groupement Mousquetaires
+Location: Châtillon (92)
+Job Type: N/A
+Posted: May 19, 2026
+Indeed ID: JOBSEARCH_400",,,active,2026-09-04T17:11:28.857080,2026-09-04T17:11:28.857081
+3,1,Ingénieur Data Analyst H/F,https://to.indeed.com/aamnlxhb4wj8,indeed,"Company: UEM
+Location: Metz (57)
+Job Type: Permanent
+Posted: February 27, 2026
+Indeed ID: JOBSEARCH_344",,,active,2026-09-04T17:09:06.875447,2026-09-04T17:09:06.875449
+25,1,Ingénieur Data Analyst H/F,https://to.indeed.com/aash2s74vg87,indeed,"Company: UEM
+Location: Metz (57)
+Job Type: Permanent
+Posted: February 27, 2026
+Indeed ID: JOBSEARCH_366",,,active,2026-09-04T17:11:28.805984,2026-09-04T17:11:28.805985
+51,1,Ingénieur Data Analyst H/F,https://to.indeed.com/aa4sx96vcvfp,indeed,"Company: UEM
+Location: Metz (57)
+Job Type: Permanent
+Posted: February 27, 2026
+Indeed ID: JOBSEARCH_392",,,active,2026-09-04T17:11:28.844872,2026-09-04T17:11:28.844873
+12,1,Ingénieur Data H/F,https://to.indeed.com/aazwz4gkk7s9,indeed,"Company: Groupe ADSN
+Location: Venelles (13)
+Job Type: Permanent
+Posted: June 30, 2026
+Indeed ID: JOBSEARCH_353",,,active,2026-09-04T17:11:28.779224,2026-09-04T17:11:28.779227
+29,1,Ingénieur·e Data (H/F),https://to.indeed.com/aaftmwt2fvwv,indeed,"Company: Inetum
+Location: Lille (59)
+Job Type: Full-time
+Posted: April 29, 2026
+Indeed ID: JOBSEARCH_370",,,active,2026-09-04T17:11:28.811758,2026-09-04T17:11:28.811761
+44,1,Investment Reporting Officer confirmed,https://to.indeed.com/aarp46pwvxmg,indeed,"Company: SCOR
+Location: Paris (75)
+Job Type: N/A
+Posted: July 17, 2026
+Indeed ID: JOBSEARCH_385",,,active,2026-09-04T17:11:28.835854,2026-09-04T17:11:28.835855
+28,1,Junior Data Center Delivery Engineer,https://to.indeed.com/aa2lfycf2g7p,indeed,"Company: Next U Systems for EnerFusion Finland Oy
+Location: Île-de-France
+Job Type: Full-time
+Posted: July 15, 2026
+Indeed ID: JOBSEARCH_369",,,active,2026-09-04T17:11:28.810313,2026-09-04T17:11:28.810314
+24,1,Lead AI (F/H),https://to.indeed.com/aah2lh69v4xw,indeed,"Company: Studi
+Location: Montpellier (34)
+Job Type: Permanent
+Posted: July 22, 2026
+Indeed ID: JOBSEARCH_365",,,active,2026-09-04T17:11:28.804512,2026-09-04T17:11:28.804513
+17,1,Manager BI / Data Analytics [Luxe-Retail] (H/F),https://to.indeed.com/aaqdjj7nlz72,indeed,"Company: ADONE CONSEIL
+Location: Paris (75)
+Job Type: Full-time
+Posted: June 02, 2026
+Indeed ID: JOBSEARCH_358",,,active,2026-09-04T17:11:28.796252,2026-09-04T17:11:28.796254
+52,1,Manager BI / Data Analytics [Luxe-Retail] (H/F),https://to.indeed.com/aawkztwscr82,indeed,"Company: ADONE CONSEIL
+Location: Paris (75)
+Job Type: Full-time
+Posted: June 02, 2026
+Indeed ID: JOBSEARCH_393",,,active,2026-09-04T17:11:28.846179,2026-09-04T17:11:28.846180
+14,1,Manager data produits F/H/X,https://to.indeed.com/aazctcmz6y89,indeed,"Company: Socomec Group
+Location: Benfeld (67)
+Job Type: Full-time
+Posted: June 05, 2026
+Indeed ID: JOBSEARCH_355",,,active,2026-09-04T17:11:28.790535,2026-09-04T17:11:28.790537
+34,1,​​Market Reach Business Intelligence Product Developer​,https://to.indeed.com/aackcdrqm7yd,indeed,"Company: Hilti Group
+Location: Boulogne-Billancourt (92)
+Job Type: N/A
+Posted: July 22, 2026
+Indeed ID: JOBSEARCH_375",,,active,2026-09-04T17:11:28.822675,2026-09-04T17:11:28.822677
+19,1,NWPB Data and Business Intelligence Lead (F/H),https://to.indeed.com/aa8dgndbrkdw,indeed,"Company: Nestlé
+Location: Issy-les-Moulineaux (92)
+Job Type: Permanent
+Posted: August 21, 2026
+Indeed ID: JOBSEARCH_360",,,active,2026-09-04T17:11:28.798967,2026-09-04T17:11:28.798968
+21,1,"Responsable produit Data, outils et reporting (F/H)",https://to.indeed.com/aarnkwz62tnx,indeed,"Company: Thélem assurances
+Location: Chécy (45)
+Job Type: Permanent
+Posted: July 10, 2026
+Indeed ID: JOBSEARCH_362",,,active,2026-09-04T17:11:28.800874,2026-09-04T17:11:28.800876
+32,1,Responsable Projets Data Risques de Crédit (F/H),https://to.indeed.com/aaldqdh2rlck,indeed,"Company: Groupe BPCE
+Location: Paris (75)
+Job Type: Permanent
+Posted: May 27, 2026
+Indeed ID: JOBSEARCH_373",,,active,2026-09-04T17:11:28.819490,2026-09-04T17:11:28.819491
+33,1,Responsable Projets Data Risques de Crédit F/H,https://to.indeed.com/aahlk79ltc7k,indeed,"Company: Groupe BPCE
+Location: Paris (75)
+Job Type: Permanent
+Posted: March 04, 2026
+Indeed ID: JOBSEARCH_374",,,active,2026-09-04T17:11:28.821113,2026-09-04T17:11:28.821117
+42,1,Senior P&C Performance & Planning Analyst,https://to.indeed.com/aawbyqt7xpv2,indeed,"Company: SCOR
+Location: Paris (75)
+Job Type: N/A
+Posted: May 29, 2026
+Indeed ID: JOBSEARCH_383",,,active,2026-09-04T17:11:28.833167,2026-09-04T17:11:28.833169
+39,1,Stage - Monitoring Digital Twin des éoliennes (h/f),https://to.indeed.com/aacqzgjqldrp,indeed,"Company: Siemens Gamesa
+Location: Saint-Étienne-du-Rouvray (76)
+Job Type: Full-time
+Posted: July 30, 2026
+Indeed ID: JOBSEARCH_380",,,active,2026-09-04T17:11:28.829077,2026-09-04T17:11:28.829079
+4,1,Stage Data Analyst et Data Visualization – Intelligence Artificielle / Business Intelligence (H/F),https://to.indeed.com/aak2bfq8r7bt,indeed,"Company: MONSTOCK
+Location: Bezannes (51)
+Job Type: Full-time
+Posted: March 09, 2025
+Indeed ID: JOBSEARCH_345",,,active,2026-09-04T17:09:06.877002,2026-09-04T17:09:06.877003
+57,1,Stage Data Analyst et Data Visualization – Intelligence Artificielle / Business Intelligence (H/F),https://to.indeed.com/aamzb2prqn4s,indeed,"Company: MONSTOCK
+Location: Bezannes (51)
+Job Type: Full-time
+Posted: March 09, 2025
+Indeed ID: JOBSEARCH_398",,,active,2026-09-04T17:11:28.854312,2026-09-04T17:11:28.854313
+7,1,Sugar Senior Analyst- F/H,https://to.indeed.com/aalt8dmd872d,indeed,"Company: Tereos
+Location: Moussy-le-Vieux (77)
+Job Type: Permanent
+Posted: September 04, 2026
+Indeed ID: JOBSEARCH_348",,,active,2026-09-04T17:09:06.881514,2026-09-04T17:09:06.881515
+16,1,Tech Lead Business Intelligence (H/F),https://to.indeed.com/aa6zky98cm94,indeed,"Company: FACYLITIES MULTI SERVICES
+Location: Toulouse (31)
+Job Type: Permanent
+Posted: July 08, 2026
+Indeed ID: JOBSEARCH_357",,,active,2026-09-04T17:11:28.794695,2026-09-04T17:11:28.794696
+121,1,Chef de mission Comptable - Manager,https://jobs.lever.co/qonto/apply/958e8181-d608-435d-ba38-172403fe4f1a,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 958e8181-d608-435d-ba38-172403fe4f1a",,,active,2026-09-05T01:49:29.375156,2026-09-05T01:49:29.375159
+75,1,Chef de mission Comptable - Manager,https://jobs.lever.co/qonto/postings/958e8181-d608-435d-ba38-172403fe4f1a,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 958e8181-d608-435d-ba38-172403fe4f1a",,,active,2026-09-05T01:47:01.698064,2026-09-05T01:47:01.698070
+76,1,Collaborateur Comptable - Expérimenté/Mémorialiste,https://jobs.lever.co/qonto/postings/bd21a384-9a0d-4005-8822-4b0377485891,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: bd21a384-9a0d-4005-8822-4b0377485891",,,active,2026-09-05T01:47:01.725619,2026-09-05T01:47:01.725622
+122,1,Collaborateur Comptable - Expérimenté/Mémorialiste,https://jobs.lever.co/qonto/apply/bd21a384-9a0d-4005-8822-4b0377485891,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: bd21a384-9a0d-4005-8822-4b0377485891",,,active,2026-09-05T01:49:29.382040,2026-09-05T01:49:29.382043
+123,1,Collaborateur Comptable - Junior,https://jobs.lever.co/qonto/apply/8404b1e8-bc0f-4371-94db-2df0b7d73455,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 8404b1e8-bc0f-4371-94db-2df0b7d73455",,,active,2026-09-05T01:49:29.383630,2026-09-05T01:49:29.383632
+77,1,Collaborateur Comptable - Junior,https://jobs.lever.co/qonto/postings/8404b1e8-bc0f-4371-94db-2df0b7d73455,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 8404b1e8-bc0f-4371-94db-2df0b7d73455",,,active,2026-09-05T01:47:01.727416,2026-09-05T01:47:01.727418
+78,1,Consolidation Officer,https://jobs.lever.co/qonto/postings/80e3ab3a-df96-4809-9a77-d07007375a8a,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 80e3ab3a-df96-4809-9a77-d07007375a8a",,,active,2026-09-05T01:47:01.728949,2026-09-05T01:47:01.728950
+124,1,Consolidation Officer,https://jobs.lever.co/qonto/apply/80e3ab3a-df96-4809-9a77-d07007375a8a,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 80e3ab3a-df96-4809-9a77-d07007375a8a",,,active,2026-09-05T01:49:29.385215,2026-09-05T01:49:29.385217
+79,1,Customer Care Agent Deutschland (m/w/d),https://jobs.lever.co/qonto/postings/77849ae1-c686-4ce7-ac41-9242abb7b1ba,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 77849ae1-c686-4ce7-ac41-9242abb7b1ba",,,active,2026-09-05T01:47:01.730459,2026-09-05T01:47:01.730460
+125,1,Customer Care Agent Deutschland (m/w/d),https://jobs.lever.co/qonto/apply/77849ae1-c686-4ce7-ac41-9242abb7b1ba,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 77849ae1-c686-4ce7-ac41-9242abb7b1ba",,,active,2026-09-05T01:49:29.386932,2026-09-05T01:49:29.386934
+80,1,Customer Care Manager — French Market - fixed-term contract,https://jobs.lever.co/qonto/postings/da4a152c-9d71-4371-bf74-6a6ce6bb5797,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: da4a152c-9d71-4371-bf74-6a6ce6bb5797",,,active,2026-09-05T01:47:01.731843,2026-09-05T01:47:01.731845
+126,1,Customer Care Manager — French Market - fixed-term contract,https://jobs.lever.co/qonto/apply/da4a152c-9d71-4371-bf74-6a6ce6bb5797,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: da4a152c-9d71-4371-bf74-6a6ce6bb5797",,,active,2026-09-05T01:49:29.388415,2026-09-05T01:49:29.388417
+127,1,Customer Onboarding Officer - German market 🇩🇪,https://jobs.lever.co/qonto/apply/7a6a8c90-fe33-4e5a-b1eb-9a4a1a5cb70b,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 7a6a8c90-fe33-4e5a-b1eb-9a4a1a5cb70b",,,active,2026-09-05T01:49:29.390474,2026-09-05T01:49:29.390476
+81,1,Customer Onboarding Officer - German market 🇩🇪,https://jobs.lever.co/qonto/postings/7a6a8c90-fe33-4e5a-b1eb-9a4a1a5cb70b,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 7a6a8c90-fe33-4e5a-b1eb-9a4a1a5cb70b",,,active,2026-09-05T01:47:01.733727,2026-09-05T01:47:01.733728
+128,1,Field Sales Manager Deutschland (m/w/d),https://jobs.lever.co/qonto/apply/a0175b94-45b8-4305-82c2-9a77f59ce9a5,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: a0175b94-45b8-4305-82c2-9a77f59ce9a5",,,active,2026-09-05T01:49:29.391785,2026-09-05T01:49:29.391787
+82,1,Field Sales Manager Deutschland (m/w/d),https://jobs.lever.co/qonto/postings/a0175b94-45b8-4305-82c2-9a77f59ce9a5,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: a0175b94-45b8-4305-82c2-9a77f59ce9a5",,,active,2026-09-05T01:47:01.735092,2026-09-05T01:47:01.735093
+83,1,Fraud Analyst - French Market,https://jobs.lever.co/qonto/postings/76556035-f607-4b0b-b347-6fe2abc66f9e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 76556035-f607-4b0b-b347-6fe2abc66f9e",,,active,2026-09-05T01:47:01.736501,2026-09-05T01:47:01.736503
+129,1,Fraud Analyst - French Market,https://jobs.lever.co/qonto/apply/76556035-f607-4b0b-b347-6fe2abc66f9e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 76556035-f607-4b0b-b347-6fe2abc66f9e",,,active,2026-09-05T01:49:29.393050,2026-09-05T01:49:29.393051
+84,1,Full-Stack Engineer - People Products (Freelance),https://jobs.lever.co/qonto/postings/21bf0ae1-b5b1-428a-b1e6-2cdb9476987e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 21bf0ae1-b5b1-428a-b1e6-2cdb9476987e",,,active,2026-09-05T01:47:01.737761,2026-09-05T01:47:01.737762
+130,1,Full-Stack Engineer - People Products (Freelance),https://jobs.lever.co/qonto/apply/21bf0ae1-b5b1-428a-b1e6-2cdb9476987e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 21bf0ae1-b5b1-428a-b1e6-2cdb9476987e",,,active,2026-09-05T01:49:29.394401,2026-09-05T01:49:29.394402
+131,1,Growth Project Manager,https://jobs.lever.co/qonto/apply/c087ac46-54ac-4227-b9ef-5a377c35b9ab,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: c087ac46-54ac-4227-b9ef-5a377c35b9ab",,,active,2026-09-05T01:49:29.395765,2026-09-05T01:49:29.395767
+85,1,Growth Project Manager,https://jobs.lever.co/qonto/postings/c087ac46-54ac-4227-b9ef-5a377c35b9ab,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: c087ac46-54ac-4227-b9ef-5a377c35b9ab",,,active,2026-09-05T01:47:01.739022,2026-09-05T01:47:01.739023
+86,1,Head of Anti-Financial Crime Compliance (AFCC) – France 🇫🇷,https://jobs.lever.co/qonto/postings/8d570614-9221-4b96-84dd-f13b737b2c7c,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 8d570614-9221-4b96-84dd-f13b737b2c7c",,,active,2026-09-05T01:47:01.740363,2026-09-05T01:47:01.740364
+132,1,Head of Anti-Financial Crime Compliance (AFCC) – France 🇫🇷,https://jobs.lever.co/qonto/apply/8d570614-9221-4b96-84dd-f13b737b2c7c,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 8d570614-9221-4b96-84dd-f13b737b2c7c",,,active,2026-09-05T01:49:29.397105,2026-09-05T01:49:29.397107
+133,1,Internal Audit Manager,https://jobs.lever.co/qonto/apply/535f09db-46fa-46ac-8fe2-6f5d1ebfdd1d,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 535f09db-46fa-46ac-8fe2-6f5d1ebfdd1d",,,active,2026-09-05T01:49:29.398391,2026-09-05T01:49:29.398393
+87,1,Internal Audit Manager,https://jobs.lever.co/qonto/postings/535f09db-46fa-46ac-8fe2-6f5d1ebfdd1d,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 535f09db-46fa-46ac-8fe2-6f5d1ebfdd1d",,,active,2026-09-05T01:47:01.741667,2026-09-05T01:47:01.741669
+134,1,Internal Audit Manager - Compliance,https://jobs.lever.co/qonto/apply/4207d7ea-7edb-48f2-8104-00d854d79316,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 4207d7ea-7edb-48f2-8104-00d854d79316",,,active,2026-09-05T01:49:29.399761,2026-09-05T01:49:29.399762
+88,1,Internal Audit Manager - Compliance,https://jobs.lever.co/qonto/postings/4207d7ea-7edb-48f2-8104-00d854d79316,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 4207d7ea-7edb-48f2-8104-00d854d79316",,,active,2026-09-05T01:47:01.742999,2026-09-05T01:47:01.743001
+89,1,Internal Control Apprentice (Operations),https://jobs.lever.co/qonto/postings/e0f04bcb-5ef3-4193-b094-80556040dea6,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e0f04bcb-5ef3-4193-b094-80556040dea6",,,active,2026-09-05T01:47:01.744251,2026-09-05T01:47:01.744253
+135,1,Internal Control Apprentice (Operations),https://jobs.lever.co/qonto/apply/e0f04bcb-5ef3-4193-b094-80556040dea6,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e0f04bcb-5ef3-4193-b094-80556040dea6",,,active,2026-09-05T01:49:29.401115,2026-09-05T01:49:29.401116
+90,1,Internal Control Apprentice (Tech & Product),https://jobs.lever.co/qonto/postings/e1c3f84d-0ddd-40a6-bd13-b03285db8296,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e1c3f84d-0ddd-40a6-bd13-b03285db8296",,,active,2026-09-05T01:47:01.745501,2026-09-05T01:47:01.745503
+136,1,Internal Control Apprentice (Tech & Product),https://jobs.lever.co/qonto/apply/e1c3f84d-0ddd-40a6-bd13-b03285db8296,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e1c3f84d-0ddd-40a6-bd13-b03285db8296",,,active,2026-09-05T01:49:29.402386,2026-09-05T01:49:29.402388
+91,1,Learning & Development Manager,https://jobs.lever.co/qonto/postings/1986ff63-adb0-41af-97dd-a4e1156f4298,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1986ff63-adb0-41af-97dd-a4e1156f4298",,,active,2026-09-05T01:47:01.746796,2026-09-05T01:47:01.746798
+137,1,Learning & Development Manager,https://jobs.lever.co/qonto/apply/1986ff63-adb0-41af-97dd-a4e1156f4298,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1986ff63-adb0-41af-97dd-a4e1156f4298",,,active,2026-09-05T01:49:29.403701,2026-09-05T01:49:29.403702
+138,1,Legal Intern - Commercial,https://jobs.lever.co/qonto/apply/ba688ab4-66b1-4d6a-9aa7-537e191ea392,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: ba688ab4-66b1-4d6a-9aa7-537e191ea392",,,active,2026-09-05T01:49:29.407344,2026-09-05T01:49:29.407346
+92,1,Legal Intern - Commercial,https://jobs.lever.co/qonto/postings/ba688ab4-66b1-4d6a-9aa7-537e191ea392,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: ba688ab4-66b1-4d6a-9aa7-537e191ea392",,,active,2026-09-05T01:47:01.749218,2026-09-05T01:47:01.749219
+139,1,Legal Intern - Product & AI,https://jobs.lever.co/qonto/apply/354fa50e-2741-4936-82f5-0d1ce5fb8be3,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 354fa50e-2741-4936-82f5-0d1ce5fb8be3",,,active,2026-09-05T01:49:29.409221,2026-09-05T01:49:29.409223
+93,1,Legal Intern - Product & AI,https://jobs.lever.co/qonto/postings/354fa50e-2741-4936-82f5-0d1ce5fb8be3,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 354fa50e-2741-4936-82f5-0d1ce5fb8be3",,,active,2026-09-05T01:47:01.750492,2026-09-05T01:47:01.750493
+94,1,People Data & Analytics Officer,https://jobs.lever.co/qonto/postings/88feecdd-c4dc-410b-9e8f-bd87953240a6,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 88feecdd-c4dc-410b-9e8f-bd87953240a6",,,active,2026-09-05T01:47:01.751744,2026-09-05T01:47:01.751745
+140,1,People Data & Analytics Officer,https://jobs.lever.co/qonto/apply/88feecdd-c4dc-410b-9e8f-bd87953240a6,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 88feecdd-c4dc-410b-9e8f-bd87953240a6",,,active,2026-09-05T01:49:29.411071,2026-09-05T01:49:29.411073
+95,1,Principal Backend Engineer,https://jobs.lever.co/qonto/postings/5b4f0997-36e9-46ed-a00e-b8473f57ee8c,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 5b4f0997-36e9-46ed-a00e-b8473f57ee8c",,,active,2026-09-05T01:47:01.752994,2026-09-05T01:47:01.752995
+141,1,Principal Backend Engineer,https://jobs.lever.co/qonto/apply/5b4f0997-36e9-46ed-a00e-b8473f57ee8c,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 5b4f0997-36e9-46ed-a00e-b8473f57ee8c",,,active,2026-09-05T01:49:29.412505,2026-09-05T01:49:29.412507
+142,1,Product Marketing Manager Intern,https://jobs.lever.co/qonto/apply/05723cc9-e819-4a5c-aea1-15e9a771ffad,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 05723cc9-e819-4a5c-aea1-15e9a771ffad",,,active,2026-09-05T01:49:29.413811,2026-09-05T01:49:29.413813
+96,1,Product Marketing Manager Intern,https://jobs.lever.co/qonto/postings/05723cc9-e819-4a5c-aea1-15e9a771ffad,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 05723cc9-e819-4a5c-aea1-15e9a771ffad",,,active,2026-09-05T01:47:01.754267,2026-09-05T01:47:01.754269
+143,1,Regulatory Affairs & Project Manager,https://jobs.lever.co/qonto/apply/564e03fe-3419-40e7-8b4a-6e229b323ca6,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 564e03fe-3419-40e7-8b4a-6e229b323ca6",,,active,2026-09-05T01:49:29.415174,2026-09-05T01:49:29.415176
+97,1,Regulatory Affairs & Project Manager,https://jobs.lever.co/qonto/postings/564e03fe-3419-40e7-8b4a-6e229b323ca6,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 564e03fe-3419-40e7-8b4a-6e229b323ca6",,,active,2026-09-05T01:47:01.755497,2026-09-05T01:47:01.755498
+144,1,Sales Development Representative - German Market 🇩🇪,https://jobs.lever.co/qonto/apply/e974fc35-6b65-40ea-9704-3f0c5caeef78,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e974fc35-6b65-40ea-9704-3f0c5caeef78",,,active,2026-09-05T01:49:29.416447,2026-09-05T01:49:29.416449
+98,1,Sales Development Representative - German Market 🇩🇪,https://jobs.lever.co/qonto/postings/e974fc35-6b65-40ea-9704-3f0c5caeef78,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e974fc35-6b65-40ea-9704-3f0c5caeef78",,,active,2026-09-05T01:47:01.756725,2026-09-05T01:47:01.756726
+145,1,Senior / Staff Backend Engineer - remote friendly,https://jobs.lever.co/qonto/apply/d36db188-ab16-43b6-86a8-47ed9cdd29b1,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: d36db188-ab16-43b6-86a8-47ed9cdd29b1",,,active,2026-09-05T01:49:29.417617,2026-09-05T01:49:29.417619
+99,1,Senior / Staff Backend Engineer - remote friendly,https://jobs.lever.co/qonto/postings/d36db188-ab16-43b6-86a8-47ed9cdd29b1,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: d36db188-ab16-43b6-86a8-47ed9cdd29b1",,,active,2026-09-05T01:47:01.758020,2026-09-05T01:47:01.758022
+100,1,Senior / Staff Frontend Engineer (React) - Remote friendly,https://jobs.lever.co/qonto/postings/2ec33be8-037e-4fd4-9352-12e10466f24a,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 2ec33be8-037e-4fd4-9352-12e10466f24a",,,active,2026-09-05T01:47:01.759313,2026-09-05T01:47:01.759315
+146,1,Senior / Staff Frontend Engineer (React) - Remote friendly,https://jobs.lever.co/qonto/apply/2ec33be8-037e-4fd4-9352-12e10466f24a,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 2ec33be8-037e-4fd4-9352-12e10466f24a",,,active,2026-09-05T01:49:29.418751,2026-09-05T01:49:29.418752
+147,1,Senior CRM Manager,https://jobs.lever.co/qonto/apply/465cb1a1-8b60-447b-bbc4-b03c0965325e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 465cb1a1-8b60-447b-bbc4-b03c0965325e",,,active,2026-09-05T01:49:29.419869,2026-09-05T01:49:29.419870
+101,1,Senior CRM Manager,https://jobs.lever.co/qonto/postings/465cb1a1-8b60-447b-bbc4-b03c0965325e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 465cb1a1-8b60-447b-bbc4-b03c0965325e",,,active,2026-09-05T01:47:01.760597,2026-09-05T01:47:01.760599
+148,1,Senior Product Engineer - Android/Kotlin,https://jobs.lever.co/qonto/apply/522a932c-8009-4e1a-87b8-970b9d33066b,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 522a932c-8009-4e1a-87b8-970b9d33066b",,,active,2026-09-05T01:49:29.421061,2026-09-05T01:49:29.421063
+102,1,Senior Product Engineer - Android/Kotlin,https://jobs.lever.co/qonto/postings/522a932c-8009-4e1a-87b8-970b9d33066b,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 522a932c-8009-4e1a-87b8-970b9d33066b",,,active,2026-09-05T01:47:01.761845,2026-09-05T01:47:01.761847
+149,1,Senior Product Engineer - iOS/Swift,https://jobs.lever.co/qonto/apply/e6fe1360-a746-4e44-9fd7-ed364ee62eea,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e6fe1360-a746-4e44-9fd7-ed364ee62eea",,,active,2026-09-05T01:49:29.422822,2026-09-05T01:49:29.422823
+103,1,Senior Product Engineer - iOS/Swift,https://jobs.lever.co/qonto/postings/e6fe1360-a746-4e44-9fd7-ed364ee62eea,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: e6fe1360-a746-4e44-9fd7-ed364ee62eea",,,active,2026-09-05T01:47:01.763126,2026-09-05T01:47:01.763128
+104,1,Senior Product Marketing Manager - Italian Market (1-year fixed-term contract),https://jobs.lever.co/qonto/postings/9eb1aac8-7f5e-4b62-b0dc-c5759256a793,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 9eb1aac8-7f5e-4b62-b0dc-c5759256a793",,,active,2026-09-05T01:47:01.764358,2026-09-05T01:47:01.764360
+150,1,Senior Product Marketing Manager - Italian Market (1-year fixed-term contract),https://jobs.lever.co/qonto/apply/9eb1aac8-7f5e-4b62-b0dc-c5759256a793,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 9eb1aac8-7f5e-4b62-b0dc-c5759256a793",,,active,2026-09-05T01:49:29.424071,2026-09-05T01:49:29.424073
+151,1,Senior/Staff - Backend Engineer - remote friendly,https://jobs.lever.co/qonto/apply/1fb7a10a-9377-47d4-99f6-e826880c3a6b,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1fb7a10a-9377-47d4-99f6-e826880c3a6b",,,active,2026-09-05T01:49:29.425325,2026-09-05T01:49:29.425326
+105,1,Senior/Staff - Backend Engineer - remote friendly,https://jobs.lever.co/qonto/postings/1fb7a10a-9377-47d4-99f6-e826880c3a6b,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1fb7a10a-9377-47d4-99f6-e826880c3a6b",,,active,2026-09-05T01:47:01.765626,2026-09-05T01:47:01.765628
+106,1,Senior/Staff Backend Engineer - remote friendly,https://jobs.lever.co/qonto/postings/a2a71652-40f6-4c1a-8ae1-90127e0ce1cf,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: a2a71652-40f6-4c1a-8ae1-90127e0ce1cf",,,active,2026-09-05T01:47:01.766929,2026-09-05T01:47:01.766931
+152,1,Senior/Staff Backend Engineer - remote friendly,https://jobs.lever.co/qonto/apply/a2a71652-40f6-4c1a-8ae1-90127e0ce1cf,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: a2a71652-40f6-4c1a-8ae1-90127e0ce1cf",,,active,2026-09-05T01:49:29.426596,2026-09-05T01:49:29.426598
+107,1,Senior/Staff Frontend Engineer (React) - Remote friendly,https://jobs.lever.co/qonto/postings/1dad770d-53b1-430c-a548-32772019c1eb,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1dad770d-53b1-430c-a548-32772019c1eb",,,active,2026-09-05T01:47:01.768166,2026-09-05T01:47:01.768168
+153,1,Senior/Staff Frontend Engineer (React) - Remote friendly,https://jobs.lever.co/qonto/apply/1dad770d-53b1-430c-a548-32772019c1eb,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1dad770d-53b1-430c-a548-32772019c1eb",,,active,2026-09-05T01:49:29.427888,2026-09-05T01:49:29.427890
+154,1,Senior/Staff Frontend Engineer (React) - Remote Friendly,https://jobs.lever.co/qonto/apply/a3830956-2107-4cc5-a647-a6f30f1987b4,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: a3830956-2107-4cc5-a647-a6f30f1987b4",,,active,2026-09-05T01:49:29.429269,2026-09-05T01:49:29.429271
+108,1,Senior/Staff Frontend Engineer (React) - Remote Friendly,https://jobs.lever.co/qonto/postings/a3830956-2107-4cc5-a647-a6f30f1987b4,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: a3830956-2107-4cc5-a647-a6f30f1987b4",,,active,2026-09-05T01:47:01.769406,2026-09-05T01:47:01.769408
+155,1,Site Reliability Engineer (Storage) - remote friendly,https://jobs.lever.co/qonto/apply/43534df4-1d0d-4a85-884d-b367342c06f3,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 43534df4-1d0d-4a85-884d-b367342c06f3",,,active,2026-09-05T01:49:29.430300,2026-09-05T01:49:29.430302
+109,1,Site Reliability Engineer (Storage) - remote friendly,https://jobs.lever.co/qonto/postings/43534df4-1d0d-4a85-884d-b367342c06f3,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 43534df4-1d0d-4a85-884d-b367342c06f3",,,active,2026-09-05T01:47:01.770630,2026-09-05T01:47:01.770632
+110,1,Social Media Manager Italian Market - Italian and English speaker,https://jobs.lever.co/qonto/postings/19404ce8-0ac7-4f1b-939a-b322f0c9eefb,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 19404ce8-0ac7-4f1b-939a-b322f0c9eefb",,,active,2026-09-05T01:47:01.771861,2026-09-05T01:47:01.771863
+156,1,Social Media Manager Italian Market - Italian and English speaker,https://jobs.lever.co/qonto/apply/19404ce8-0ac7-4f1b-939a-b322f0c9eefb,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 19404ce8-0ac7-4f1b-939a-b322f0c9eefb",,,active,2026-09-05T01:49:29.431242,2026-09-05T01:49:29.431244
+157,1,Social Media Werkstudent (m/w/d),https://jobs.lever.co/qonto/apply/cb2053c9-938e-4b73-a3c8-d8d42243b301,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: cb2053c9-938e-4b73-a3c8-d8d42243b301",,,active,2026-09-05T01:49:29.432169,2026-09-05T01:49:29.432170
+111,1,Social Media Werkstudent (m/w/d),https://jobs.lever.co/qonto/postings/cb2053c9-938e-4b73-a3c8-d8d42243b301,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: cb2053c9-938e-4b73-a3c8-d8d42243b301",,,active,2026-09-05T01:47:01.773085,2026-09-05T01:47:01.773086
+158,1,Staff Data Analyst - Compliance,https://jobs.lever.co/qonto/apply/1591d10c-c025-42ef-ab54-f9e1a3a93fa2,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1591d10c-c025-42ef-ab54-f9e1a3a93fa2",,,active,2026-09-05T01:49:29.433391,2026-09-05T01:49:29.433392
+112,1,Staff Data Analyst - Compliance,https://jobs.lever.co/qonto/postings/1591d10c-c025-42ef-ab54-f9e1a3a93fa2,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 1591d10c-c025-42ef-ab54-f9e1a3a93fa2",,,active,2026-09-05T01:47:01.774284,2026-09-05T01:47:01.774286
+159,1,Staff Machine Learning Engineer for AI Product,https://jobs.lever.co/qonto/apply/471e0021-d630-4cd1-81c3-2fb2e9dc253c,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 471e0021-d630-4cd1-81c3-2fb2e9dc253c",,,active,2026-09-05T01:49:29.434599,2026-09-05T01:49:29.434600
+113,1,Staff Machine Learning Engineer for AI Product,https://jobs.lever.co/qonto/postings/471e0021-d630-4cd1-81c3-2fb2e9dc253c,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 471e0021-d630-4cd1-81c3-2fb2e9dc253c",,,active,2026-09-05T01:47:01.775511,2026-09-05T01:47:01.775512
+115,1,Staff Product Manager [Accounting expertise] 🇩🇪,https://jobs.lever.co/qonto/postings/0e318026-6cb0-475f-a479-9c559b9e0d69,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 0e318026-6cb0-475f-a479-9c559b9e0d69",,,active,2026-09-05T01:47:01.778030,2026-09-05T01:47:01.778031
+161,1,Staff Product Manager [Accounting expertise] 🇩🇪,https://jobs.lever.co/qonto/apply/0e318026-6cb0-475f-a479-9c559b9e0d69,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 0e318026-6cb0-475f-a479-9c559b9e0d69",,,active,2026-09-05T01:49:29.437913,2026-09-05T01:49:29.437915
+160,1,Staff Product Manager [Accounting expertise] - German speaking 🇩🇪,https://jobs.lever.co/qonto/apply/53f5103c-e7eb-4b7f-baa4-777968faf405,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 53f5103c-e7eb-4b7f-baa4-777968faf405",,,active,2026-09-05T01:49:29.436654,2026-09-05T01:49:29.436655
+114,1,Staff Product Manager [Accounting expertise] - German speaking 🇩🇪,https://jobs.lever.co/qonto/postings/53f5103c-e7eb-4b7f-baa4-777968faf405,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 53f5103c-e7eb-4b7f-baa4-777968faf405",,,active,2026-09-05T01:47:01.776781,2026-09-05T01:47:01.776782
+116,1,Staff Product Manager [Machine Learning expertise],https://jobs.lever.co/qonto/postings/7c6908ae-fa05-49a2-8680-ca1aeb885460,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 7c6908ae-fa05-49a2-8680-ca1aeb885460",,,active,2026-09-05T01:47:01.779274,2026-09-05T01:47:01.779275
+162,1,Staff Product Manager [Machine Learning expertise],https://jobs.lever.co/qonto/apply/7c6908ae-fa05-49a2-8680-ca1aeb885460,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 7c6908ae-fa05-49a2-8680-ca1aeb885460",,,active,2026-09-05T01:49:29.439195,2026-09-05T01:49:29.439197
+163,1,Staff Product Marketing Manager - Netherlands Market 🇳🇱,https://jobs.lever.co/qonto/apply/bbc10132-0ef8-480e-8885-701f618f2c37,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: bbc10132-0ef8-480e-8885-701f618f2c37",,,active,2026-09-05T01:49:29.440429,2026-09-05T01:49:29.440431
+117,1,Staff Product Marketing Manager - Netherlands Market 🇳🇱,https://jobs.lever.co/qonto/postings/bbc10132-0ef8-480e-8885-701f618f2c37,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: bbc10132-0ef8-480e-8885-701f618f2c37",,,active,2026-09-05T01:47:01.781766,2026-09-05T01:47:01.781768
+164,1,Strategic Operations Project Manager & Analyst 🇫🇷,https://jobs.lever.co/qonto/apply/c73e81ef-aeb0-4785-b0da-f0902f91272e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: c73e81ef-aeb0-4785-b0da-f0902f91272e",,,active,2026-09-05T01:49:29.441647,2026-09-05T01:49:29.441649
+118,1,Strategic Operations Project Manager & Analyst 🇫🇷,https://jobs.lever.co/qonto/postings/c73e81ef-aeb0-4785-b0da-f0902f91272e,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: c73e81ef-aeb0-4785-b0da-f0902f91272e",,,active,2026-09-05T01:47:01.783160,2026-09-05T01:47:01.783162
+165,1,"Talent Acquisition Manager (Growth, Corporate, Operations)",https://jobs.lever.co/qonto/apply/94607196-c25f-4169-a29d-b1a954a91d89,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 94607196-c25f-4169-a29d-b1a954a91d89",,,active,2026-09-05T01:49:29.442874,2026-09-05T01:49:29.442876
+119,1,"Talent Acquisition Manager (Growth, Corporate, Operations)",https://jobs.lever.co/qonto/postings/94607196-c25f-4169-a29d-b1a954a91d89,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 94607196-c25f-4169-a29d-b1a954a91d89",,,active,2026-09-05T01:47:01.784507,2026-09-05T01:47:01.784509
+120,1,Website Product Manager - Growth,https://jobs.lever.co/qonto/postings/88cc7044-a37a-44fc-9d93-1ec69dcfae79,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 88cc7044-a37a-44fc-9d93-1ec69dcfae79",,,active,2026-09-05T01:47:01.785935,2026-09-05T01:47:01.785937
+166,1,Website Product Manager - Growth,https://jobs.lever.co/qonto/apply/88cc7044-a37a-44fc-9d93-1ec69dcfae79,lever,"Company: Qonto
+Location: N/A
+Contract: N/A
+ID: 88cc7044-a37a-44fc-9d93-1ec69dcfae79",,,active,2026-09-05T01:49:29.444201,2026-09-05T01:49:29.444203
+66,1,Abuse Investigator,https://stripe.com/careers/listing/abuse-investigator/8172508,stripe,"Company: Stripe
+Location: Dublin HQ
+Contract: Permanent
+ID: 8172508",,,active,2026-09-04T17:33:19.707099,2026-09-04T17:33:19.707100
+68,1,"Account Executive - Enterprise, Grower",https://stripe.com/careers/listing/account-executive-enterprise-grower/7993151,stripe,"Company: Stripe
+Location: Chicago
+Contract: Permanent
+ID: 7993151",,,active,2026-09-04T17:33:19.709874,2026-09-04T17:33:19.709875
+69,1,Account Executive - LATAM,https://stripe.com/careers/listing/account-executive-latam/8122192,stripe,"Company: Stripe
+Location: Mexico City
+Contract: Permanent
+ID: 8122192",,,active,2026-09-04T17:33:19.711252,2026-09-04T17:33:19.711254
+70,1,"Account Executive - SEA, Platforms (Grower)",https://stripe.com/careers/listing/account-executive-sea-platforms-grower/8108891,stripe,"Company: Stripe
+Location: Singapore
+Contract: Permanent
+ID: 8108891",,,active,2026-09-04T17:33:19.712536,2026-09-04T17:33:19.712537
+71,1,Account Executive Product - Tax,https://stripe.com/careers/listing/account-executive-product-tax/8175830,stripe,"Company: Stripe
+Location: Singapore
+Contract: Permanent
+ID: 8175830",,,active,2026-09-04T17:33:19.713814,2026-09-04T17:33:19.713815
+72,1,"Account Executive, AI Startups (Hunter)",https://stripe.com/careers/listing/account-executive-ai-startups-hunter/8130725,stripe,"Company: Stripe
+Location: South San Francisco HQ
+Contract: Permanent
+ID: 8130725",,,active,2026-09-04T17:33:19.715077,2026-09-04T17:33:19.715078
+73,1,"Account Executive, Bridge",https://stripe.com/careers/listing/account-executive-bridge/8077887,stripe,"Company: Stripe
+Location: New York
+Contract: Permanent
+ID: 8077887",,,active,2026-09-04T17:33:19.716357,2026-09-04T17:33:19.716358
+74,1,"Account Executive, Commercial (Grower)",https://stripe.com/careers/listing/account-executive-commercial-grower/8123027,stripe,"Company: Stripe
+Location: Chicago
+Contract: Permanent
+ID: 8123027",,,active,2026-09-04T17:33:19.717629,2026-09-04T17:33:19.717630
+67,1,"Account Executive, Grower - Iberia Market",https://stripe.com/careers/listing/account-executive-grower-iberia-market/8138662,stripe,"Company: Stripe
+Location: Madrid
+Contract: Permanent
+ID: 8138662",,,active,2026-09-04T17:33:19.708481,2026-09-04T17:33:19.708483
+61,1,AEO and GEO Marketing Manager,https://stripe.com/careers/listing/aeo-and-geo-marketing-manager/7844214,stripe,"Company: Stripe
+Location: Remote in United States
+Contract: Permanent
+ID: 7844214",,,active,2026-09-04T17:33:19.669707,2026-09-04T17:33:19.669714
+62,1,AI Engineer,https://stripe.com/careers/listing/ai-engineer/8044460,stripe,"Company: Stripe
+Location: Toronto
+Contract: Permanent
+ID: 8044460",,,active,2026-09-04T17:33:19.699454,2026-09-04T17:33:19.699456
+63,1,APAC Executive Marketing,https://stripe.com/careers/listing/apac-executive-marketing/7764914,stripe,"Company: Stripe
+Location: Singapore
+Contract: Permanent
+ID: 7764914",,,active,2026-09-04T17:33:19.702047,2026-09-04T17:33:19.702049
+64,1,ARG Engineering Manager,https://stripe.com/careers/listing/arg-engineering-manager/8113337,stripe,"Company: Stripe
+Location: Remote in United States
+Contract: Permanent
+ID: 8113337",,,active,2026-09-04T17:33:19.703755,2026-09-04T17:33:19.703757
+65,1,AV Events Manager,https://stripe.com/careers/listing/av-events-manager/8078126,stripe,"Company: Stripe
+Location: South San Francisco HQ
+Contract: Permanent
+ID: 8078126",,,active,2026-09-04T17:33:19.705708,2026-09-04T17:33:19.705710

@@ -69,7 +69,7 @@ class GreenhouseAdapter(JobSourceAdapter):
         for slug in company_slugs[:10]:  # Limit to 10 companies per run
             try:
                 logger.info(f"Discovering Greenhouse jobs for {slug}")
-                board_url = f"https://{slug}.greenhouse.io/api/v1/boards/{slug}/jobs"
+                board_url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true"
 
                 async with self.session.get(board_url, timeout=10) as resp:
                     if resp.status != 200:
