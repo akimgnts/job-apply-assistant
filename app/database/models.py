@@ -252,12 +252,14 @@ class Company(Base):
 
     job_offers = relationship("JobOffer", back_populates="company")
     contacts = relationship("CompanyContact", back_populates="company")
+    hiring_snapshots = relationship("CompanyHiringSnapshot", back_populates="company")
 
 
 class JobOffer(Base):
     """Scraped job posting linked to a company.
 
     MVP Phase 1: stores URL, title, required_skills, raw_text from trafilatura.
+    Sprint 2: adds lifecycle tracking (first_seen_at, last_seen_at, closed_at, consecutive_misses)
     """
     __tablename__ = "job_offers"
 
@@ -271,10 +273,45 @@ class JobOffer(Base):
     posted_date = Column(DateTime, nullable=True)
     status = Column(String(20), default="active")  # "active", "closed", "archived"
     last_scraped_at = Column(DateTime, nullable=True)
+
+    # Lifecycle tracking (Sprint 2)
+    first_seen_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    closed_at = Column(DateTime, nullable=True)
+    consecutive_misses = Column(Integer, default=0)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     company = relationship("Company", back_populates="job_offers")
+
+
+class CompanyHiringSnapshot(Base):
+    """Historical snapshot of company hiring activity by source.
+
+    Sprint 2: tracks volume, new hires, closures per capture cycle.
+    """
+    __tablename__ = "company_hiring_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    source = Column(String(50), nullable=False)  # "lever", "greenhouse", "ashby", etc.
+    captured_at = Column(DateTime, nullable=False)  # Snapshot timestamp
+
+    # Counts
+    active_jobs_count = Column(Integer, default=0)
+    new_jobs_count = Column(Integer, default=0)
+    closed_jobs_count = Column(Integer, default=0)
+
+    # Domain counts
+    data_jobs_count = Column(Integer, default=0)
+    ai_jobs_count = Column(Integer, default=0)
+    automation_jobs_count = Column(Integer, default=0)
+    digital_jobs_count = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    company = relationship("Company", back_populates="hiring_snapshots")
 
 
 class CompanyContact(Base):
