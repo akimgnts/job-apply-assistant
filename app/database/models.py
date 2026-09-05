@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
 import enum
 from app.database.db import Base
@@ -297,6 +297,7 @@ class CompanyHiringSnapshot(Base):
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
     source = Column(String(50), nullable=False)  # "lever", "greenhouse", "ashby", etc.
     captured_at = Column(DateTime, nullable=False)  # Snapshot timestamp
+    run_id = Column(String(36), nullable=False)  # Unique per execution cycle
 
     # Counts
     active_jobs_count = Column(Integer, default=0)
@@ -310,6 +311,8 @@ class CompanyHiringSnapshot(Base):
     digital_jobs_count = Column(Integer, default=0)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('company_id', 'source', 'run_id', name='uq_company_source_run'),)
 
     company = relationship("Company", back_populates="hiring_snapshots")
 

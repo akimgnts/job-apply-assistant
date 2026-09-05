@@ -54,10 +54,11 @@ def create_hiring_snapshot(
     db: Session,
     company_id: int,
     source: str,
-    captured_at: datetime = None
+    captured_at: datetime = None,
+    run_id: str = None
 ) -> CompanyHiringSnapshot:
     """Create snapshot of company hiring status by source.
-    
+
     Counts:
     - active_jobs_count: total active
     - new_jobs_count: discovered in last 1 day
@@ -66,6 +67,9 @@ def create_hiring_snapshot(
     """
     if captured_at is None:
         captured_at = datetime.utcnow()
+    if run_id is None:
+        import uuid
+        run_id = uuid.uuid4().hex
     
     one_day_ago = captured_at - timedelta(days=1)
     
@@ -114,6 +118,7 @@ def create_hiring_snapshot(
         company_id=company_id,
         source=source,
         captured_at=captured_at,
+        run_id=run_id,
         active_jobs_count=active,
         new_jobs_count=new,
         closed_jobs_count=closed,
