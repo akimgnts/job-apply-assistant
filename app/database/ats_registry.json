@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "ATS company registry for job ingestion",
+    "last_updated": "2026-09-05T04:00:00Z"
+  },
+  "companies": [
+    {
+      "company_name": "Qonto",
+      "ats_type": "lever",
+      "company_slug": "qonto",
+      "careers_url": "https://jobs.lever.co/qonto",
+      "enabled": true,
+      "last_success_at": "2026-09-05T03:56:04Z",
+      "last_job_count": 92,
+      "last_error": null
+    },
+    {
+      "company_name": "Stripe",
+      "ats_type": "greenhouse",
+      "company_slug": "stripe",
+      "careers_url": "https://stripe.com/jobs",
+      "enabled": true,
+      "last_success_at": "2026-09-05T03:55:00Z",
+      "last_job_count": 46,
+      "last_error": null
+    },
+    {
+      "company_name": "Notion",
+      "ats_type": "ashby",
+      "company_slug": "notion",
+      "careers_url": "https://jobs.ashbyhq.com/notion",
+      "enabled": true,
+      "last_success_at": "2026-09-05T03:56:04Z",
+      "last_job_count": 50,
+      "last_error": null
+    }
+  ]
+}
