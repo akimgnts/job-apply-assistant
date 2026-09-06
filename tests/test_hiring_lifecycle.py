@@ -1,36 +1,17 @@
 """Sprint 2: Hiring lifecycle and acceleration detection tests.
 
-Uses SQLite in-memory database for isolation.
+Requires TEST_DATABASE_URL pointing to PostgreSQL test database.
 """
 
 import pytest
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.database.models import Base, JobOffer, Company, CompanyHiringSnapshot
+from app.database.models import JobOffer, Company, CompanyHiringSnapshot
 from app.services.hiring_lifecycle_service import (
     update_job_offer_lifecycle,
     mark_missing_jobs,
     create_hiring_snapshot,
     calculate_hiring_signals
 )
-
-
-@pytest.fixture
-def test_db():
-    """SQLite in-memory test database."""
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    
-    # Create default company
-    company = Company(id=1, name="Test Company")
-    session.add(company)
-    session.commit()
-    
-    yield session
-    session.close()
 
 
 class TestJobOfferLifecycle:
