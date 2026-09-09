@@ -349,6 +349,42 @@ Distinguishes verified experience from in-progress projects. Quality agent uses 
 
 Graceful degradation: most failures don't crash, just reduce quality or ask user to retry.
 
+## Database Deployments & Migrations
+
+### Production Environment
+- **Database**: PostgreSQL 18 (Coolify container xjacky9sshk72ukul3p7il4b)
+- **Connection**: DATABASE_URL env var (host:xjacky9sshk72ukul3p7il4b, port:5432, db:postgres)
+- **Persistence**: Volume /var/lib/postgresql/18/docker (managed by Coolify)
+- **Health**: Must verify container status before deploy
+
+### Migration Safety Rules
+1. **Always test on isolated copy** before production:
+   - Create test DB with same PostgreSQL version as production
+   - Load representative data (non-sensitive copy if possible)
+   - Run upgrade + downgrade cycle to verify reversibility
+2. **Backfill operations** (UPDATE existing rows):
+   - Use WHERE clauses to avoid modifying unrelated data
+   - Verify backfill doesn't violate constraints (e.g., NULL on NOT NULL columns after ALTER)
+   - Log before/after counts: `SELECT COUNT(*) FROM table_name`
+3. **Foreign key changes**:
+   - Verify no orphaned references post-migration
+   - Downgrade must restore original constraints exactly
+4. **Large tables** (> 100k rows):
+   - Monitor migration duration (should complete within deployment timeout)
+   - Use indexes to accelerate WHERE clauses if needed
+5. **Rollback procedure**:
+   - Never truncate tables; always use `alembic downgrade -1` (or targeted revision)
+   - Backup before upgrades: `pg_dump $DATABASE_URL > backup_YYYYMMDD_HHMMSS.sql`
+   - Test restore on isolated DB: `createdb test_restore && psql test_restore < backup.sql`
+   - `git reset --hard` is destructive (app layer only, doesn't revert DB state)
+
+### Scheduler Integration
+- **Location**: app/scheduler/ats_scheduler.py (daily job discovery + lifecycle)
+- **Lock mechanism**: File-based `/tmp/ats_ingest.lock` (timeout 1h, single-process protection)
+- **Activation**: Must be wired into entrypoint (APScheduler or Coolify cron task) before deploy
+- **Logging**: logs/ats_ingest_YYYY-MM-DD.log (created per run, not rotated)
+- **Exit codes**: sys.exit(1) on error, implicit 0 on success → use for CI/monitoring
+
 ## Performance Notes
 
 - **OpenAI calls**: ~2-5s each (main bottleneck)
