@@ -1,40 +1,21 @@
-"""Phase 2B: Lever job board adapter.
-
-Lever (lever.co) hosts career pages for many companies.
-Public REST API access via company posting endpoints.
-"""
+"""Phase 2B: Lever job board adapter."""
 
 import logging
-import json
-from typing import Optional
 import aiohttp
 
-from app.models.job_source_adapter import (
-    JobSourceAdapter,
-    DiscoveredJobUrl,
-    NormalizedJobOffer,
-)
+from app.models.job_source_adapter import JobSourceAdapter, DiscoveredJobUrl, NormalizedJobOffer
 
 logger = logging.getLogger(__name__)
 
-# Popular companies with Lever boards
 LEVER_COMPANIES = [
-    ("zapier", "Zapier"),
-    ("guidepoint", "GuidePoint"),
-    ("deel", "Deel"),
-    ("getir", "Getir"),
-    ("vanta", "Vanta"),
-    ("hopin", "Hopin"),
-    ("melio", "Melio"),
-    ("tessian", "Tessian"),
-    ("guarding", "Guarding"),
+    ("zapier", "Zapier"), ("guidepoint", "GuidePoint"), ("deel", "Deel"),
+    ("getir", "Getir"), ("vanta", "Vanta"), ("hopin", "Hopin"),
+    ("melio", "Melio"), ("tessian", "Tessian"), ("guarding", "Guarding"),
     ("talentdesk", "TalentDesk"),
 ]
 
 
 class LeverAdapter(JobSourceAdapter):
-    """Discover jobs from Lever-powered career boards."""
-
     source_name = "lever"
     collection_strategy = "api"
 
@@ -50,118 +31,71 @@ class LeverAdapter(JobSourceAdapter):
         if self.own_session and self.session:
             await self.session.close()
 
+    async def _fetch_postings(self, handle: str):
+        """Try Lever's current public hosts; return postings or raise."""
+        urls = [
+            f"https://api.lever.co/v0/postings/{handle}?mode=json",
+            f"https://api.eu.lever.co/v0/postings/{handle}?mode=json",
+        ]
+        errors = []
+        for api_url in urls:
+            try:
+                async with self.session.get(api_url, timeout=15) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        return data if isinstance(data, list) else data.get("data", [])
+                    errors.append(f"{api_url} -> HTTP {resp.status}")
+            except Exception as exc:
+                errors.append(f"{api_url} -> {exc}")
+        raise RuntimeError("; ".join(errors))
+
     async def discover_jobs(self, context: dict) -> list[DiscoveredJobUrl]:
-        """Discover jobs from Lever boards.
-
-        Context:
-            company_handles: list of Lever company handles (optional, defaults to known)
-            max_per_company: int (default 50)
-        """
         await self._ensure_session()
-
         company_handles = context.get("company_handles", [handle for handle, _ in LEVER_COMPANIES])
         max_per_company = context.get("max_per_company", 50)
-
         discovered = []
 
         for handle in company_handles[:10]:
-            try:
-                logger.info(f"Discovering Lever jobs for {handle}")
-                # Lever API: https://api.lever.co/v0/postings/{company_handle}
-                api_url = f"https://api.lever.co/v0/postings/{handle}?mode=json"
-
-                async with self.session.get(api_url, timeout=10) as resp:
-                    if resp.status != 200:
-                        logger.warning(f"Lever {handle} returned {resp.status}")
-                        continue
-
-                    data = await resp.json()
-
-                    # API returns list directly, not wrapped in {data: [...]}
-                    postings = data if isinstance(data, list) else data.get("data", [])
-
-                    for posting in postings[:max_per_company]:
-                        posting_id = posting.get("id")
-                        title = posting.get("text", "Unknown")
-                        location = posting.get("categories", {}).get("location")
-                        posting_url = posting.get("urls", {}).get("posting", "")
-
-                        if not posting_url:
-                            posting_url = f"https://jobs.lever.co/{handle}/apply/{posting_id}"
-
-                        discovered.append(
-                            DiscoveredJobUrl(
-                                url=posting_url,
-                                metadata={
-                                    "title": title,
-                                    "posting_id": posting_id,
-                                    "company_handle": handle,
-                                    "location": location,
-                                    "source": "lever",
-                                },
-                            )
-                        )
-
-                    logger.info(f"Discovered {len(postings[:max_per_company])} jobs from {handle}")
-
-            except Exception as e:
-                logger.error(f"Lever discovery error for {handle}: {e}")
-
+            postings = await self._fetch_postings(handle)
+            selected = postings if max_per_company is None else postings[:max_per_company]
+            for posting in selected:
+                posting_id = posting.get("id")
+                posting_url = posting.get("hostedUrl") or posting.get("applyUrl") or posting.get("urls", {}).get("posting")
+                if not posting_url:
+                    posting_url = f"https://jobs.lever.co/{handle}/{posting_id}"
+                discovered.append(DiscoveredJobUrl(
+                    url=posting_url,
+                    metadata={
+                        "title": posting.get("text", "Unknown"),
+                        "posting_id": posting_id,
+                        "company_handle": handle,
+                        "location": posting.get("categories", {}).get("location"),
+                        "description": posting.get("descriptionPlain") or posting.get("description"),
+                        "source": "lever",
+                    },
+                ))
+            logger.info(f"Discovered {len(selected)} jobs from {handle}")
         return discovered
 
     async def extract_job(self, discovered: DiscoveredJobUrl) -> dict:
-        """Extract job details from Lever job page."""
-        await self._ensure_session()
-
-        url = discovered.url
-
-        try:
-            async with self.session.get(url, timeout=10) as resp:
-                if resp.status != 200:
-                    raise Exception(f"HTTP {resp.status}")
-
-                html = await resp.text()
-
-                result = {
-                    "url": url,
-                    "source_url": url,
-                    "posting_id": discovered.metadata.get("posting_id"),
-                    "company_handle": discovered.metadata.get("company_handle"),
-                    "extraction_method": "lever_api_metadata",
-                    "extraction_confidence": 0.95,
-                }
-
-                # Extract title from metadata
-                title = discovered.metadata.get("title", "Lever Job")
-                result["title"] = title
-
-                # Extract location from API metadata (not from HTML)
-                location = discovered.metadata.get("location")
-                if location:
-                    result["location"] = location
-
-                return result
-
-        except Exception as e:
-            logger.error(f"Lever extraction error for {url}: {e}")
-            return {
-                "url": url,
-                "source_url": url,
-                "posting_id": discovered.metadata.get("posting_id"),
-                "company_handle": discovered.metadata.get("company_handle"),
-                "title": discovered.metadata.get("title", "Lever Job"),
-                "location": discovered.metadata.get("location"),
-                "extraction_method": "lever_api_metadata",
-                "extraction_confidence": 0.95,
-            }
+        """Lever discovery API already contains canonical metadata; avoid a second page GET."""
+        metadata = discovered.metadata
+        return {
+            "url": discovered.url,
+            "source_url": discovered.url,
+            "posting_id": metadata.get("posting_id"),
+            "company_handle": metadata.get("company_handle"),
+            "title": metadata.get("title", "Lever Job"),
+            "location": metadata.get("location"),
+            "description": metadata.get("description"),
+            "extraction_method": "lever_api_metadata",
+            "extraction_confidence": 0.95,
+        }
 
     async def normalize_job(self, extracted: dict) -> NormalizedJobOffer:
-        """Normalize Lever job to canonical schema."""
-        # Map handle to company name
         handle_to_name = dict(LEVER_COMPANIES)
         company_handle = extracted.get("company_handle", "")
         company_name = handle_to_name.get(company_handle, company_handle.title())
-
         return NormalizedJobOffer(
             job_title=extracted.get("title") or "Lever Job",
             company_name=company_name,
