@@ -47,3 +47,13 @@ class Config:
     ELEVIA_REQUEST_TIMEOUT_MS = int(os.getenv("ELEVIA_REQUEST_TIMEOUT_MS", "20000"))
 
 config = Config()
+
+# Gmail is a single explicitly selected mailbox and candidate workspace.
+config.GMAIL_ENABLED = os.getenv('GMAIL_ENABLED', 'false').lower() == 'true'
+config.GMAIL_CREDENTIALS_FILE = os.getenv('GMAIL_CREDENTIALS_FILE', 'credentials.json')
+config.GMAIL_TOKEN_FILE = os.getenv('GMAIL_TOKEN_FILE', 'token.json')
+config.GMAIL_USER_ID = os.getenv('GMAIL_USER_ID', 'me')
+config.GMAIL_APPLICATION_USER_ID = os.getenv('WEB_USER_ID', 'local')
+config.GMAIL_SEARCH_QUERY = os.getenv('GMAIL_SEARCH_QUERY', 'newer_than:30d {candidature recrutement entretien application interview recruiting recruiter} -category:promotions -category:social')
+config.GMAIL_INGESTION_INTERVAL_MINUTES = max(5, int(os.getenv('GMAIL_INGESTION_INTERVAL_MINUTES', '30')))
+config.GMAIL_SCHEDULER_ENABLED = os.getenv('GMAIL_SCHEDULER_ENABLED', 'false').lower() == 'true'

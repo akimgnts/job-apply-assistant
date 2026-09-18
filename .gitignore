@@ -54,3 +54,11 @@ outputs/
 
 # Migrations (keep alembic.ini)
 migrations/versions/__pycache__/
+
+.venv/
+!app/web/*.html
+
+# Private Google OAuth credentials
+credentials.json
+token.json
+token.pickle

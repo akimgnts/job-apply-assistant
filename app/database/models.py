@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
 import enum
 from app.database.db import Base
@@ -114,7 +114,8 @@ class JobAnalysis(Base):
     __tablename__ = "job_analyses"
 
     id = Column(Integer, primary_key=True)
-    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=True)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True)
     analysis_json = Column(JSON, nullable=False)
     missions = Column(JSON, default=list)
     required_skills = Column(JSON, default=list)
@@ -125,6 +126,7 @@ class JobAnalysis(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     application = relationship("Application", back_populates="analyses")
+    job_offer = relationship("JobOffer", foreign_keys=[job_offer_id])
 
 class GeneratedDocument(Base):
     __tablename__ = "generated_documents"
@@ -231,3 +233,267 @@ class ConversationHistory(Base):
     content = Column(Text, nullable=False)
     metadata_json = Column("metadata", JSON, default=dict)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+
+class Company(Base):
+    """Employer aggregation for Job Market Radar MVP.
+
+    Groups job offers by company; tracks recruitment activity.
+    """
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    website = Column(String(500), nullable=True)
+    job_count_this_week = Column(Integer, default=0)
+    skill_frequency = Column(JSON, default=dict)  # {"Python": 3, "SQL": 2, ...}
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    job_offers = relationship("JobOffer", back_populates="company")
+    contacts = relationship("CompanyContact", back_populates="company")
+    hiring_snapshots = relationship("CompanyHiringSnapshot", back_populates="company")
+
+
+class JobOffer(Base):
+    """Scraped job posting linked to a company.
+
+    MVP Phase 1: stores URL, title, required_skills, raw_text from trafilatura.
+    Sprint 2: adds lifecycle tracking (first_seen_at, last_seen_at, closed_at, consecutive_misses)
+    """
+    __tablename__ = "job_offers"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    job_title = Column(String(255), nullable=False)
+    job_url = Column(Text, nullable=False, unique=True)
+    source = Column(String(50), nullable=False)  # "indeed", "linkedin", "website", etc.
+    raw_text = Column(Text, nullable=True)  # trafilatura output
+    required_skills = Column(JSON, default=list)  # ["Python", "SQL", ...]
+    posted_date = Column(DateTime, nullable=True)
+    status = Column(String(20), default="active")  # "active", "closed", "archived"
+    last_scraped_at = Column(DateTime, nullable=True)
+
+    # Lifecycle tracking (Sprint 2)
+    first_seen_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    closed_at = Column(DateTime, nullable=True)
+    consecutive_misses = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company", back_populates="job_offers")
+
+
+class CompanyHiringSnapshot(Base):
+    """Historical snapshot of company hiring activity by source.
+
+    Sprint 2: tracks volume, new hires, closures per capture cycle.
+    """
+    __tablename__ = "company_hiring_snapshots"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    source = Column(String(50), nullable=False)  # "lever", "greenhouse", "ashby", etc.
+    captured_at = Column(DateTime, nullable=False)  # Snapshot timestamp
+    run_id = Column(String(36), nullable=False)  # Unique per execution cycle
+
+    # Counts
+    active_jobs_count = Column(Integer, default=0)
+    new_jobs_count = Column(Integer, default=0)
+    closed_jobs_count = Column(Integer, default=0)
+
+    # Domain counts
+    data_jobs_count = Column(Integer, default=0)
+    ai_jobs_count = Column(Integer, default=0)
+    automation_jobs_count = Column(Integer, default=0)
+    digital_jobs_count = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('company_id', 'source', 'run_id', name='uq_company_source_run'),)
+
+    company = relationship("Company", back_populates="hiring_snapshots")
+
+
+class CompanyContact(Base):
+    """Hiring contact at a company (manual verification for MVP Phase 1).
+
+    source_url is mandatory: LinkedIn profile, company careers page, etc.
+    verification_status tracks lead quality.
+    """
+    __tablename__ = "company_contacts"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    contact_name = Column(String(255), nullable=False)
+    role_raw = Column(String(255), nullable=False)  # Free text: "Talent Acquisition Manager"
+    role_category = Column(String(100), nullable=True)  # Normalized: "recruiter", "manager", etc.
+    email = Column(String(255), nullable=True)
+    linkedin_url = Column(String(500), nullable=True)
+    source_url = Column(String(500), nullable=False)  # MANDATORY: LinkedIn/website/careers
+    data_source = Column(String(50), nullable=False)  # "manual_verified", "linkedin", "website"
+    verification_status = Column(String(20), default="verified")  # "verified", "pending", "invalid"
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company", back_populates="contacts")
+
+
+class OutreachDraft(Base):
+    """Outreach message draft (Phase 6).
+
+    Generated from company intelligence + contact + job analysis.
+    Grounded against Master CV evidence before status = READY.
+    """
+    __tablename__ = "outreach_drafts"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    contact_id = Column(Integer, ForeignKey("company_contacts.id"), nullable=False)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True)
+    channel = Column(String(50), default="email")  # "email", "linkedin", etc.
+    subject_line = Column(String(200), nullable=True)
+    message_text = Column(Text, nullable=False)
+    evidence_ids = Column(JSON, default=list)  # ["SIDEL.DATA_&_BI.001", ...]
+    grounding_result = Column(JSON, nullable=True)  # {grounded: bool, unsupported_claims: [...]}
+    status = Column(String(50), default="DRAFT")  # "DRAFT", "READY", "NEEDS_REVIEW", "ARCHIVED"
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company")
+    contact = relationship("CompanyContact")
+    job_offer = relationship("JobOffer")
+
+
+class CrawlRun(Base):
+    """Crawl execution record (Phase 2B).
+
+    Tracks job discovery runs: pages discovered, candidates found, jobs ingested.
+    Enables incremental crawling and operational observability.
+    """
+    __tablename__ = "crawl_runs"
+
+    id = Column(Integer, primary_key=True)
+    source_name = Column(String(50), nullable=False)  # "career_site"
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)  # NULL = multi-company
+    started_at = Column(DateTime, default=datetime.utcnow)
+    finished_at = Column(DateTime, nullable=True)
+    duration_seconds = Column(Integer, nullable=True)
+    status = Column(String(20), default="IN_PROGRESS")  # "IN_PROGRESS", "SUCCESS", "PARTIAL", "FAILED"
+    pages_discovered = Column(Integer, default=0)
+    job_candidates = Column(Integer, default=0)
+    jobs_extracted = Column(Integer, default=0)
+    jobs_new = Column(Integer, default=0)
+    jobs_existing = Column(Integer, default=0)
+    jobs_closed = Column(Integer, default=0)
+    urls_errors = Column(Integer, default=0)
+    summary = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    company = relationship("Company")
+
+
+class CareerCrawlUrl(Base):
+    """Discovered career site URL tracking (Phase 2B).
+
+    Separates crawl discovery state from normalized job offers.
+    Enables incremental crawling, closed-offer detection, deduplication.
+    """
+    __tablename__ = "career_crawl_urls"
+
+    id = Column(Integer, primary_key=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False, index=True)
+    discovered_url = Column(String(2000), nullable=False)
+    normalized_url = Column(String(2000), nullable=False)
+    url_hash = Column(String(64), nullable=False, unique=True, index=True)
+    page_title = Column(String(500), nullable=True)
+    is_job_candidate = Column(Integer, default=0)  # Boolean: deterministic detection result
+    detection_signals = Column(JSON, nullable=True)  # {url_pattern: bool, schema: bool, ...}
+    detection_score = Column(Integer, nullable=True)  # 0-100, deterministic only
+    status = Column(String(20), default="DISCOVERED")  # DISCOVERED, CANDIDATE, INGESTED, CLOSED, IGNORED, ERROR
+    first_seen_at = Column(DateTime, default=datetime.utcnow)
+    last_seen_at = Column(DateTime, nullable=True)
+    crawl_run_id = Column(Integer, ForeignKey("crawl_runs.id"), nullable=True)
+    error_message = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    company = relationship("Company")
+    crawl_run = relationship("CrawlRun")
+
+
+class OutreachTracking(Base):
+    """Track outreach to contacts and responses received.
+
+    Links applications → contacts, logs all outreach activity,
+    maintains response history, tracks follow-up reminders.
+    """
+    __tablename__ = "outreach_tracking"
+
+    id = Column(Integer, primary_key=True)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=True, index=True)
+    contact_id = Column(Integer, ForeignKey("company_contacts.id"), nullable=True, index=True)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True, index=True)
+
+    outreach_type = Column(String(50), default="email")  # email, linkedin, other
+    outreach_date = Column(DateTime, nullable=True, index=True)
+    outreach_message = Column(Text, nullable=True)  # What we sent
+
+    response_received = Column(Integer, default=0)  # Boolean
+    response_date = Column(DateTime, nullable=True, index=True)
+    response_message = Column(Text, nullable=True)  # What they sent
+    response_sentiment = Column(String(20), nullable=True)  # positive, negative, neutral
+
+    last_follow_up = Column(DateTime, nullable=True)
+    reminder_interval_days = Column(Integer, default=7)
+    next_follow_up = Column(DateTime, nullable=True, index=True)
+
+    status = Column(String(50), default="pending")  # pending, responded, archived, no_response
+    notes = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    application = relationship("Application")
+    contact = relationship("CompanyContact")
+    job_offer = relationship("JobOffer")
+
+
+class EmailEvent(Base):
+    """Private read-only Gmail event, with explicit user-confirmed application links."""
+    __tablename__ = 'email_events'
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(String(255), nullable=False, index=True)
+    mailbox = Column(String(255), nullable=False)
+    gmail_message_id = Column(String(255), nullable=False)
+    thread_id = Column(String(255), index=True)
+    sender_email = Column(String(320))
+    sender_name = Column(String(255))
+    recipients = Column(JSON, default=list)
+    subject = Column(String(500))
+    snippet = Column(Text)
+    body_text = Column(Text)
+    received_at = Column(DateTime, index=True)
+    labels = Column(JSON, default=list)
+    detected_type = Column(String(50), default='unknown')
+    classification_reason = Column(Text)
+    confirmed_type = Column(String(50), nullable=True)
+    status = Column(String(30), default='pending', index=True)
+    application_id = Column(Integer, ForeignKey('applications.id'), nullable=True, index=True)
+    link_method = Column(String(30), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    __table_args__ = (UniqueConstraint('owner_id', 'mailbox', 'gmail_message_id', name='uq_email_owner_mailbox_message'),)
+
+
+class GmailSyncState(Base):
+    """Durable cursor and status; no OAuth secret is stored in the database."""
+    __tablename__ = 'gmail_sync_states'
+    owner_id = Column(String(255), primary_key=True)
+    mailbox = Column(String(255))
+    query = Column(Text)
+    next_page_token = Column(Text)
+    last_synced_at = Column(DateTime)
+    last_error = Column(Text)

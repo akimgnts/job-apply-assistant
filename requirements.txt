@@ -12,4 +12,10 @@ pydantic>=2.6.0
 pydantic-settings>=2.2.0
 urllib3
 httpx
+aiohttp>=3.9,<4
 playwright==1.44.0
+apscheduler==3.10.4
+
+# Gmail read-only integration
+google-auth-oauthlib>=1.2,<2
+google-api-python-client>=2.140,<3
