@@ -422,3 +422,78 @@ class CareerCrawlUrl(Base):
 
     company = relationship("Company")
     crawl_run = relationship("CrawlRun")
+
+
+class OutreachTracking(Base):
+    """Track outreach to contacts and responses received.
+
+    Links applications → contacts, logs all outreach activity,
+    maintains response history, tracks follow-up reminders.
+    """
+    __tablename__ = "outreach_tracking"
+
+    id = Column(Integer, primary_key=True)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=True, index=True)
+    contact_id = Column(Integer, ForeignKey("company_contacts.id"), nullable=True, index=True)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True, index=True)
+
+    outreach_type = Column(String(50), default="email")  # email, linkedin, other
+    outreach_date = Column(DateTime, nullable=True, index=True)
+    outreach_message = Column(Text, nullable=True)  # What we sent
+
+    response_received = Column(Integer, default=0)  # Boolean
+    response_date = Column(DateTime, nullable=True, index=True)
+    response_message = Column(Text, nullable=True)  # What they sent
+    response_sentiment = Column(String(20), nullable=True)  # positive, negative, neutral
+
+    last_follow_up = Column(DateTime, nullable=True)
+    reminder_interval_days = Column(Integer, default=7)
+    next_follow_up = Column(DateTime, nullable=True, index=True)
+
+    status = Column(String(50), default="pending")  # pending, responded, archived, no_response
+    notes = Column(Text, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    application = relationship("Application")
+    contact = relationship("CompanyContact")
+    job_offer = relationship("JobOffer")
+
+
+class EmailEvent(Base):
+    """Private read-only Gmail event, with explicit user-confirmed application links."""
+    __tablename__ = 'email_events'
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(String(255), nullable=False, index=True)
+    mailbox = Column(String(255), nullable=False)
+    gmail_message_id = Column(String(255), nullable=False)
+    thread_id = Column(String(255), index=True)
+    sender_email = Column(String(320))
+    sender_name = Column(String(255))
+    recipients = Column(JSON, default=list)
+    subject = Column(String(500))
+    snippet = Column(Text)
+    body_text = Column(Text)
+    received_at = Column(DateTime, index=True)
+    labels = Column(JSON, default=list)
+    detected_type = Column(String(50), default='unknown')
+    classification_reason = Column(Text)
+    confirmed_type = Column(String(50), nullable=True)
+    status = Column(String(30), default='pending', index=True)
+    application_id = Column(Integer, ForeignKey('applications.id'), nullable=True, index=True)
+    link_method = Column(String(30), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    __table_args__ = (UniqueConstraint('owner_id', 'mailbox', 'gmail_message_id', name='uq_email_owner_mailbox_message'),)
+
+
+class GmailSyncState(Base):
+    """Durable cursor and status; no OAuth secret is stored in the database."""
+    __tablename__ = 'gmail_sync_states'
+    owner_id = Column(String(255), primary_key=True)
+    mailbox = Column(String(255))
+    query = Column(Text)
+    next_page_token = Column(Text)
+    last_synced_at = Column(DateTime)
+    last_error = Column(Text)
