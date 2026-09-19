@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from app.database.models import Application, Company, JobOffer, GeneratedDocument, JobAnalysis
+from app.database.models import Application, Company, JobOffer, GeneratedDocument, JobAnalysis, Opportunity, OpportunityLink
 
 
 def user_id() -> str:
@@ -66,7 +66,24 @@ def paginate(query, page: int, page_size: int, mapper) -> dict:
 
 def offer_data(db: Session, offer: JobOffer) -> dict:
     saved = applications(db).filter(Application.source_url == offer.job_url).first()
-    return {**serialize(offer), 'company': offer.company.name, 'saved_application_id': saved.id if saved else None}
+    opportunity = (
+        db.query(Opportunity)
+        .join(OpportunityLink, OpportunityLink.opportunity_id == Opportunity.id)
+        .filter(
+            Opportunity.owner_id == user_id(),
+            OpportunityLink.source_type == 'job_offer',
+            OpportunityLink.source_id == offer.id,
+        )
+        .first()
+    )
+    return {
+        **serialize(offer),
+        'company': offer.company.name,
+        'saved_application_id': saved.id if saved else None,
+        'opportunity_id': opportunity.id if opportunity else None,
+        'opportunity_status': opportunity.status if opportunity else None,
+        'opportunity_next_action': opportunity.next_action if opportunity else None,
+    }
 
 
 def document_data(doc: GeneratedDocument, content: bool = False) -> dict:

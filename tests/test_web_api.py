@@ -42,6 +42,9 @@ def test_radar_save_is_idempotent_and_scoped(workspace):
     assert first.status_code == 200
     assert first.json()['status'] == 'saved'
     assert client.post(f"/api/offers/{offer['id']}/save").json()['id'] == first.json()['id']
+    linked_offer = client.get('/api/offers?q=Acme').json()['items'][0]
+    assert linked_offer['opportunity_id'] is not None
+    assert linked_offer['opportunity_status'] == 'new'
     assert client.get('/api/applications').json()['total'] == 1
     assert client.get('/api/applications/1').status_code == 404
     assert client.get('/api/documents/1/download').status_code == 404
