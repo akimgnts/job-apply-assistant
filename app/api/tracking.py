@@ -16,6 +16,7 @@ from app.database.models import Application, EmailEvent, GmailSyncState, Outreac
 from app.services.email_tracking_service import EVENT_TYPES, owned_applications, suggestions, update_tracking
 from app.services.email_ingestion_service import EmailIngestionService
 from app.services.gmail_service import GmailUnavailable
+from app.services.application_tracking_agent import ApplicationTrackingAgent
 
 
 def private_access(request: Request):
@@ -97,6 +98,39 @@ def list_emails(q: str = '', state: Literal['all','pending','processed','archive
         term='%'+q.strip().replace('\\','\\\\').replace('%','\\%').replace('_','\\_')+'%'
         query=query.filter(or_(EmailEvent.subject.ilike(term,escape='\\'),EmailEvent.sender_email.ilike(term,escape='\\')))
     return {'items':[event_data(e) for e in query.order_by(EmailEvent.received_at.desc(),EmailEvent.id.desc()).offset((page-1)*25).limit(25)], 'total':query.count(),'page':page,'page_size':25}
+
+
+@router.get('/opportunities')
+def opportunities(
+    q: str = '',
+    view: Literal['all','needs_review','replies','interviews','rejections','job_boards','sent']='all',
+    page: int = Query(1, ge=1),
+    db: Session = Depends(get_db),
+):
+    rows = ApplicationTrackingAgent.build_opportunities(events(db).order_by(EmailEvent.received_at.desc(), EmailEvent.id.desc()).all())
+    if q.strip():
+        needle = q.strip().lower()
+        rows = [row for row in rows if needle in f"{row['company']} {row['job_title']} {row['latest_subject'] or ''}".lower()]
+    if view == 'needs_review':
+        rows = [row for row in rows if row['needs_review_count']]
+    elif view == 'replies':
+        rows = [row for row in rows if row['status'] == 'reply']
+    elif view == 'interviews':
+        rows = [row for row in rows if row['status'] == 'interview']
+    elif view == 'rejections':
+        rows = [row for row in rows if row['status'] == 'rejected']
+    elif view == 'job_boards':
+        rows = [row for row in rows if row['status'] == 'job_board']
+    elif view == 'sent':
+        rows = [row for row in rows if row['status'] in ('sent', 'acknowledged')]
+    total = len(rows)
+    start = (page - 1) * 25
+    items = []
+    for row in rows[start:start+25]:
+        item = dict(row)
+        item['latest_received_at'] = iso(item['latest_received_at'])
+        items.append(item)
+    return {'items': items, 'total': total, 'page': page, 'page_size': 25}
 
 
 @router.get('/emails/{identifier}')
