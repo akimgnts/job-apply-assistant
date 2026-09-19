@@ -55,6 +55,26 @@ def test_radar_save_is_idempotent_and_scoped(workspace):
     assert opportunities['items'][0]['application_count'] == 1
 
 
+def test_offers_include_signal_score_and_filter_priority_recent(workspace):
+    from datetime import datetime, timedelta
+    client, session = workspace
+    from app.database.models import Company, JobOffer
+    company = session.query(Company).filter_by(name='Acme').first()
+    old = JobOffer(company_id=company.id, job_title='Senior Mechanical Engineer', job_url='https://example.org/noise', source='archive', raw_text='maintenance industrielle 10 ans', first_seen_at=datetime.utcnow()-timedelta(days=80), last_seen_at=datetime.utcnow()-timedelta(days=80), status='active')
+    strong = JobOffer(company_id=company.id, job_title='VIE Data Analyst', job_url='https://example.org/priority', source='business_france_vie', raw_text='SQL Power BI CRM automation', first_seen_at=datetime.utcnow()-timedelta(days=1), last_seen_at=datetime.utcnow()-timedelta(days=1), status='active')
+    session.add_all([old, strong])
+    session.commit()
+
+    offers = client.get('/api/offers?signal=priority&page_size=10').json()['items']
+    assert offers[0]['signal_tier'] == 'priority'
+    assert offers[0]['signal_score'] >= 70
+    assert all(item['signal_tier'] == 'priority' for item in offers)
+
+    recent = client.get('/api/offers?signal=recent&page_size=10').json()['items']
+    assert all(item['recency'] == 'new' for item in recent)
+    assert any(item['job_url'] == 'https://example.org/priority' for item in recent)
+
+
 def test_manual_application_status_validation_and_missing_ai(workspace, monkeypatch):
     from app.config import config
     monkeypatch.setattr(config, 'OPENAI_API_KEY', '')

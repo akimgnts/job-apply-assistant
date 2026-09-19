@@ -15,6 +15,7 @@ from app.database.models import (Application, ApplicationStatusEnum, Company, Co
     JobOffer, JobAnalysis, GeneratedDocument, ProfileBlock, CareerIntelligenceSnapshot, OutreachDraft,
     Opportunity, OpportunityEvent, OpportunityLink)
 from app.services.opportunity_service import OpportunityService
+from app.services.offer_signal_service import OfferSignalService
 from app.web import service as svc
 
 router = APIRouter(prefix='/api')
@@ -66,13 +67,22 @@ def overview(db: Session = Depends(get_db)) -> dict:
 
 
 @router.get('/offers')
-def offers(q: str | None = None, source: str | None = None, status: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+def offers(q: str | None = None, source: str | None = None, status: str | None = None, signal: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(db.query(JobOffer).join(Company), q, JobOffer.job_title, Company.name, JobOffer.raw_text)
     if source:
         query = query.filter(JobOffer.source == source)
     if status:
         query = query.filter(JobOffer.status == status)
-    return svc.paginate(query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()), page, page_size, lambda row: svc.offer_data(db, row))
+    rows = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
+    scored = [(row, OfferSignalService.score(row)) for row in rows]
+    if signal in {'priority', 'potential', 'noise'}:
+        scored = [(row, meta) for row, meta in scored if meta['tier'] == signal]
+    elif signal == 'recent':
+        scored = [(row, meta) for row, meta in scored if meta['recency'] == 'new']
+    scored.sort(key=lambda item: (item[1]['score'], item[0].last_seen_at or item[0].first_seen_at or item[0].created_at, item[0].id), reverse=True)
+    total = len(scored)
+    selected = scored[(page - 1) * page_size: page * page_size]
+    return {'items': [svc.offer_data(db, row) for row, _ in selected], 'total': total, 'page': page, 'page_size': page_size}
 
 
 @router.get('/offers/{identifier}')

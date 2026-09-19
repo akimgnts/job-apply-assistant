@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.database.models import Application, Company, JobOffer, GeneratedDocument, JobAnalysis, Opportunity, OpportunityLink
+from app.services.offer_signal_service import OfferSignalService
 
 
 def user_id() -> str:
@@ -76,6 +77,7 @@ def offer_data(db: Session, offer: JobOffer) -> dict:
         )
         .first()
     )
+    signal = OfferSignalService.score(offer)
     return {
         **serialize(offer),
         'company': offer.company.name,
@@ -83,6 +85,11 @@ def offer_data(db: Session, offer: JobOffer) -> dict:
         'opportunity_id': opportunity.id if opportunity else None,
         'opportunity_status': opportunity.status if opportunity else None,
         'opportunity_next_action': opportunity.next_action if opportunity else None,
+        'signal_score': signal['score'],
+        'signal_tier': signal['tier'],
+        'signal_role_family': signal['role_family'],
+        'recency': signal['recency'],
+        'signal_reasons': signal['reasons'],
     }
 
 
