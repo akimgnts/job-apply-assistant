@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 
 @dataclass
@@ -26,6 +26,7 @@ class NormalizedJobOffer:
     external_job_id: Optional[str] = None
     required_skills: Optional[list] = None
     description: Optional[str] = None
+    contacts: Optional[List[Dict[str, Any]]] = None
 
 
 class JobSourceAdapter(ABC):

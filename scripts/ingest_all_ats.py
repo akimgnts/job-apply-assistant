@@ -10,7 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-sys.path.insert(0, "/Users/akimguentas/job-apply-assistant")
+sys.path.insert(0, "/Users/akimguentas/Documents/ChatGPT/jobapply")
 
 from app.services.lever_adapter import LeverAdapter
 from app.services.greenhouse_adapter import GreenhouseAdapter
@@ -21,7 +21,7 @@ from app.database.models import JobOffer
 from hashlib import sha256
 from sqlalchemy import func
 
-REGISTRY_PATH = Path("/Users/akimguentas/job-apply-assistant/app/database/ats_registry.json")
+REGISTRY_PATH = Path("/Users/akimguentas/Documents/ChatGPT/jobapply/app/database/ats_registry.json")
 
 async def ingest_ats(ats_type, company_slug, max_per=50):
     """Ingest single ATS company."""

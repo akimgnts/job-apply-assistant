@@ -21,6 +21,7 @@ from app.services.lever_adapter import LeverAdapter
 from app.services.greenhouse_adapter import GreenhouseAdapter
 from app.services.ashby_adapter import AshbyAdapter
 from app.services.business_france_vie_adapter import BusinessFranceVieAdapter
+from app.services.company_contact_ingestion import persist_offer_contacts
 from app.services.hiring_lifecycle_service import (
     update_job_offer_lifecycle,
     mark_missing_jobs,
@@ -181,6 +182,7 @@ def run_collection():
                     company_obj = get_or_create_company(db, offer.company_name)
                     source_company_ids[ats].add(company_obj.id)
                     existing = db.query(JobOffer).filter(JobOffer.job_url == offer.job_url).first()
+                    persist_offer_contacts(db, company_obj, offer)
                     if existing:
                         update_job_offer_lifecycle(db, offer.job_url)
                         duplicates += 1

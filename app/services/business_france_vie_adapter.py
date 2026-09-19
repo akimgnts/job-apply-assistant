@@ -6,7 +6,10 @@ Public REST API at civiweb-api-prd.azurewebsites.net.
 
 import logging
 import os
-import aiohttp
+try:
+    import aiohttp
+except ModuleNotFoundError:  # pragma: no cover - tests can exercise metadata helpers without network client
+    aiohttp = None
 
 from app.models.job_source_adapter import (
     JobSourceAdapter,
@@ -26,17 +29,51 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
     source_name = "business_france_vie"
     collection_strategy = "api"
 
-    def __init__(self, session: aiohttp.ClientSession = None):
+    def __init__(self, session=None):
         self.session = session
         self.own_session = session is None
 
     async def _ensure_session(self):
         if self.session is None:
+            if aiohttp is None:
+                raise RuntimeError("aiohttp is required for Business France network discovery")
             self.session = aiohttp.ClientSession()
 
     async def close(self):
         if self.own_session and self.session:
             await self.session.close()
+
+    @staticmethod
+    def offer_url(offer_id) -> str:
+        return f"https://mon-vie-via.businessfrance.fr/offres/{offer_id}"
+
+    @staticmethod
+    def _first_value(payload: dict, *keys: str) -> str | None:
+        for key in keys:
+            value = payload.get(key)
+            if value is not None and str(value).strip():
+                return str(value).strip()
+        return None
+
+    @classmethod
+    def extract_contact(cls, offer: dict, source_url: str) -> dict | None:
+        first_name = cls._first_value(offer, "contactFirstName", "firstName", "prenomContact", "contactPrenom")
+        last_name = cls._first_value(offer, "contactLastName", "lastName", "nomContact", "contactNom")
+        full_name = cls._first_value(offer, "contactName", "contactFullName", "recruiterName", "nomPrenomContact")
+        if not full_name:
+            full_name = " ".join(part for part in [first_name, last_name] if part).strip()
+        role = cls._first_value(offer, "contactJobTitle", "contactRole", "contactFunction", "fonctionContact", "posteContact") or "Contact Business France"
+        email = cls._first_value(offer, "contactEmail", "emailContact", "contactMail", "mailContact", "recruiterEmail")
+        if not full_name and not email:
+            return None
+        return {
+            "contact_name": full_name or email,
+            "role_raw": role,
+            "email": email,
+            "source_url": source_url,
+            "data_source": "business_france_vie",
+            "verification_status": "pending",
+        }
 
     async def discover_jobs(self, context: dict) -> list[DiscoveredJobUrl]:
         """Discover all available VIE jobs with pagination.
@@ -102,7 +139,7 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
                 city = offer.get("cityName", "")
                 duration = offer.get("missionDuration")
 
-                offer_url = f"https://mon-vie-via.businessfrance.fr/offre/{offer_id}"
+                offer_url = self.offer_url(offer_id)
 
                 discovered.append(
                     DiscoveredJobUrl(
@@ -114,6 +151,7 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
                             "duration": duration,
                             "offer_id": offer_id,
                             "source": "business_france_vie",
+                            "contacts": [c for c in [self.extract_contact(offer, offer_url)] if c],
                         },
                     )
                 )
@@ -140,6 +178,7 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             "company": metadata.get("company", "Unknown"),
             "location": metadata.get("city"),
             "duration": metadata.get("duration"),
+            "contacts": metadata.get("contacts", []),
         }
 
     async def normalize_job(self, extracted: dict) -> NormalizedJobOffer:
@@ -154,4 +193,5 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             external_job_id=extracted.get("offer_id"),
             raw_text=f"Company: {extracted.get('company')}\nDuration: {extracted.get('duration')} months\nLocation: {extracted.get('location') or 'N/A'}",
             description=None,
+            contacts=extracted.get("contacts") or [],
         )
