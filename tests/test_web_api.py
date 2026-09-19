@@ -87,7 +87,10 @@ def test_manual_application_status_validation_and_missing_ai(workspace, monkeypa
     assert opportunity['items'][0]['application_count'] == 1
     assert client.patch(f'/api/applications/{app_id}', json={'status': 'sent'}).status_code == 422
     assert client.patch(f'/api/applications/{app_id}', json={'status': 'archived'}).json()['status'] == 'archived'
-    assert client.post(f'/api/applications/{app_id}/analyze').status_code == 503
+    analyzed = client.post(f'/api/applications/{app_id}/analyze')
+    assert analyzed.status_code == 200
+    assert analyzed.json()['analysis']['analysis_mode'] == 'deterministic'
+    assert analyzed.json()['match_score'] is not None
     assert client.post(f'/api/applications/{app_id}/generate', json={'document_types': ['unknown']}).status_code == 422
     assert client.get('/api/offers?page=0').status_code == 422
     assert client.get('/api/settings').json()['ai_configured'] is False

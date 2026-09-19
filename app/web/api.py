@@ -161,7 +161,15 @@ def change_status(identifier: int, payload: StatusInput, db: Session = Depends(g
 @router.post('/applications/{identifier}/analyze')
 async def analyze(identifier: int, db: Session = Depends(get_db)) -> dict:
     row = svc.get_application(db, identifier)
-    require_ai()
+    if not config.OPENAI_API_KEY:
+        analysis = OfferSignalService.analyze_application(row)
+        positioning = analysis.get('positioning') or {}
+        db.add(JobAnalysis(application_id=row.id, analysis_json=analysis, **{key: analysis.get(key, []) for key in ('missions', 'required_skills', 'soft_skills', 'ats_keywords', 'missing_points', 'strengths')}))
+        row.match_score = analysis.get('match_score')
+        row.recommended_angle = positioning.get('positioning')
+        row.status = ApplicationStatusEnum.analyzed
+        svc.commit(db)
+        return svc.application_data(db, row, True)
     try:
         from app.agents.analysis_agent import AnalysisAgent
         from app.agents.matching_agent import MatchingAgent
