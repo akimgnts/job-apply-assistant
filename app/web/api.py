@@ -1,7 +1,6 @@
 """Authenticated workspace API; authentication is applied by the application middleware."""
 import os
 import re
-from collections import Counter
 from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
@@ -245,16 +244,11 @@ def profile(db: Session = Depends(get_db)) -> dict:
 
 @router.get('/intelligence')
 def intelligence(db: Session = Depends(get_db)) -> dict:
-    analyses = db.query(JobAnalysis).join(Application).filter(Application.telegram_user_id == svc.user_id()).order_by(JobAnalysis.id.desc()).all()
-    latest = {}
-    for row in analyses:
-        latest.setdefault(row.application_id, row)
-    gaps, strengths = Counter(), Counter()
-    for row in latest.values():
-        gaps.update(str(item) for item in (row.missing_points or []))
-        strengths.update(str(item) for item in (row.strengths or []))
+    from app.services.career_action_plan_service import CareerActionPlanService
     snapshot = db.query(CareerIntelligenceSnapshot).filter(CareerIntelligenceSnapshot.telegram_user_id == svc.user_id()).order_by(CareerIntelligenceSnapshot.id.desc()).first()
-    return {'total_offers_analyzed': len(latest), 'frequent_gaps': [{'skill': skill, 'frequency': count, 'importance': None} for skill, count in gaps.most_common(20)], 'top_strengths': [skill for skill, _ in strengths.most_common(10)], 'latest_snapshot': svc.serialize(snapshot) if snapshot else None}
+    data = CareerActionPlanService.build(db, svc.user_id())
+    data['latest_snapshot'] = svc.serialize(snapshot) if snapshot else None
+    return data
 
 
 @router.get('/settings')

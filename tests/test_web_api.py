@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from app.database.db import Base, get_db
-from app.database.models import Application, Company, JobOffer, GeneratedDocument, Opportunity
+from app.database.models import Application, Company, JobOffer, GeneratedDocument, Opportunity, SkillGapEvent
 from app.web.api import router
 
 
@@ -109,8 +109,14 @@ def test_analysis_and_generation_use_existing_agents_without_exposing_errors(wor
     assert analyzed.status_code == 200
     assert analyzed.json()['status'] == 'analyzed'
     assert analyzed.json()['analysis']['profile_blocks_to_use'] == []
+    session.add(SkillGapEvent(telegram_user_id='local', application_id=identifier, offer_title='SQL Analyst', company='Acme', role_family='Data / BI', positioning='BI', skill_name='dbt', skill_category='tool', required=1, present=0, gap=1, importance_score=8, confidence=9))
+    session.commit()
     intelligence = client.get('/api/intelligence').json()
-    assert intelligence['frequent_gaps'] == [{'skill': 'dbt', 'frequency': 1, 'importance': None}]
+    assert intelligence['frequent_gaps'][0]['skill'] == 'dbt'
+    assert intelligence['gap_priorities'][0]['priority'] == 'medium'
+    assert intelligence['action_plan'][0]['skill'] == 'dbt'
+    assert intelligence['market_signals']['top_strengths'][0]['skill'] == 'SQL'
+    assert intelligence['learning_memory']['applications_analyzed'] == 1
     failed = client.post(f'/api/applications/{identifier}/generate', json={'document_types': ['mail']})
     assert failed.json()['application']['status'] == 'analyzed'
     assert 'secret' not in failed.text
