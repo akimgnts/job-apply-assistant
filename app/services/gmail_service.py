@@ -85,8 +85,18 @@ def fetch_page(service, user_id: str, query: str, size: int, page_token: str | N
     if page_token:
         kwargs['pageToken'] = page_token
     result = service.users().messages().list(**kwargs).execute()
-    messages = [parse_message(service.users().messages().get(userId=user_id, id=row['id'], format='full').execute())
-                for row in result.get('messages', [])]
+    messages = []
+    for row in result.get('messages', []):
+        try:
+            message = service.users().messages().get(userId=user_id, id=row['id'], format='full').execute()
+        except Exception:
+            message = service.users().messages().get(
+                userId=user_id,
+                id=row['id'],
+                format='metadata',
+                metadataHeaders=['From', 'To', 'Cc', 'Subject', 'Auto-Submitted', 'List-Unsubscribe'],
+            ).execute()
+        messages.append(parse_message(message))
     return {'messages': messages, 'next_page_token': result.get('nextPageToken')}
 
 
