@@ -497,3 +497,50 @@ class GmailSyncState(Base):
     next_page_token = Column(Text)
     last_synced_at = Column(DateTime)
     last_error = Column(Text)
+
+
+class Opportunity(Base):
+    """Canonical action item joining offers, Gmail, applications and documents."""
+    __tablename__ = 'opportunities'
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(String(255), nullable=False, index=True)
+    company = Column(String(255), nullable=True, index=True)
+    job_title = Column(String(255), nullable=True, index=True)
+    canonical_key = Column(String(500), nullable=False)
+    status = Column(String(50), default='new', index=True)
+    priority = Column(Integer, default=0)
+    source_primary = Column(String(50), nullable=True)
+    created_from = Column(String(50), nullable=True)
+    last_activity_at = Column(DateTime, nullable=True, index=True)
+    next_action = Column(String(255), nullable=True)
+    next_action_at = Column(DateTime, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    __table_args__ = (UniqueConstraint('owner_id', 'canonical_key', name='uq_opportunity_owner_key'),)
+
+
+class OpportunityLink(Base):
+    """Idempotent source link for one external or internal record."""
+    __tablename__ = 'opportunity_links'
+    id = Column(Integer, primary_key=True)
+    opportunity_id = Column(Integer, ForeignKey('opportunities.id'), nullable=False, index=True)
+    source_type = Column(String(50), nullable=False, index=True)
+    source_id = Column(Integer, nullable=False, index=True)
+    confidence = Column(Integer, default=100)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    __table_args__ = (UniqueConstraint('source_type', 'source_id', name='uq_opportunity_source_link'),)
+
+
+class OpportunityEvent(Base):
+    """Timeline event attached to an opportunity."""
+    __tablename__ = 'opportunity_events'
+    id = Column(Integer, primary_key=True)
+    opportunity_id = Column(Integer, ForeignKey('opportunities.id'), nullable=False, index=True)
+    event_type = Column(String(50), nullable=False, index=True)
+    source_type = Column(String(50), nullable=False)
+    source_id = Column(Integer, nullable=False)
+    summary = Column(String(500), nullable=True)
+    occurred_at = Column(DateTime, nullable=True, index=True)
+    confidence = Column(Integer, default=100)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    __table_args__ = (UniqueConstraint('opportunity_id', 'event_type', 'source_type', 'source_id', name='uq_opportunity_event_source'),)

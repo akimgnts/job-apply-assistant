@@ -17,6 +17,7 @@ from app.services.email_tracking_service import EVENT_TYPES, owned_applications,
 from app.services.email_ingestion_service import EmailIngestionService
 from app.services.gmail_service import GmailUnavailable
 from app.services.application_tracking_agent import ApplicationTrackingAgent
+from app.services.opportunity_service import OpportunityService
 
 
 def private_access(request: Request):
@@ -107,7 +108,13 @@ def opportunities(
     page: int = Query(1, ge=1),
     db: Session = Depends(get_db),
 ):
-    rows = ApplicationTrackingAgent.build_opportunities(events(db).order_by(EmailEvent.received_at.desc(), EmailEvent.id.desc()).all())
+    email_rows = events(db).order_by(EmailEvent.received_at.desc(), EmailEvent.id.desc()).all()
+    for event in email_rows:
+        info = ApplicationTrackingAgent.classify(event)
+        if info['label'] not in ('noise', 'job_board_alert'):
+            OpportunityService.ensure_for_email_event(db, event)
+    db.commit()
+    rows = ApplicationTrackingAgent.build_opportunities(email_rows)
     if q.strip():
         needle = q.strip().lower()
         rows = [row for row in rows if needle in f"{row['company']} {row['job_title']} {row['latest_subject'] or ''}".lower()]

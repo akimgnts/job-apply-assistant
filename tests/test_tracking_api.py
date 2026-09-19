@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool
 from app.api.tracking import router
 from app.config import config
 from app.database.db import Base, get_db
-from app.database.models import Application, EmailEvent, OutreachTracking, GmailSyncState
+from app.database.models import Application, EmailEvent, OutreachTracking, GmailSyncState, Opportunity, OpportunityLink
 from app.services.email_ingestion_service import EmailIngestionService
 from app.services.gmail_service import GmailUnavailable
 
@@ -118,7 +118,7 @@ def test_migration_unique_head_and_roundtrip(workspace):
     from sqlalchemy import inspect
     client,db=workspace
     cfg=Config('alembic.ini');script=ScriptDirectory.from_config(cfg)
-    assert script.get_heads()==['gmail_tracking_20260917']
+    assert script.get_heads()==['opportunities_20260919']
     path='migrations/versions/gmail_tracking_20260917.py'
     spec=importlib.util.spec_from_file_location('migration',path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     with db.bind.begin() as conn:
@@ -169,3 +169,5 @@ def test_opportunities_group_gmail_history_into_candidate_rows(workspace):
     assert rows['Niji']['email_count'] == 2
     assert rows['Niji']['needs_review_count'] == 2
     assert rows['LinkedIn']['source'] == 'job_board'
+    assert db.query(Opportunity).count() == 1
+    assert db.query(OpportunityLink).filter_by(source_type='email_event').count() == 2

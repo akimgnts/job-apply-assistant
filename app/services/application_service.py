@@ -1,4 +1,5 @@
 import logging
+import os
 from sqlalchemy.orm import Session
 from app.database.models import Application, JobAnalysis, UserSession, ApplicationStatusEnum
 
@@ -17,14 +18,23 @@ def create_application(
     if not raw_offer or not raw_offer.strip():
         raise ValueError("raw_offer cannot be empty")
 
+    owner_id = os.getenv("TELEGRAM_APPLICATION_USER_ID") or os.getenv("WEB_USER_ID") or telegram_user_id
+
     app = Application(
-        telegram_user_id=telegram_user_id,
+        telegram_user_id=owner_id,
         raw_offer=raw_offer.strip(),
         source_url=source_url,
     )
     db.add(app)
     db.commit()
     db.refresh(app)
+    try:
+        from app.services.opportunity_service import OpportunityService
+        OpportunityService.ensure_for_application(db, app)
+        db.commit()
+    except Exception:
+        logger.exception("Opportunity link failed for application %s", app.id)
+        db.rollback()
     logger.info(f"Created application {app.id} for user {telegram_user_id}")
     return app
 

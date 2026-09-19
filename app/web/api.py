@@ -13,7 +13,9 @@ from sqlalchemy.orm import Session
 from app.config import config
 from app.database.db import get_db
 from app.database.models import (Application, ApplicationStatusEnum, Company, CompanyContact,
-    JobOffer, JobAnalysis, GeneratedDocument, ProfileBlock, CareerIntelligenceSnapshot, OutreachDraft)
+    JobOffer, JobAnalysis, GeneratedDocument, ProfileBlock, CareerIntelligenceSnapshot, OutreachDraft,
+    Opportunity, OpportunityEvent, OpportunityLink)
+from app.services.opportunity_service import OpportunityService
 from app.web import service as svc
 
 router = APIRouter(prefix='/api')
@@ -88,6 +90,10 @@ def save_offer(identifier: int, db: Session = Depends(get_db)) -> dict:
     if row is None:
         row = Application(telegram_user_id=svc.user_id(), company=offer.company.name, job_title=offer.job_title, source_url=offer.job_url, raw_offer=offer.raw_text or offer.job_title, status=ApplicationStatusEnum.saved)
         db.add(row)
+        db.flush()
+    OpportunityService.ensure_for_job_offer(db, offer, svc.user_id())
+    OpportunityService.ensure_for_application(db, row)
+    if row is not None:
         svc.commit(db)
     return svc.application_data(db, row, True)
 
@@ -104,8 +110,30 @@ def applications(q: str | None = None, status: ApplicationStatusEnum | None = No
 def create_application(payload: ApplicationInput, db: Session = Depends(get_db)) -> dict:
     row = Application(**payload.model_dump(), telegram_user_id=svc.user_id(), status=ApplicationStatusEnum.saved)
     db.add(row)
+    db.flush()
+    OpportunityService.ensure_for_application(db, row)
     svc.commit(db)
     return svc.application_data(db, row, True)
+
+
+@router.get('/opportunities')
+def opportunities(q: str | None = None, status: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+    query = svc.search(db.query(Opportunity).filter(Opportunity.owner_id == svc.user_id()), q, Opportunity.company, Opportunity.job_title)
+    if status:
+        query = query.filter(Opportunity.status == status)
+
+    def row_data(row: Opportunity) -> dict:
+        links = db.query(OpportunityLink).filter(OpportunityLink.opportunity_id == row.id).all()
+        events = db.query(OpportunityEvent).filter(OpportunityEvent.opportunity_id == row.id).order_by(OpportunityEvent.occurred_at.desc().nullslast(), OpportunityEvent.id.desc()).limit(8).all()
+        data = svc.serialize(row)
+        data['links'] = [svc.serialize(link, ('opportunity_id',)) for link in links]
+        data['events'] = [svc.serialize(event, ('opportunity_id',)) for event in events]
+        data['email_count'] = sum(1 for link in links if link.source_type == 'email_event')
+        data['offer_count'] = sum(1 for link in links if link.source_type == 'job_offer')
+        data['application_count'] = sum(1 for link in links if link.source_type == 'application')
+        return data
+
+    return svc.paginate(query.order_by(Opportunity.last_activity_at.desc().nullslast(), Opportunity.updated_at.desc()), page, page_size, row_data)
 
 
 @router.get('/applications/{identifier}')
