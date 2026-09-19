@@ -140,3 +140,32 @@ def test_older_sent_confirmation_does_not_schedule_after_bounce(workspace):
     track=db.query(OutreachTracking).one()
     assert track.status=='bounced'
     assert track.next_follow_up is None
+
+
+def test_opportunities_group_gmail_history_into_candidate_rows(workspace):
+    client,db=workspace
+    sent=add_email(db,1,kind='application_sent',thread='niji-thread')
+    sent.subject='Application — Data Analyst | Niji'
+    sent.labels=['SENT']
+    sent.sender_email='akim@example.org'
+    sent.body_text='Bonjour Niji'
+    reply=add_email(db,2,kind='unknown',thread='niji-thread')
+    reply.subject='Re: Application — Data Analyst | Niji'
+    reply.sender_email='recruteur@niji.fr'
+    reply.body_text='Votre candidature a bien été enregistrée ; notre HRBP va revenir vers vous.'
+    alert=add_email(db,3,kind='newsletter',thread='linkedin-alert')
+    alert.subject='Votre alerte emploi LinkedIn'
+    alert.sender_email='jobalerts-noreply@linkedin.com'
+    alert.body_text='De nouvelles offres correspondent à vos préférences.'
+    db.commit()
+
+    result=client.get('/api/tracking/opportunities')
+
+    assert result.status_code==200
+    data=result.json()
+    assert data['total'] == 2
+    rows={row['company']: row for row in data['items']}
+    assert rows['Niji']['status'] == 'reply'
+    assert rows['Niji']['email_count'] == 2
+    assert rows['Niji']['needs_review_count'] == 2
+    assert rows['LinkedIn']['source'] == 'job_board'

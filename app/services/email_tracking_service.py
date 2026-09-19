@@ -5,8 +5,12 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from app.database.models import Application, EmailEvent, OutreachTracking
 
-EVENT_TYPES = ('unknown', 'application_sent', 'acknowledgement', 'recruiter_reply', 'interview_request', 'rejection', 'bounce', 'newsletter')
-REPLY_TYPES = ('recruiter_reply', 'interview_request', 'rejection')
+EVENT_TYPES = (
+    'unknown', 'application_sent', 'acknowledgement', 'application_ack',
+    'cold_email', 'recruiter_reply', 'interview_request', 'interview_or_test',
+    'rejection', 'bounce', 'newsletter', 'job_board_alert', 'noise'
+)
+REPLY_TYPES = ('recruiter_reply', 'interview_request', 'interview_or_test', 'rejection')
 
 
 def normalize(text: str) -> str:
@@ -64,7 +68,8 @@ def update_tracking(db: Session, event: EmailEvent) -> None:
     """Update a single existing outreach record only from a confirmed dated event."""
     if not event.application_id or not event.received_at:
         return
-    if event.confirmed_type not in (*REPLY_TYPES, 'application_sent', 'bounce'):
+    confirmed_type = {'cold_email': 'application_sent', 'application_ack': 'acknowledgement', 'interview_or_test': 'interview_request'}.get(event.confirmed_type, event.confirmed_type)
+    if confirmed_type not in (*REPLY_TYPES, 'application_sent', 'bounce'):
         return
     tracks = db.query(OutreachTracking).filter(OutreachTracking.application_id == event.application_id).order_by(OutreachTracking.id.desc()).all()
     # Multiple recipients per application cannot safely be inferred from email alone.
@@ -72,7 +77,7 @@ def update_tracking(db: Session, event: EmailEvent) -> None:
         return
     tracking = tracks[0] if tracks else OutreachTracking(application_id=event.application_id, outreach_type='email', status='pending')
     db.add(tracking)
-    if event.confirmed_type == 'application_sent':
+    if confirmed_type == 'application_sent':
         if not tracking.outreach_date or event.received_at < tracking.outreach_date:
             tracking.outreach_date = event.received_at
         if not tracking.last_follow_up or event.received_at > tracking.last_follow_up:
@@ -84,7 +89,7 @@ def update_tracking(db: Session, event: EmailEvent) -> None:
         return
     if tracking.response_date and event.received_at <= tracking.response_date:
         return
-    if event.confirmed_type == 'bounce':
+    if confirmed_type == 'bounce':
         if not tracking.response_received:
             tracking.status = 'bounced'
             tracking.next_follow_up = None
@@ -92,6 +97,6 @@ def update_tracking(db: Session, event: EmailEvent) -> None:
     tracking.response_received = 1
     tracking.response_date = event.received_at
     tracking.response_message = event.body_text
-    tracking.response_sentiment = 'negative' if event.confirmed_type == 'rejection' else 'positive' if event.confirmed_type == 'interview_request' else 'neutral'
-    tracking.status = {'rejection':'rejected', 'interview_request':'interview', 'recruiter_reply':'responded'}[event.confirmed_type]
+    tracking.response_sentiment = 'negative' if confirmed_type == 'rejection' else 'positive' if confirmed_type == 'interview_request' else 'neutral'
+    tracking.status = {'rejection':'rejected', 'interview_request':'interview', 'recruiter_reply':'responded'}[confirmed_type]
     tracking.next_follow_up = None
