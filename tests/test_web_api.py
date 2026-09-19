@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from app.database.db import Base, get_db
-from app.database.models import Application, Company, JobOffer, GeneratedDocument
+from app.database.models import Application, Company, JobOffer, GeneratedDocument, Opportunity
 from app.web.api import router
 
 
@@ -46,6 +46,10 @@ def test_radar_save_is_idempotent_and_scoped(workspace):
     assert client.get('/api/applications/1').status_code == 404
     assert client.get('/api/documents/1/download').status_code == 404
     assert client.get('/api/documents').json()['total'] == 0
+    opportunities = client.get('/api/opportunities').json()
+    assert opportunities['total'] == 1
+    assert opportunities['items'][0]['offer_count'] == 1
+    assert opportunities['items'][0]['application_count'] == 1
 
 
 def test_manual_application_status_validation_and_missing_ai(workspace, monkeypatch):
@@ -55,6 +59,9 @@ def test_manual_application_status_validation_and_missing_ai(workspace, monkeypa
     assert client.post('/api/applications', json={'raw_offer': '   '}).status_code == 422
     created = client.post('/api/applications', json={'raw_offer': 'SQL analyst', 'company': 'Acme', 'job_title': 'Analyst'}).json()
     app_id = created['id']
+    opportunity = client.get('/api/opportunities?q=Acme').json()
+    assert opportunity['total'] == 1
+    assert opportunity['items'][0]['application_count'] == 1
     assert client.patch(f'/api/applications/{app_id}', json={'status': 'sent'}).status_code == 422
     assert client.patch(f'/api/applications/{app_id}', json={'status': 'archived'}).json()['status'] == 'archived'
     assert client.post(f'/api/applications/{app_id}/analyze').status_code == 503
