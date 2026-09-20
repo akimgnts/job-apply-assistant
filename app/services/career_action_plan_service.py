@@ -45,11 +45,10 @@ class CareerActionPlanService:
             if role and isinstance(score, (int, float)):
                 role_scores[role].append(float(score))
 
-        source = 'llm_analyses'
-        market_sample_size = len(latest)
-        if not latest:
-            source = 'stored_offers'
-            market_sample_size = CareerActionPlanService._apply_offer_market_sample(db, requested_counter, gap_counter, strength_counter)
+        analyzed_urls = {row.source_url for row in db.query(Application).filter(Application.id.in_(latest)).all() if row.source_url}
+        stored_count = CareerActionPlanService._apply_offer_market_sample(db, requested_counter, gap_counter, strength_counter, analyzed_urls)
+        source = 'combined' if latest and stored_count else 'llm_analyses' if latest else 'stored_offers'
+        market_sample_size = len(latest) + stored_count
 
         gap_events = db.query(SkillGapEvent).filter(SkillGapEvent.telegram_user_id == user_id).all()
         event_gap_scores = CareerActionPlanService._score_gap_events(gap_events)
@@ -72,6 +71,7 @@ class CareerActionPlanService:
             'total_offers_analyzed': market_sample_size,
             'learning_memory': {
                 'applications_analyzed': len(latest),
+                'stored_offers_analyzed': stored_count,
                 'source': source,
                 'gap_events_recorded': len(gap_events),
                 'signals_used': len(requested_counter) + len(gap_counter) + len(strength_counter),
@@ -98,8 +98,11 @@ class CareerActionPlanService:
         }
 
     @staticmethod
-    def _apply_offer_market_sample(db: Session, requested_counter: Counter[str], gap_counter: Counter[str], strength_counter: Counter[str]) -> int:
-        offers = db.query(JobOffer).order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).limit(300).all()
+    def _apply_offer_market_sample(db: Session, requested_counter: Counter[str], gap_counter: Counter[str], strength_counter: Counter[str], excluded_urls: set[str] | None = None) -> int:
+        query = db.query(JobOffer)
+        if excluded_urls:
+            query = query.filter(JobOffer.job_url.notin_(excluded_urls))
+        offers = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
         profile_text = ' '.join(
             f"{block.title or ''} {block.content or ''} {' '.join(block.technologies or [])}"
             for block in db.query(ProfileBlock).all()

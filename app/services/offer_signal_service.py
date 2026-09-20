@@ -1,6 +1,7 @@
 """Fast deterministic scoring for job-offer radar triage."""
 from __future__ import annotations
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import re
 from typing import Any
 from app.database.models import Application, JobOffer
 
@@ -24,6 +25,8 @@ class OfferSignalService:
             text=cls._text(offer),
             source=offer.source,
             recency=cls.recency_label(offer),
+            title=offer.job_title or '',
+            description=offer.raw_text or '',
         )
 
     @classmethod
@@ -32,6 +35,8 @@ class OfferSignalService:
             text=' '.join([application.job_title or '', application.company or '', application.raw_offer or '', application.source_url or '']).lower(),
             source=application.source_url or '',
             recency='unknown',
+            title=application.job_title or '',
+            description=application.raw_offer or '',
         )
         tool_hits = cls.keyword_hits(application.raw_offer or '')
         match_score = max(1, min(10, round(signal['score'] / 10)))
@@ -62,72 +67,79 @@ class OfferSignalService:
             'signal': signal,
         }
 
+    ROLE_TITLES = {
+        'Data / BI': ('data analyst', 'business analyst', 'bi analyst', 'bi consultant', 'consultant bi', 'analyste données', 'analyste data', 'analytics', 'crm'),
+        'Automation / AI': ('automation', 'automatisation', 'data scientist', 'intelligence artificielle'),
+        'Product / Ops': ('product owner', 'product analyst', 'sales ops', 'revenue ops', 'business operations'),
+    }
+
+    @staticmethod
+    def contains(text: str, keyword: str) -> bool:
+        return bool(re.search(r'(?<!\w)' + re.escape(keyword.strip()) + r'(?!\w)', text, re.I))
+
     @classmethod
-    def _score_text(cls, text: str, source: str | None = None, recency: str = 'unknown') -> dict:
-        score = 25
+    def _score_text(cls, text: str, source: str | None = None, recency: str = 'unknown', title: str = '', description: str = '') -> dict:
+        # Relevance and freshness are independent. No date or source-only match bonus.
+        score = 0
         reasons: list[str] = []
         role_family = 'Autre'
-
-        for family, keywords in cls.ROLE_KEYWORDS.items():
-            hits = [kw for kw in keywords if kw in text]
+        for family, keywords in cls.ROLE_TITLES.items():
+            hits = [kw for kw in keywords if cls.contains(title, kw)]
             if hits:
                 role_family = family
-                score += min(35, 15 + len(hits) * 5)
-                reasons.append(f'{family}: {", ".join(hits[:3])}')
+                score = 48 if family == 'Data / BI' else 36
+                reasons.append(f'{family} : intitulé {", ".join(hits[:2])}')
                 break
-
-        tool_hits = [kw for kw in cls.TOOL_KEYWORDS if kw in text]
+        tool_hits = cls.keyword_hits(text)
+        weights = {'sql': 10, 'power bi': 12, 'python': 8, 'crm': 9, 'dashboard': 7, 'automation': 6, 'analytics': 6, 'excel': 4, 'api': 5}
+        score += min(42, sum(weights[k] for k in tool_hits))
         if tool_hits:
-            score += min(25, len(tool_hits) * 5)
-            reasons.append(f'Compétences cible: {", ".join(tool_hits[:4])}')
-
-        if any(token in text for token in cls.TARGET_CONTRACTS) or source in ('business_france_vie', 'snapshot:business_france_vie'):
-            score += 8
-            reasons.append('Format VIE / source cible')
-
-        if recency == 'new':
-            score += 15
-            reasons.append('Récente')
-        elif recency == 'fresh':
-            score += 8
-            reasons.append('Encore fraîche')
-        elif recency == 'stale':
-            score -= 8
-            reasons.append('Ancienne')
-
-        negative_hits = [kw for kw in cls.NEGATIVE_KEYWORDS if kw in text]
+            reasons.append(f'Compétences cible : {", ".join(tool_hits[:5])}')
+        if role_family == 'Autre' and len(tool_hits) >= 2:
+            role_family = 'Compétences transversales'
+        if cls.contains(title, 'junior') or cls.contains(title, 'débutant'):
+            score += 6
+            reasons.append('Intitulé ouvert à un profil junior')
+        negative_hits = [kw for kw in cls.NEGATIVE_KEYWORDS if cls.contains(text, kw)]
         if negative_hits:
             score -= 35
-            reasons.append(f'Signal hors cible: {", ".join(negative_hits[:2])}')
-
-        senior_hits = [kw for kw in cls.SENIOR_KEYWORDS if kw in text]
-        if senior_hits:
-            score -= 18
+            reasons.append(f'Signal hors cible : {", ".join(negative_hits[:2])}')
+        if any(cls.contains(title, kw) for kw in cls.SENIOR_KEYWORDS if kw != 'manager') or re.search(r'\b(?:[8-9]|1[0-9])\+?\s*(?:ans|years)\b', text):
+            score -= 22
             reasons.append('Seniorité probablement trop élevée')
-
+        # Metadata-only archive rows cannot support a full matching assessment.
+        content = re.sub(r'(?im)^(?:company|location|id):.*$', '', description).strip()
+        confidence = 'medium' if len(content) >= 120 else 'low'
+        if confidence == 'low':
+            reasons.append('Description incomplète : pertinence à confirmer')
+        if recency == 'new':
+            reasons.append('Récente : publiée ou repérée depuis moins de 48 h')
         score = max(0, min(100, score))
-        return {
-            'score': score,
-            'tier': cls.tier(score),
-            'role_family': role_family,
-            'recency': recency,
-            'reasons': reasons[:5] or ['Pas assez de signaux exploitables'],
-        }
+        return {'score': score, 'tier': cls.tier(score), 'role_family': role_family,
+                'recency': recency, 'confidence': confidence, 'reasons': reasons,
+                'method': 'rules', 'skills': tool_hits}
+
+    @staticmethod
+    def reference_date(offer: JobOffer) -> datetime | None:
+        value = offer.posted_date or offer.first_seen_at or offer.created_at
+        if value and value.tzinfo:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value
 
     @classmethod
-    def is_recent(cls, offer: JobOffer, days: int = 7) -> bool:
-        date = offer.last_seen_at or offer.first_seen_at or offer.posted_date or offer.created_at
-        return bool(date and date >= datetime.utcnow() - timedelta(days=days))
+    def is_recent(cls, offer: JobOffer, days: float = 7) -> bool:
+        date = cls.reference_date(offer)
+        return bool(date and timedelta(0) <= datetime.utcnow() - date <= timedelta(days=days))
 
     @classmethod
     def recency_label(cls, offer: JobOffer) -> str:
-        date = offer.last_seen_at or offer.first_seen_at or offer.posted_date or offer.created_at
-        if not date:
+        date = cls.reference_date(offer)
+        if not date or date > datetime.utcnow():
             return 'unknown'
-        age_days = (datetime.utcnow() - date).days
-        if age_days <= 2:
+        age = datetime.utcnow() - date
+        if age <= timedelta(hours=48):
             return 'new'
-        if age_days <= 30:
+        if age <= timedelta(days=30):
             return 'fresh'
         return 'stale'
 
@@ -143,7 +155,7 @@ class OfferSignalService:
     @classmethod
     def keyword_hits(cls, text: str) -> list[str]:
         lowered = (text or '').lower()
-        return [keyword for keyword in cls.TOOL_KEYWORDS if keyword in lowered]
+        return [keyword for keyword in cls.TOOL_KEYWORDS if cls.contains(lowered, keyword)]
 
     @classmethod
     def positioning_from_signal(cls, signal: dict[str, Any]) -> str:
@@ -167,6 +179,4 @@ class OfferSignalService:
         parts = [offer.job_title or '', offer.raw_text or '', offer.source or '']
         if offer.required_skills:
             parts.extend(str(skill) for skill in offer.required_skills)
-        if offer.company:
-            parts.append(offer.company.name or '')
         return ' '.join(parts).lower()

@@ -45,3 +45,35 @@ def test_penalizes_irrelevant_senior_or_non_target_offer():
 def test_recent_filter_detects_last_seen_or_first_seen():
     assert OfferSignalService.is_recent(make_offer('BI Analyst', first_seen_at=datetime.utcnow() - timedelta(days=3)), days=7)
     assert not OfferSignalService.is_recent(make_offer('BI Analyst', first_seen_at=datetime.utcnow() - timedelta(days=30)), days=7)
+
+
+def test_incidental_substrings_do_not_match_ai_or_api():
+    signal = OfferSignalService.score(make_offer('Commercial spécialiste', 'Capital social et filiale internationale'))
+    assert signal['role_family'] == 'Autre'
+    assert signal['tier'] == 'noise'
+
+
+def test_role_fit_distinguishes_target_analyst_from_generic_tool_mention():
+    analyst = OfferSignalService.score(make_offer('Data Analyst', 'SQL Power BI Python'))
+    developer = OfferSignalService.score(make_offer('Software Developer', 'Python C++'))
+    assert analyst['score'] > developer['score'] + 20
+
+
+def test_recency_uses_publication_not_latest_scrape_and_precise_48_hours():
+    offer = make_offer('Data Analyst')
+    offer.posted_date = datetime.utcnow() - timedelta(days=40)
+    assert OfferSignalService.recency_label(offer) == 'stale'
+    assert not OfferSignalService.is_recent(offer, 2)
+    offer.posted_date = datetime.utcnow() - timedelta(hours=49)
+    assert OfferSignalService.recency_label(offer) == 'fresh'
+    offer.posted_date = None
+    offer.first_seen_at = datetime.utcnow() - timedelta(days=40)
+    assert OfferSignalService.recency_label(offer) == 'stale'
+
+
+def test_content_confidence_and_fit_do_not_depend_on_recency():
+    sparse = make_offer('Data Analyst', 'Company: Acme\nLocation: Paris\nID: 12')
+    score = OfferSignalService.score(sparse)
+    assert score['confidence'] == 'low'
+    sparse.first_seen_at = datetime.utcnow() - timedelta(days=60)
+    assert OfferSignalService.score(sparse)['score'] == score['score']

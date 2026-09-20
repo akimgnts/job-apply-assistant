@@ -65,7 +65,7 @@ def test_offers_include_signal_score_and_filter_priority_recent(workspace):
     session.add_all([old, strong])
     session.commit()
 
-    offers = client.get('/api/offers?signal=priority&page_size=10').json()['items']
+    offers = client.get('/api/offers?signal=priority&sort=relevance&page_size=10').json()['items']
     assert offers[0]['signal_tier'] == 'priority'
     assert offers[0]['signal_score'] >= 70
     assert all(item['signal_tier'] == 'priority' for item in offers)
@@ -222,3 +222,35 @@ def test_contact_verification_is_explicit_and_company_scoped(workspace):
     assert client.patch(f'/api/companies/999/contacts/{contact_id}', json={'verification_status': 'verified'}).status_code == 404
     assert client.patch(f'/api/companies/1/contacts/{contact_id}', json={'verification_status': 'trusted'}).status_code == 422
     assert client.patch(f'/api/companies/1/contacts/{contact_id}', json={'verification_status': 'verified'}).json()['verification_status'] == 'verified'
+
+
+def test_active_radar_keeps_archives_separate_and_filters_actual_publication(workspace):
+    from datetime import datetime, timedelta
+    client, session = workspace
+    company = session.query(Company).first()
+    now = datetime.utcnow()
+    session.add_all([
+        JobOffer(company_id=company.id, job_title='Archive SQL', job_url='https://example.org/archive', source='snapshot:test', status='archived', raw_text='SQL'),
+        JobOffer(company_id=company.id, job_title='Old SQL', job_url='https://example.org/old', source='test', status='active', posted_date=now-timedelta(days=40), last_seen_at=now),
+    ])
+    session.commit()
+    assert all(o['status'] == 'active' for o in client.get('/api/offers').json()['items'])
+    archived = client.get('/api/offers?status=archived').json()
+    assert archived['total'] == 1
+    recent = client.get('/api/offers?hours=48').json()
+    assert all(o['job_title'] != 'Old SQL' for o in recent['items'])
+    assert all('date_basis' in o for o in recent['items'])
+    assert session.query(JobOffer).count() == 3
+
+
+def test_contacts_panel_only_lists_real_non_invalid_contacts(workspace):
+    from app.database.models import CompanyContact
+    client, session = workspace
+    company = session.query(Company).first()
+    for status in ['pending', 'invalid']:
+        session.add(CompanyContact(company_id=company.id, contact_name=status, role_raw='Recruiter', source_url='https://example.org', data_source='website', verification_status=status))
+    session.commit()
+    response = client.get('/api/contacts')
+    assert response.status_code == 200
+    assert response.json()['total'] == 1
+    assert response.json()['items'][0]['company'] == 'Acme'

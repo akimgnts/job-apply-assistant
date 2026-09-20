@@ -90,6 +90,9 @@ def offer_data(db: Session, offer: JobOffer) -> dict:
         'signal_role_family': signal['role_family'],
         'recency': signal['recency'],
         'signal_reasons': signal['reasons'],
+        'signal_confidence': signal['confidence'],
+        'date_basis': 'published' if offer.posted_date else 'discovered',
+        'display_date': OfferSignalService.reference_date(offer),
     }
 
 

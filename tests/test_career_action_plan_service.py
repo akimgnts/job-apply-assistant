@@ -92,3 +92,25 @@ def test_recommends_reinforcing_market_strengths_when_no_gap_is_detected():
     finally:
         db.close()
         engine.dispose()
+
+
+def test_archives_still_feed_market_analysis_with_existing_application_analysis():
+    from app.database.models import Company, JobOffer
+    db, engine = make_session()
+    try:
+        company = Company(name='Archived market')
+        application = Application(telegram_user_id='local', raw_offer='SQL', job_title='Analyst')
+        db.add_all([company, application])
+        db.flush()
+        db.add_all([
+            JobAnalysis(application_id=application.id, analysis_json={'match_score': 7}, strengths=['SQL'], missing_points=[]),
+            JobOffer(company_id=company.id, job_title='Data analyst', job_url='https://example.org/archived', source='archive', status='archived', raw_text='dbt Airflow'),
+        ])
+        db.commit()
+        result = CareerActionPlanService.build(db, 'local')
+        assert 'dbt' in {row['skill'] for row in result['market_signals']['top_requested_skills']}
+        assert result['learning_memory']['stored_offers_analyzed'] == 1
+        assert result['total_offers_analyzed'] == 2
+    finally:
+        db.close()
+        engine.dispose()

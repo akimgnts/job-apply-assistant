@@ -60,26 +60,37 @@ def require_ai() -> None:
 @router.get('/overview')
 def overview(db: Session = Depends(get_db)) -> dict:
     applications = svc.applications(db)
-    return {'counts': {'offers': db.query(JobOffer).count(), 'active_offers': db.query(JobOffer).filter(JobOffer.status == 'active').count(), 'applications': applications.count(), 'documents': svc.documents(db).count(), 'companies': db.query(Company).count(), 'profile_blocks': db.query(ProfileBlock).count()},
+    return {'counts': {'offers': db.query(JobOffer).count(), 'active_offers': db.query(JobOffer).filter(JobOffer.status == 'active').count(), 'archived_offers': db.query(JobOffer).filter(JobOffer.status.in_(['archived', 'closed'])).count(), 'applications': applications.count(), 'documents': svc.documents(db).count(), 'companies': db.query(Company).count(), 'profile_blocks': db.query(ProfileBlock).count()},
             'statuses': {status.value: applications.filter(Application.status == status).count() for status in ApplicationStatusEnum},
             'recent_applications': [svc.application_data(db, row) for row in applications.order_by(Application.id.desc()).limit(5)],
             'sources': [{'source': source, 'count': count} for source, count in db.query(JobOffer.source, func.count(JobOffer.id)).group_by(JobOffer.source).all()], 'ai_available': bool(config.OPENAI_API_KEY)}
 
 
 @router.get('/offers')
-def offers(q: str | None = None, source: str | None = None, status: str | None = None, signal: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+def offers(q: str | None = None, source: str | None = None, status: Literal['active', 'archived', 'closed', 'all'] = 'active', signal: str | None = None, hours: int | None = Query(None, ge=1, le=720), sort: Literal['recent', 'relevance'] = 'recent', page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(db.query(JobOffer).join(Company), q, JobOffer.job_title, Company.name, JobOffer.raw_text)
     if source:
         query = query.filter(JobOffer.source == source)
-    if status:
+    if status == 'archived':
+        query = query.filter(JobOffer.status.in_(['archived', 'closed']))
+    elif status != 'all':
         query = query.filter(JobOffer.status == status)
     rows = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
+    if hours is not None:
+        rows = [row for row in rows if OfferSignalService.is_recent(row, hours / 24)]
     scored = [(row, OfferSignalService.score(row)) for row in rows]
-    if signal in {'priority', 'potential', 'noise'}:
+    if signal == 'target':
+        scored = [(row, meta) for row, meta in scored if meta['score'] >= 45]
+    elif signal in {'priority', 'potential', 'noise'}:
         scored = [(row, meta) for row, meta in scored if meta['tier'] == signal]
     elif signal == 'recent':
         scored = [(row, meta) for row, meta in scored if meta['recency'] == 'new']
-    scored.sort(key=lambda item: (item[1]['score'], item[0].last_seen_at or item[0].first_seen_at or item[0].created_at, item[0].id), reverse=True)
+    from datetime import datetime
+    def rank(item):
+        row, meta = item
+        date = OfferSignalService.reference_date(row) or datetime.min
+        return (meta['score'], date, row.id) if sort == 'relevance' else (date, meta['score'], row.id)
+    scored.sort(key=rank, reverse=True)
     total = len(scored)
     selected = scored[(page - 1) * page_size: page * page_size]
     return {'items': [svc.offer_data(db, row) for row, _ in selected], 'total': total, 'page': page, 'page_size': page_size}
@@ -108,10 +119,12 @@ def save_offer(identifier: int, db: Session = Depends(get_db)) -> dict:
 
 
 @router.get('/applications')
-def applications(q: str | None = None, status: ApplicationStatusEnum | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+def applications(q: str | None = None, status: ApplicationStatusEnum | None = None, preparing: bool = False, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(svc.applications(db), q, Application.company, Application.job_title, Application.raw_offer)
     if status:
         query = query.filter(Application.status == status)
+    if preparing:
+        query = query.filter(Application.status.in_([ApplicationStatusEnum.saved, ApplicationStatusEnum.analyzed, ApplicationStatusEnum.generated]))
     return svc.paginate(query.order_by(Application.updated_at.desc(), Application.id.desc()), page, page_size, lambda row: svc.application_data(db, row))
 
 
@@ -240,6 +253,13 @@ def download(identifier: int, db: Session = Depends(get_db)) -> Response:
 def companies(q: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(db.query(Company), q, Company.name)
     return svc.paginate(query.order_by(Company.name), page, page_size, lambda row: {**svc.serialize(row), 'offer_count': db.query(JobOffer).filter(JobOffer.company_id == row.id).count(), 'contact_count': db.query(CompanyContact).filter(CompanyContact.company_id == row.id).count()})
+
+
+@router.get('/contacts')
+def contacts(page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+    query = db.query(CompanyContact).join(Company).filter(CompanyContact.verification_status != 'invalid')
+    return svc.paginate(query.order_by(CompanyContact.updated_at.desc(), CompanyContact.id.desc()), page, page_size,
+                        lambda row: {**svc.serialize(row), 'company': row.company.name})
 
 
 @router.get('/companies/{identifier}')
