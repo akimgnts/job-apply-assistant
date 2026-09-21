@@ -34,3 +34,16 @@ def test_static_assets_are_served():
     client = TestClient(app)
     assert client.get('/static/app.js').status_code == 200
     assert client.get('/static/styles.css').status_code == 200
+
+
+def test_readiness_checks_database_and_hides_errors(monkeypatch):
+    from app.main import app
+    import app.database.db as database
+    class BrokenEngine:
+        def connect(self):
+            raise RuntimeError('private-database-credentials')
+    monkeypatch.setattr(database, 'engine', BrokenEngine())
+    response = TestClient(app).get('/ready')
+    assert response.status_code == 503
+    assert 'private-database-credentials' not in response.text
+    assert TestClient(app).get('/health').status_code == 200

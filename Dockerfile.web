@@ -1,0 +1,15 @@
+FROM python:3.11-slim-bookworm
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 APP_ENV=production PORT=8000 PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && playwright install --with-deps chromium && rm -rf /var/lib/apt/lists/*
+COPY app ./app
+COPY migrations ./migrations
+COPY alembic.ini ./
+COPY exports ./exports
+COPY scripts/start_web_production.sh ./scripts/start_web_production.sh
+RUN useradd --uid 10001 --create-home jobapply && mkdir -p /app/outputs /app/secrets && chown -R jobapply:jobapply /app/outputs /app/secrets && chmod +x scripts/start_web_production.sh
+USER jobapply
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)" || exit 1
+CMD ["./scripts/start_web_production.sh"]

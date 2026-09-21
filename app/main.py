@@ -75,6 +75,19 @@ async def health_check():
     return {'status': 'ok', 'environment': config.APP_ENV}
 
 
+@app.get('/ready', include_in_schema=False)
+def readiness_check():
+    """Routing readiness: schema and database must be available."""
+    from sqlalchemy import text
+    from app.database.db import engine
+    try:
+        with engine.connect() as connection:
+            connection.execute(text('SELECT id FROM opportunities LIMIT 1'))
+        return {'status': 'ready'}
+    except Exception:
+        return JSONResponse({'status': 'unavailable'}, status_code=503)
+
+
 @app.get('/', include_in_schema=False)
 async def root():
     return FileResponse(WEB_DIR / 'index.html')
