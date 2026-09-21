@@ -18,11 +18,12 @@ WEB_DIR = Path(__file__).parent / 'web'
 @asynccontextmanager
 async def lifespan(app):
     from app.scheduler.email_ingestion_scheduler import start_scheduler
-    scheduler = start_scheduler()
+    from app.scheduler.ats_ingestion_scheduler import start_ats_scheduler
+    schedulers = [s for s in (start_scheduler(), start_ats_scheduler()) if s]
     try:
         yield
     finally:
-        if scheduler:
+        for scheduler in schedulers:
             scheduler.shutdown(wait=False)
 
 

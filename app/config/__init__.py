@@ -57,3 +57,10 @@ config.GMAIL_APPLICATION_USER_ID = os.getenv('WEB_USER_ID', 'local')
 config.GMAIL_SEARCH_QUERY = os.getenv('GMAIL_SEARCH_QUERY', 'newer_than:30d {candidature recrutement entretien application interview recruiting recruiter} -category:promotions -category:social')
 config.GMAIL_INGESTION_INTERVAL_MINUTES = max(5, int(os.getenv('GMAIL_INGESTION_INTERVAL_MINUTES', '30')))
 config.GMAIL_SCHEDULER_ENABLED = os.getenv('GMAIL_SCHEDULER_ENABLED', 'false').lower() == 'true'
+
+# ATS/job-board collection and notifications.
+config.ATS_SCHEDULER_ENABLED = os.getenv('ATS_SCHEDULER_ENABLED', 'false').lower() == 'true'
+config.ATS_SCHEDULER_TIMES = os.getenv('ATS_SCHEDULER_TIMES', '08:30,18:30')
+config.ATS_NOTIFY_TELEGRAM = os.getenv('ATS_NOTIFY_TELEGRAM', 'false').lower() == 'true'
+config.ATS_NOTIFY_CHAT_ID = os.getenv('ATS_NOTIFY_CHAT_ID') or os.getenv('WEB_USER_ID')
+config.WEB_PUBLIC_URL = os.getenv('WEB_PUBLIC_URL', '')

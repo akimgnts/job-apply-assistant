@@ -57,10 +57,7 @@ def test_scheduler_empty_success_is_valid(test_db, tmp_path, mock_registry_file)
     original_registry = scheduler.REGISTRY_PATH
     try:
         scheduler.REGISTRY_PATH = mock_registry_file
-        mock_adapter = AsyncMock()
-        mock_adapter.discover_jobs = AsyncMock(return_value=[])
-        mock_adapter.close = AsyncMock()
-        with patch('app.scheduler.ats_scheduler.LeverAdapter', return_value=mock_adapter), \
+        with patch('app.scheduler.ats_scheduler.ingest_ats', new=AsyncMock(return_value=([], [], True))), \
              patch('app.scheduler.ats_scheduler.SessionLocal', return_value=test_db), \
              patch('app.scheduler.ats_scheduler.Path') as mock_path:
             mock_path.side_effect = lambda p: Path(str(p).replace("exports", str(tmp_path / "exports")))
@@ -69,6 +66,38 @@ def test_scheduler_empty_success_is_valid(test_db, tmp_path, mock_registry_file)
         assert result["total_after"] == result["total_before"]
     finally:
         scheduler.REGISTRY_PATH = original_registry
+
+
+def test_telegram_summary_reports_offer_presence(monkeypatch):
+    import app.scheduler.ats_scheduler as scheduler
+
+    monkeypatch.setattr(scheduler.config, "WEB_PUBLIC_URL", "https://jobapply.test")
+    message = scheduler.build_telegram_summary({
+        "run_id": "abcdef123456",
+        "total_before": 10,
+        "total_after": 12,
+        "active_total": 7,
+        "recent_48h": 3,
+        "results": {
+            "Business France VIE": {"status": "success", "created": 2, "duplicates": 8},
+        },
+    })
+
+    assert "scraping terminé" in message
+    assert "Offres en base: 12" in message
+    assert "Nouvelles offres: 2" in message
+    assert "Offres vues <48h: 3" in message
+    assert "Business France VIE: OK" in message
+    assert "https://jobapply.test/#offers" in message
+
+
+def test_telegram_notification_is_disabled_without_config(monkeypatch):
+    import app.scheduler.ats_scheduler as scheduler
+
+    monkeypatch.setattr(scheduler.config, "ATS_NOTIFY_TELEGRAM", False)
+    monkeypatch.setattr(scheduler.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("network call")))
+
+    assert scheduler.notify_telegram("ok") is False
 
 
 def test_incomplete_source_does_not_close_jobs(test_db, tmp_path, mock_registry_file):

@@ -8,8 +8,10 @@ import csv
 import uuid
 import os
 import logging
+import urllib.parse
+import urllib.request
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from contextlib import contextmanager
 from dotenv import load_dotenv
@@ -17,21 +19,8 @@ from dotenv import load_dotenv
 load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.lever_adapter import LeverAdapter
-from app.services.greenhouse_adapter import GreenhouseAdapter
-from app.services.ashby_adapter import AshbyAdapter
-from app.services.business_france_vie_adapter import BusinessFranceVieAdapter
-from app.services.company_contact_ingestion import persist_offer_contacts
-from app.services.hiring_lifecycle_service import (
-    update_job_offer_lifecycle,
-    mark_missing_jobs,
-    create_hiring_snapshot,
-    calculate_hiring_signals,
-)
-from app.database.db import SessionLocal
-from app.database.models import JobOffer, Company
 from hashlib import sha256
-from sqlalchemy import func
+from app.config import config
 
 LOG_DIR = Path("logs")
 LOG_DIR.mkdir(exist_ok=True)
@@ -47,6 +36,62 @@ logger = logging.getLogger("ats_scheduler")
 
 REGISTRY_PATH = Path("app/database/ats_registry.json")
 LOCK_FILE = Path("/tmp/ats_ingest.lock")
+SOURCE_LABELS = {
+    "business_france_vie": "Business France VIE",
+    "lever": "Lever",
+    "greenhouse": "Greenhouse",
+    "ashby": "Ashby",
+}
+
+
+def _telegram_enabled() -> bool:
+    return bool(config.ATS_NOTIFY_TELEGRAM and config.TELEGRAM_BOT_TOKEN and config.ATS_NOTIFY_CHAT_ID)
+
+
+def build_telegram_summary(payload: dict) -> str:
+    """Build a compact operational notification for daily offer scraping."""
+    created = payload.get("total_after", 0) - payload.get("total_before", 0)
+    lines = [
+        "Job Apply — scraping terminé",
+        f"Run: {payload.get('run_id', 'n/a')[:8]}",
+        f"Offres en base: {payload.get('total_after', 0)}",
+        f"Nouvelles offres: {max(0, created)}",
+    ]
+    active_total = payload.get("active_total")
+    recent_48h = payload.get("recent_48h")
+    if active_total is not None:
+        lines.append(f"Offres actives: {active_total}")
+    if recent_48h is not None:
+        lines.append(f"Offres vues <48h: {recent_48h}")
+
+    for name, result in payload.get("results", {}).items():
+        label = SOURCE_LABELS.get(name, name)
+        if result.get("status") == "success":
+            lines.append(f"- {label}: OK, +{result.get('created', 0)}, doublons {result.get('duplicates', 0)}")
+        else:
+            lines.append(f"- {label}: ERREUR ({str(result.get('error', ''))[:80]})")
+
+    if config.WEB_PUBLIC_URL:
+        lines.append(f"Radar: {config.WEB_PUBLIC_URL.rstrip('/')}/#offers")
+    return "\n".join(lines)
+
+
+def notify_telegram(message: str) -> bool:
+    """Send a Telegram notification. Returns False instead of raising."""
+    if not _telegram_enabled():
+        return False
+    data = urllib.parse.urlencode({
+        "chat_id": config.ATS_NOTIFY_CHAT_ID,
+        "text": message,
+        "disable_web_page_preview": "true",
+    }).encode()
+    url = f"https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/sendMessage"
+    try:
+        with urllib.request.urlopen(url, data=data, timeout=15) as response:
+            return 200 <= response.status < 300
+    except Exception as exc:
+        logger.warning("Telegram scraping notification failed: %s", type(exc).__name__)
+        return False
 
 
 @contextmanager
@@ -84,6 +129,8 @@ def acquisition_lock(timeout_secs=3600):
 
 
 def get_or_create_company(db, company_name):
+    from app.database.models import Company
+
     company = db.query(Company).filter(Company.name == company_name).first()
     if not company:
         company = Company(name=company_name)
@@ -95,15 +142,19 @@ def get_or_create_company(db, company_name):
 async def ingest_ats(ats_type, company_slug, max_per=50):
     """Ingest one registry partition. Any source failure is propagated."""
     if ats_type == "lever":
+        from app.services.lever_adapter import LeverAdapter
         adapter = LeverAdapter()
         context = {"company_handles": [company_slug], "max_per_company": max_per}
     elif ats_type == "greenhouse":
+        from app.services.greenhouse_adapter import GreenhouseAdapter
         adapter = GreenhouseAdapter()
         context = {"company_slugs": [company_slug], "max_per_company": max_per}
     elif ats_type == "ashby":
+        from app.services.ashby_adapter import AshbyAdapter
         adapter = AshbyAdapter()
         context = {"company_slugs": [company_slug], "max_per_company": max_per}
     elif ats_type == "business_france_vie":
+        from app.services.business_france_vie_adapter import BusinessFranceVieAdapter
         adapter = BusinessFranceVieAdapter()
         context = {"max_per_company": None}
     else:
@@ -131,6 +182,17 @@ async def ingest_ats(ats_type, company_slug, max_per=50):
 
 def run_collection():
     """Execute one ATS collection. No permanent scheduler is started here."""
+    from sqlalchemy import func
+    from app.database.db import SessionLocal
+    from app.database.models import JobOffer, Company
+    from app.services.company_contact_ingestion import persist_offer_contacts
+    from app.services.hiring_lifecycle_service import (
+        update_job_offer_lifecycle,
+        mark_missing_jobs,
+        create_hiring_snapshot,
+        calculate_hiring_signals,
+    )
+
     logger.info("=" * 80)
     logger.info("ATS ONE-SHOT COLLECTION START")
     logger.info("=" * 80)
@@ -235,6 +297,10 @@ def run_collection():
         db.commit()
 
         total_after = db.query(JobOffer).count()
+        active_total = db.query(JobOffer).filter(JobOffer.status == "active").count()
+        recent_48h = db.query(JobOffer).filter(
+            JobOffer.last_seen_at >= datetime.utcnow().replace(microsecond=0) - timedelta(hours=48)
+        ).count()
         logger.info(f"Before={total_before} After={total_after} Created={total_after - total_before}")
 
         by_source = db.query(JobOffer.source, func.count(JobOffer.id)).group_by(JobOffer.source).all()
@@ -255,7 +321,16 @@ def run_collection():
                 ])
 
         logger.info(f"Signals exported: {signals_path}")
-        return {"run_id": run_id, "results": results, "total_before": total_before, "total_after": total_after}
+        payload = {
+            "run_id": run_id,
+            "results": results,
+            "total_before": total_before,
+            "total_after": total_after,
+            "active_total": active_total,
+            "recent_48h": recent_48h,
+        }
+        notify_telegram(build_telegram_summary(payload))
+        return payload
     except Exception:
         db.rollback()
         raise
