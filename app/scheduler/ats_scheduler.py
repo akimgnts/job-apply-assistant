@@ -307,7 +307,7 @@ def run_collection():
         for source, cnt in by_source:
             logger.info(f"{source}: {cnt} offers, {snapshot_counts[source]} snapshots")
 
-        signals_path = Path("exports/company_hiring_signals.csv")
+        signals_path = Path(os.getenv("ATS_SIGNALS_EXPORT_PATH", "/tmp/jobapply-exports/company_hiring_signals.csv"))
         signals_path.parent.mkdir(exist_ok=True)
         with open(signals_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
