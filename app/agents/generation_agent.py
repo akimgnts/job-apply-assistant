@@ -605,6 +605,33 @@ class GenerationAgent:
         master_cv = load_master_cv()
         logger.info(f"Master CV loaded: {len(master_cv['experiences'])} experiences")
 
+        # V2 document engine: strict targeted template + source-of-truth prompt +
+        # deterministic fallback + quality gates. This replaces the legacy
+        # source-selection renderer that produced generic, hybrid-language CVs.
+        from app.services.document_generation_v2 import DocumentGenerationV2
+
+        html = await DocumentGenerationV2.generate_cv_html(analysis, master_cv)
+
+        filepath = get_output_path(application_id, "cv")
+        save_document(html, filepath)
+
+        doc = GeneratedDocument(
+            application_id=application_id,
+            telegram_user_id=telegram_user_id or "",
+            document_type=DocumentTypeEnum.cv,
+            filename=filepath.name,
+            content=html,
+            file_path=str(filepath),
+            format="html",
+            positioning=positioning,
+            skill_profile=skill_profile,
+        )
+        db.add(doc)
+        db.commit()
+
+        logger.info(f"Generated targeted CV V2 for application {application_id} user={telegram_user_id}")
+        return html
+
         # Detect job offer language (French/English)
         raw_job_offer = f"{analysis.get('job_title', '')} {' '.join(analysis.get('missions', []))}"
         cv_language = detect_job_offer_language(raw_job_offer, analysis)
@@ -736,6 +763,30 @@ class GenerationAgent:
 
         Uses gap analysis to inform tone + bridges.
         """
+        from app.services.document_generation_v2 import DocumentGenerationV2
+
+        master_cv = load_master_cv()
+        html = await DocumentGenerationV2.generate_letter_html(analysis, master_cv)
+
+        filepath = get_output_path(application_id, "letter")
+        save_document(html, filepath)
+
+        doc = GeneratedDocument(
+            application_id=application_id,
+            telegram_user_id=telegram_user_id or "",
+            document_type=DocumentTypeEnum.letter,
+            filename=filepath.name,
+            content=html,
+            file_path=str(filepath),
+            format="html",
+            positioning=positioning,
+        )
+        db.add(doc)
+        db.commit()
+
+        logger.info(f"Generated APEC letter V2 for application {application_id} user={telegram_user_id}")
+        return html
+
         try:
             # Get gap analysis for context-aware letter
             gap_assessment = await GapAnalysisAgent.analyze_gap(analysis, positioning)

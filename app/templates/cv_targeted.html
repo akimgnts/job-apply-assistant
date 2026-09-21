@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{NOM_COMPLET}} - {{INTITULE_POSTE}} - {{ENTREPRISE_CIBLE}}</title>
+  <style>
+    :root{--ink:#171d26;--muted:#586371;--accent:#315b88;--line:#d9e1e9;--soft:#f2f6fa}
+    *{box-sizing:border-box}
+    @page{size:A4;margin:10mm 12mm}
+    html,body{margin:0;padding:0;background:#e9edf1;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+    body{font-size:9.45pt;line-height:1.22}
+    .page{width:210mm;min-height:297mm;margin:10mm auto;background:#fff;padding:10mm 12mm;box-shadow:0 4px 18px #0002}
+    header{padding-bottom:3.5mm;border-bottom:2px solid var(--accent);margin-bottom:3mm}
+    h1{font-size:23pt;line-height:1;margin:0 0 1.5mm;letter-spacing:.4px}
+    .headline{font-size:11.4pt;line-height:1.12;color:var(--accent);font-weight:700;margin:0 0 2mm}
+    .contact{font-size:8.75pt;color:var(--muted);margin:0}
+    a{color:inherit;text-decoration:none}
+    section{margin:0 0 2.6mm}
+    h2{font-size:10.35pt;line-height:1.1;text-transform:uppercase;letter-spacing:.65px;color:var(--accent);margin:0 0 1.3mm;padding-bottom:.72mm;border-bottom:1px solid var(--line)}
+    p{margin:0}.profile{font-size:9.45pt}
+    .skills{display:grid;gap:.52mm}.skills p{margin:0}.skills strong{display:inline-block;min-width:43mm}
+    .item{margin-bottom:2mm;break-inside:avoid;page-break-inside:avoid}.item:last-child{margin-bottom:0}
+    .item-head{display:flex;justify-content:space-between;align-items:baseline;gap:7mm;margin-bottom:.7mm}
+    .role{font-weight:700;font-size:10pt}.company{font-weight:700;color:var(--accent)}.date{font-size:8.55pt;color:var(--muted);white-space:nowrap}
+    ul{margin:0;padding-left:4.6mm}li{margin:0 0 .48mm;padding-left:.5mm}
+    .project{padding:1.3mm 2.25mm;margin-bottom:.9mm;background:var(--soft);border-left:2.5px solid var(--accent);break-inside:avoid;page-break-inside:avoid}.project:last-child{margin-bottom:0}
+    .project-title{font-weight:700}.status{font-size:8.2pt;color:var(--muted);font-style:italic}
+    .edu{display:grid;gap:.72mm}.meta{font-size:8.45pt;color:var(--muted)}
+    @media print{html,body{width:auto;height:auto;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}header,h2,.item,.project{break-inside:avoid;page-break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>{{NOM_COMPLET}}</h1>
+      <p class="headline">{{INTITULE_CIBLE}} | {{MOTS_CLES_DIFFERENCIANTS}}</p>
+      <p class="contact"><strong>{{LOCALISATION_ET_MOBILITE}}</strong> | {{TELEPHONE}} | <a href="mailto:{{EMAIL}}">{{EMAIL}}</a> | <a href="{{URL_LINKEDIN}}">{{AFFICHAGE_LINKEDIN}}</a> | <a href="{{URL_GITHUB}}">{{AFFICHAGE_GITHUB}}</a> | <a href="{{URL_PORTFOLIO}}">{{AFFICHAGE_PORTFOLIO}}</a></p>
+    </header>
+
+    <section>
+      <h2>{{TITRE_SECTION_PROFIL}}</h2>
+      <p class="profile">{{RESUME_PROFESSIONNEL_CIBLE_AVEC_PREUVES_ET_MOTS_CLES}}</p>
+    </section>
+
+    <section>
+      <h2>{{TITRE_SECTION_COMPETENCES}}</h2>
+      <div class="skills">
+        <p><strong>{{FAMILLE_COMPETENCE_1}}</strong> {{COMPETENCES_PERTINENTES_1}}</p>
+        <p><strong>{{FAMILLE_COMPETENCE_2}}</strong> {{COMPETENCES_PERTINENTES_2}}</p>
+        <p><strong>{{FAMILLE_COMPETENCE_3}}</strong> {{COMPETENCES_PERTINENTES_3}}</p>
+        <p><strong>{{FAMILLE_COMPETENCE_4}}</strong> {{COMPETENCES_PERTINENTES_4}}</p>
+        <p><strong>{{FAMILLE_COMPETENCE_5}}</strong> {{COMPETENCES_PERTINENTES_5}}</p>
+      </div>
+      <!-- Supprimer cette ligne si aucune compétence ne nécessite de précision de niveau. -->
+      <p class="status">{{PRECISION_HONNETE_SUR_COMPETENCE_EN_COURS}}</p>
+    </section>
+
+    <section>
+      <h2>{{TITRE_SECTION_EXPERIENCES}}</h2>
+
+      <article class="item">
+        <div class="item-head">
+          <div><span class="role">{{POSTE_1_REFORMULE}}</span> - <span class="company">{{ENTREPRISE_1}}</span></div>
+          <span class="date">{{DATES_ET_LIEU_1}}</span>
+        </div>
+        <ul>
+          <li>{{REALISATION_1_1_ALIGNEE_SUR_OFFRE}}</li>
+          <li>{{REALISATION_1_2_ALIGNEE_SUR_OFFRE}}</li>
+          <li>{{REALISATION_1_3_ALIGNEE_SUR_OFFRE}}</li>
+          <li>{{REALISATION_1_4_AVEC_RESULTAT}}</li>
+          <li>{{REALISATION_1_5_AVEC_RESULTAT}}</li>
+        </ul>
+      </article>
+
+      <article class="item">
+        <div class="item-head">
+          <div><span class="role">{{POSTE_2_REFORMULE}}</span> - <span class="company">{{ENTREPRISE_2}}</span></div>
+          <span class="date">{{DATES_ET_LIEU_2}}</span>
+        </div>
+        <ul>
+          <li>{{REALISATION_2_1_ALIGNEE_SUR_OFFRE}}</li>
+          <li>{{REALISATION_2_2_ALIGNEE_SUR_OFFRE}}</li>
+          <li>{{REALISATION_2_3_AVEC_RESULTAT}}</li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- Section facultative : la conserver uniquement si un projet constitue une preuve décisive. -->
+    <section>
+      <h2>{{TITRE_SECTION_PROJET_CIBLE}}</h2>
+      <div class="project">
+        <p><span class="project-title">{{NOM_PROJET_CIBLE}}</span> | {{PROBLEME_SOLUTION_TECHNOLOGIES_RESULTAT}} <span class="status">{{STATUT_EVENTUEL}}</span></p>
+      </div>
+    </section>
+
+    <!-- Dupliquer ou supprimer les blocs .project selon la pertinence et l’espace disponible. -->
+    <section>
+      <h2>{{TITRE_SECTION_PROJETS_COMPLEMENTAIRES}}</h2>
+      <div class="project"><p><span class="project-title">{{NOM_PROJET_2}}</span> | {{DESCRIPTION_CIBLEE_PROJET_2_AVEC_PREUVE}}</p></div>
+      <div class="project"><p><span class="project-title">{{NOM_PROJET_3}}</span> | {{DESCRIPTION_CIBLEE_PROJET_3_AVEC_PREUVE}}</p></div>
+    </section>
+
+    <section>
+      <h2>{{TITRE_SECTION_FORMATION}}</h2>
+      <div class="edu">
+        <p><strong>{{DIPLOME_1}}</strong> | {{ETABLISSEMENT_1}} | {{ANNEE_1}}</p>
+        <p><strong>{{DIPLOME_2}}</strong> | {{ETABLISSEMENT_2}} | {{ANNEE_2}}</p>
+        <p><strong>{{LABEL_CERTIFICATIONS}}</strong> {{CERTIFICATIONS_PERTINENTES}}</p>
+        <p class="meta"><strong>{{LABEL_LANGUES}}</strong> {{LANGUES}} | <strong>{{LABEL_DISPONIBILITE}}</strong> {{DISPONIBILITE}}</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
