@@ -22,8 +22,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from hashlib import sha256
 from app.config import config
 
-LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR = Path(os.getenv("ATS_LOG_DIR", "/tmp/jobapply-logs"))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
