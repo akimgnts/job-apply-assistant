@@ -246,6 +246,8 @@ def run_collection():
                     existing = db.query(JobOffer).filter(JobOffer.job_url == offer.job_url).first()
                     persist_offer_contacts(db, company_obj, offer)
                     if existing:
+                        if offer.posted_date and not existing.posted_date:
+                            existing.posted_date = offer.posted_date
                         update_job_offer_lifecycle(db, offer.job_url)
                         duplicates += 1
                     else:
@@ -255,6 +257,7 @@ def run_collection():
                             job_url=offer.job_url,
                             source=offer.source,
                             raw_text=offer.raw_text or "",
+                            posted_date=offer.posted_date,
                             status="active",
                             first_seen_at=capture_time,
                             last_seen_at=capture_time,

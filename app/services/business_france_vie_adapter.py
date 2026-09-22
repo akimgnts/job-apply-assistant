@@ -6,6 +6,7 @@ Public REST API at civiweb-api-prd.azurewebsites.net.
 
 import logging
 import os
+from datetime import datetime
 try:
     import aiohttp
 except ModuleNotFoundError:  # pragma: no cover - tests can exercise metadata helpers without network client
@@ -138,6 +139,7 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
                 company = offer.get("organizationName", "Unknown")
                 city = offer.get("cityName", "")
                 duration = offer.get("missionDuration")
+                posted_date = offer.get("startBroadcastDate") or offer.get("creationDate")
 
                 offer_url = self.offer_url(offer_id)
 
@@ -149,6 +151,7 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
                             "company": company,
                             "city": city,
                             "duration": duration,
+                            "posted_date": posted_date,
                             "offer_id": offer_id,
                             "source": "business_france_vie",
                             "contacts": [c for c in [self.extract_contact(offer, offer_url)] if c],
@@ -178,6 +181,7 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             "company": metadata.get("company", "Unknown"),
             "location": metadata.get("city"),
             "duration": metadata.get("duration"),
+            "posted_date": metadata.get("posted_date"),
             "contacts": metadata.get("contacts", []),
         }
 
@@ -190,6 +194,8 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             source=self.source_name,
             location=extracted.get("location"),
             contract_type="VIE",
+            posted_date=(datetime.fromisoformat(str(extracted["posted_date"]).replace("Z", "+00:00")).replace(tzinfo=None)
+                         if extracted.get("posted_date") else None),
             external_job_id=extracted.get("offer_id"),
             raw_text=f"Company: {extracted.get('company')}\nDuration: {extracted.get('duration')} months\nLocation: {extracted.get('location') or 'N/A'}",
             description=None,

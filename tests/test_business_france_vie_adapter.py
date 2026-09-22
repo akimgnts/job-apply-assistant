@@ -55,3 +55,12 @@ def test_business_france_extracts_contact_metadata_when_available():
     }
         assert normalized.contacts == [contact]
     asyncio.run(scenario())
+
+
+def test_publication_date_survives_normalization():
+    async def scenario():
+        adapter = BusinessFranceVieAdapter()
+        item = DiscoveredJobUrl(url='https://example.org/1', metadata={'title':'Analyst','company':'Acme','posted_date':'2026-09-22T00:00:00'})
+        result = await adapter.normalize_job(await adapter.extract_job(item))
+        assert result.posted_date.isoformat() == '2026-09-22T00:00:00'
+    asyncio.run(scenario())
