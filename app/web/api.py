@@ -256,8 +256,9 @@ def companies(q: str | None = None, page: int = Page, page_size: int = PageSize,
 
 
 @router.get('/contacts')
-def contacts(page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+def contacts(q: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = db.query(CompanyContact).join(Company).filter(CompanyContact.verification_status != 'invalid')
+    query = svc.search(query, q, Company.name, CompanyContact.contact_name, CompanyContact.role_raw)
     return svc.paginate(query.order_by(CompanyContact.updated_at.desc(), CompanyContact.id.desc()), page, page_size,
                         lambda row: {**svc.serialize(row), 'company': row.company.name})
 

@@ -90,8 +90,20 @@ class ApplicationTrackingAgent:
         company = ""
         job_title = ""
 
+        confirmed = getattr(event, "confirmed_type", None)
+        aliases = {"acknowledgement": "application_ack", "interview_request": "interview_or_test", "newsletter": "job_board_alert"}
+        if getattr(event, "status", None) == "processed" and confirmed:
+            return {"label": aliases.get(confirmed, confirmed), "source": "gmail", "company": "", "job_title": "", "reason": "Qualification validée manuellement."}
+
         if "SENT" in labels:
+            if not re.search(r"\bcandidature\b|\bapplication\s*[—:|-]|\bi am applying\b|\bje (?:vous )?(?:adresse|soumets|propose) ma candidature\b|\bcandidature spontanee\b|\b(?:mon|my) (?:cv|resume)\b", text):
+                return {"label": "noise", "source": "noise", "company": "", "job_title": "", "reason": "Message envoyé sans preuve de candidature."}
             job_title, company = ApplicationTrackingAgent._extract_sent_target(subject, body)
+            # Recipient identity is stronger evidence than employers mentioned in a CV.
+            recipient_companies = {ApplicationTrackingAgent._extract_company("", "", address) for address in (getattr(event, "recipients", None) or []) if address}
+            recipient_companies.discard("")
+            if len(recipient_companies) == 1:
+                company = next(iter(recipient_companies))
             return {
                 "label": "application_sent",
                 "source": "cold_email" if sender else "gmail",
@@ -132,7 +144,7 @@ class ApplicationTrackingAgent:
 
         if ApplicationTrackingAgent._looks_like_job_search(text, subject, sender):
             return {
-                "label": "recruiter_reply" if subject.lower().startswith("re:") else "cold_email",
+                "label": "recruiter_reply" if subject.lower().startswith("re:") else "unknown",
                 "source": source,
                 "company": ApplicationTrackingAgent._extract_company(subject, body, sender),
                 "job_title": ApplicationTrackingAgent._extract_job_title(subject),
@@ -144,13 +156,24 @@ class ApplicationTrackingAgent:
     @staticmethod
     def build_opportunities(events) -> list[dict]:
         grouped = defaultdict(list)
-        classified = []
+        events = [event for event in events if event.status != "archived"]
+        infos = {event.id: ApplicationTrackingAgent.classify(event) for event in events}
+        qualified_threads = {event.thread_id for event in events if event.thread_id and infos[event.id]["label"] not in ("noise", "job_board_alert")}
+        thread_apps = defaultdict(set)
         for event in events:
-            info = ApplicationTrackingAgent.classify(event)
+            if event.thread_id and event.application_id:
+                thread_apps[event.thread_id].add(event.application_id)
+        for event in events:
+            info = infos[event.id]
+            if info["label"] == "noise" and event.thread_id in qualified_threads:
+                info = {"label": "application_sent" if "SENT" in (event.labels or []) else "recruiter_reply", "source": "gmail", "company": "", "job_title": "", "reason": "Échange dans un fil de candidature identifié."}
+            linked_apps = thread_apps.get(event.thread_id, set())
             if info["label"] == "noise":
                 key = f"noise:{event.id}"
             elif event.application_id:
                 key = f"app:{event.application_id}"
+            elif len(linked_apps) == 1:
+                key = f"app:{next(iter(linked_apps))}"
             elif event.thread_id and info["label"] != "job_board_alert":
                 key = f"thread:{event.thread_id}"
             else:
@@ -158,20 +181,26 @@ class ApplicationTrackingAgent:
                 title = normalize(info.get("job_title") or ApplicationTrackingAgent._extract_job_title(event.subject or ""))
                 key = f"signal:{company}:{title}:{event.thread_id or event.id}"
             grouped[key].append((event, info))
-            classified.append((event, info))
 
         rows = []
         for key, items in grouped.items():
             useful = [item for item in items if item[1]["label"] != "noise"]
             if not useful:
                 continue
-            best_event, best_info = max(useful, key=lambda item: (STATUS_RANK.get(item[1]["label"], 0), item[0].received_at or datetime.min))
+            milestones = [item for item in useful if item[1]["label"] in ("rejection", "interview_or_test", "bounce")]
+            best_event, best_info = max(milestones or useful, key=lambda item: item[0].received_at or datetime.min)
             latest_event, latest_info = max(useful, key=lambda item: item[0].received_at or datetime.min)
+            target_items = sorted(useful, key=lambda item: ("SENT" not in (item[0].labels or []), item[0].received_at or datetime.min))
+            target_company = next((info["company"] for _, info in target_items if info.get("company")), "")
+            target_title = next((info["job_title"] for _, info in target_items if info.get("job_title")), "")
             labels = sorted({info["label"] for _, info in useful}, key=lambda label: -STATUS_RANK.get(label, 0))
             rows.append({
                 "id": key,
-                "company": best_info.get("company") or latest_info.get("company") or ApplicationTrackingAgent._extract_company(latest_event.subject or "", latest_event.body_text or "", latest_event.sender_email or "") or "Entreprise à préciser",
-                "job_title": best_info.get("job_title") or latest_info.get("job_title") or ApplicationTrackingAgent._extract_job_title(latest_event.subject or "") or "Poste à préciser",
+                "company": target_company or "Entreprise à préciser",
+                "job_title": target_title or "Poste à préciser",
+                "identity_needs_review": not target_company or not target_title or best_info["label"] == "unknown",
+                "sent_count": sum("SENT" in (event.labels or []) for event, _ in useful),
+                "received_count": sum("SENT" not in (event.labels or []) for event, _ in useful),
                 "source": best_info.get("source") or latest_info.get("source") or "gmail",
                 "status": ApplicationTrackingAgent._status_from_label(best_info["label"]),
                 "latest_label": latest_info["label"],
@@ -180,7 +209,7 @@ class ApplicationTrackingAgent:
                 "needs_review_count": sum(1 for event, _ in useful if event.status == "pending"),
                 "processed_count": sum(1 for event, _ in useful if event.status == "processed"),
                 "archived_count": sum(1 for event, _ in useful if event.status == "archived"),
-                "application_id": best_event.application_id or latest_event.application_id,
+                "application_id": int(key.split(":", 1)[1]) if key.startswith("app:") else None,
                 "latest_event_id": latest_event.id,
                 "latest_subject": latest_event.subject,
                 "latest_sender": latest_event.sender_email,
@@ -204,41 +233,32 @@ class ApplicationTrackingAgent:
 
     @staticmethod
     def _looks_like_job_search(text: str, subject: str, sender: str) -> bool:
-        if re.search(r"candidature|recrutement|recruit|application|poste|offre|vie-|data analyst|business analyst|entretien|hrbp", text):
+        if re.search(r"\bcandidature\b|\brecrutement\b|\brecruit(?:ing|er|ment)\b|\bjob application\b|\bentretien (?:de recrutement|pour le poste)\b|\bhrbp\b", text):
             return True
         domain = sender_domain(sender)
         return bool(re.search(r"talent|recruit|jobs?|career|rh|hr", domain))
 
     @staticmethod
     def _extract_sent_target(subject: str, body: str) -> tuple[str, str]:
-        for pattern in (
-            r"(?:application|candidature)\s*[—-]\s*(?P<title>[^|–—]+)\s*[|–—]\s*(?P<company>[^\n\r]+)",
-            r"(?P<title>VIE[^|–—\n]+)\s*[|–—]\s*(?P<company>[^\n\r]+)",
-        ):
-            match = re.search(pattern, subject, re.I)
-            if match:
-                subject_company = title_case(match.group("company"))
-                body_company = ApplicationTrackingAgent._extract_company("", body, "")
-                company = body_company if body_company and subject_company.lower() in {"brussels", "paris", "france", "belgium"} else subject_company
-                return title_case(match.group("title")), company
-        title = ApplicationTrackingAgent._extract_job_title(subject) or ApplicationTrackingAgent._extract_job_title(body)
-        company = ApplicationTrackingAgent._extract_company(subject, body, "")
+        title = ApplicationTrackingAgent._extract_job_title(subject)
+        # Only an explicit subject target is used; body text contains former employers.
+        company = ApplicationTrackingAgent._extract_company(subject, "", "")
         return title, company
 
     @staticmethod
     def _extract_job_title(text: str) -> str:
-        text = text or ""
-        match = re.search(r"(?:application|candidature)\s*[—-]\s*([^|–—\n]+)", text, re.I)
-        if match:
-            return title_case(match.group(1))
-        match = re.search(r"\b((?:VIE|CDI|CDD)?\s*(?:Data|Business|BI|Product|Ops|AI|IA)[^|–—:\n]{3,80})", text, re.I)
-        if match:
-            return title_case(match.group(1))
-        return ""
+        text = re.sub(r"^(?:(?:re|fwd|tr):\s*)+", "", text or "", flags=re.I)
+        # Remove candidate signatures and application boilerplate before extracting a role.
+        text = text.split("|")[0]
+        text = re.sub(r"^(?:application|candidature)\s*(?:V\.?I\.?E\.?)?\s*[—–:-]\s*", "", text, flags=re.I)
+        text = re.split(r"\s[—–]\s(?:application|candidature)", text, flags=re.I)[0]
+        pattern = r"\b((?:(?:VIE|CDI|CDD)\s+)?(?:(?:Data|Business|BI|Product|Ops|AI|IA|Operations)\s+(?:Performance\s+)?(?:Analyst|Scientist|Engineer|Manager|Analyste|Consultant|Developer|Associate)|(?:Ingénieur|Ingenieur|Analyste|Consultant|Développeur)\s+(?:Data|BI|Python)|PMO)(?:\s*(?:/|&)\s*(?:Data Scientist|Data Analyst|Développeur Python|BI))*)\b"
+        match = re.search(pattern, text, re.I)
+        return title_case(match.group(1)) if match else ""
 
     @staticmethod
     def _extract_company(subject: str, body: str, sender: str) -> str:
-        combined = f"{subject}\n{body[:1000]}"
+        combined = subject
         for pattern in (
             r"\|\s*([A-Z][A-Za-z0-9& .'-]{2,60})",
             r"\bchez\s+([A-Z][A-Za-z0-9& .'-]{2,60})",
@@ -247,11 +267,13 @@ class ApplicationTrackingAgent:
             match = re.search(pattern, combined)
             if match:
                 company = clean_company(match.group(1))
-                if company:
+                if company and not re.search(r"akim|guentas|brussels|paris|belgium|france", company, re.I):
                     return company
         domain = sender_domain(sender)
-        if domain and not any(part in domain for part in ("gmail.com", "googlemail.com")):
-            root = domain.split(".")[0]
+        excluded = ("gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "yahoo.com", "linkedin.com", "meteojob.com", "indeed.com", "free-work.com", "hireflix.com", "workday.com", "myworkday.com", "talent-soft.com", "successfactors.com")
+        if domain and "@" in sender and not any(domain == part or domain.endswith("." + part) for part in excluded):
+            parts = domain.split(".")
+            root = parts[-2] if len(parts) > 1 else ""
             if root not in ("noreply", "no-reply", "mail", "email", "jobs", "jobalerts"):
                 return clean_company(root)
         return ""

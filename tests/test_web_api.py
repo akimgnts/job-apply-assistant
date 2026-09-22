@@ -61,7 +61,7 @@ def test_offers_include_signal_score_and_filter_priority_recent(workspace):
     from app.database.models import Company, JobOffer
     company = session.query(Company).filter_by(name='Acme').first()
     old = JobOffer(company_id=company.id, job_title='Senior Mechanical Engineer', job_url='https://example.org/noise', source='archive', raw_text='maintenance industrielle 10 ans', first_seen_at=datetime.utcnow()-timedelta(days=80), last_seen_at=datetime.utcnow()-timedelta(days=80), status='active')
-    strong = JobOffer(company_id=company.id, job_title='VIE Data Analyst', job_url='https://example.org/priority', source='business_france_vie', raw_text='SQL Power BI CRM automation', first_seen_at=datetime.utcnow()-timedelta(days=1), last_seen_at=datetime.utcnow()-timedelta(days=1), status='active')
+    strong = JobOffer(company_id=company.id, job_title='VIE Data Analyst', job_url='https://example.org/priority', posted_date=datetime.utcnow()-timedelta(days=1), source='business_france_vie', raw_text='SQL Power BI CRM automation', first_seen_at=datetime.utcnow()-timedelta(days=1), last_seen_at=datetime.utcnow()-timedelta(days=1), status='active')
     session.add_all([old, strong])
     session.commit()
 

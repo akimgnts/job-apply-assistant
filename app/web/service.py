@@ -91,7 +91,7 @@ def offer_data(db: Session, offer: JobOffer) -> dict:
         'recency': signal['recency'],
         'signal_reasons': signal['reasons'],
         'signal_confidence': signal['confidence'],
-        'date_basis': 'published' if offer.posted_date else 'discovered',
+        'date_basis': 'published' if offer.posted_date else 'unknown',
         'display_date': OfferSignalService.reference_date(offer),
     }
 

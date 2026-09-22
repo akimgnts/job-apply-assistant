@@ -121,7 +121,7 @@ class OfferSignalService:
 
     @staticmethod
     def reference_date(offer: JobOffer) -> datetime | None:
-        value = offer.posted_date or offer.first_seen_at or offer.created_at
+        value = offer.posted_date
         if value and value.tzinfo:
             value = value.astimezone(timezone.utc).replace(tzinfo=None)
         return value

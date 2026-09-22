@@ -13,6 +13,7 @@ def make_offer(title, raw='', first_seen_at=None, status='active', source='busin
         source=source,
         raw_text=raw,
         status=status,
+        posted_date=first_seen_at,
         first_seen_at=first_seen_at or datetime.utcnow(),
         last_seen_at=first_seen_at or datetime.utcnow(),
     )
@@ -42,7 +43,7 @@ def test_penalizes_irrelevant_senior_or_non_target_offer():
     assert any('hors cible' in reason.lower() or 'senior' in reason.lower() for reason in result['reasons'])
 
 
-def test_recent_filter_detects_last_seen_or_first_seen():
+def test_recent_filter_uses_publication_date():
     assert OfferSignalService.is_recent(make_offer('BI Analyst', first_seen_at=datetime.utcnow() - timedelta(days=3)), days=7)
     assert not OfferSignalService.is_recent(make_offer('BI Analyst', first_seen_at=datetime.utcnow() - timedelta(days=30)), days=7)
 
@@ -68,7 +69,7 @@ def test_recency_uses_publication_not_latest_scrape_and_precise_48_hours():
     assert OfferSignalService.recency_label(offer) == 'fresh'
     offer.posted_date = None
     offer.first_seen_at = datetime.utcnow() - timedelta(days=40)
-    assert OfferSignalService.recency_label(offer) == 'stale'
+    assert OfferSignalService.recency_label(offer) == 'unknown'
 
 
 def test_content_confidence_and_fit_do_not_depend_on_recency():

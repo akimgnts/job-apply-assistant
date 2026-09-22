@@ -163,11 +163,14 @@ def test_opportunities_group_gmail_history_into_candidate_rows(workspace):
 
     assert result.status_code==200
     data=result.json()
-    assert data['total'] == 2
+    assert data['total'] == 1
     rows={row['company']: row for row in data['items']}
     assert rows['Niji']['status'] == 'reply'
     assert rows['Niji']['email_count'] == 2
     assert rows['Niji']['needs_review_count'] == 2
-    assert rows['LinkedIn']['source'] == 'job_board'
-    assert db.query(Opportunity).count() == 1
-    assert db.query(OpportunityLink).filter_by(source_type='email_event').count() == 2
+    assert 'LinkedIn' not in rows
+    assert db.query(Opportunity).count() == 0  # Reading must not create opportunities
+    assert db.query(OpportunityLink).filter_by(source_type='email_event').count() == 0
+    thread=client.get(f'/api/tracking/emails/{sent.id}/thread').json()
+    assert len(thread['items']) == 2
+    assert {item['direction'] for item in thread['items']} == {'sent', 'received'}

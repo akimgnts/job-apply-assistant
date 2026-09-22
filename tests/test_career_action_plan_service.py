@@ -38,7 +38,9 @@ def test_builds_action_plan_from_latest_analyses_and_gap_events():
         assert result['market_signals']['top_strengths'][0]['skill'] == 'Power BI'
         assert result['gap_priorities'][0]['skill'] == 'dbt'
         assert result['gap_priorities'][0]['priority'] == 'high'
-        assert 'Projet' in result['action_plan'][0]['action']
+        assert 'dbt' in result['action_plan'][0]['action']
+        assert len(result['action_plan'][0]['steps']) == 3
+        assert result['action_plan'][0]['deliverable']
         assert result['positioning_insights']['best_role_families'][0]['role_family'] == 'Data / BI'
     finally:
         db.close()

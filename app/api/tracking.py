@@ -109,17 +109,25 @@ def opportunities(
     db: Session = Depends(get_db),
 ):
     email_rows = events(db).order_by(EmailEvent.received_at.desc(), EmailEvent.id.desc()).all()
-    for event in email_rows:
-        info = ApplicationTrackingAgent.classify(event)
-        if info['label'] not in ('noise', 'job_board_alert'):
-            OpportunityService.ensure_for_email_event(db, event)
-    db.commit()
     rows = ApplicationTrackingAgent.build_opportunities(email_rows)
+    apps_by_id = {app.id: app for app in owned_applications(db, owner()).all()}
+    for row in rows:
+        app = apps_by_id.get(row['application_id'])
+        if app:
+            row['company'] = app.company or row['company']
+            row['job_title'] = app.job_title or row['job_title']
+            row['identity_needs_review'] = not app.company or not app.job_title
+    candidates = [row for row in rows if row['status'] != 'job_board']
+    summary = {'identified': sum(not row['identity_needs_review'] for row in candidates), 'needs_review': sum(row['identity_needs_review'] for row in candidates), 'replies': sum(row['received_count'] > 0 and row['sent_count'] > 0 for row in candidates)}
+    if view != 'job_boards':
+        rows = [row for row in rows if row['status'] != 'job_board']
+    if view != 'needs_review':
+        rows = [row for row in rows if not row['identity_needs_review'] or row['application_id']]
     if q.strip():
         needle = q.strip().lower()
         rows = [row for row in rows if needle in f"{row['company']} {row['job_title']} {row['latest_subject'] or ''}".lower()]
     if view == 'needs_review':
-        rows = [row for row in rows if row['needs_review_count']]
+        rows = [row for row in rows if row['identity_needs_review'] or row['needs_review_count']]
     elif view == 'replies':
         rows = [row for row in rows if row['status'] == 'reply']
     elif view == 'interviews':
@@ -137,7 +145,20 @@ def opportunities(
         item = dict(row)
         item['latest_received_at'] = iso(item['latest_received_at'])
         items.append(item)
-    return {'items': items, 'total': total, 'page': page, 'page_size': 25}
+    return {'items': items, 'total': total, 'page': page, 'page_size': 25, 'summary': summary}
+
+
+@router.get('/emails/{identifier}/thread')
+def email_thread(identifier: int, db: Session = Depends(get_db)):
+    event = get_event(db, identifier)
+    query = events(db).filter(EmailEvent.status != 'archived')
+    if event.application_id:
+        query = query.filter(or_(EmailEvent.application_id == event.application_id, EmailEvent.thread_id == event.thread_id) if event.thread_id else EmailEvent.application_id == event.application_id)
+    elif event.thread_id:
+        query = query.filter(EmailEvent.thread_id == event.thread_id)
+    else:
+        query = query.filter(EmailEvent.id == identifier)
+    return {'items': [dict(event_data(row), direction='sent' if 'SENT' in (row.labels or []) else 'received') for row in query.order_by(EmailEvent.received_at, EmailEvent.id)]}
 
 
 @router.get('/emails/{identifier}')
