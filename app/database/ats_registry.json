@@ -44,6 +44,16 @@
       "last_success_at": null,
       "last_job_count": 0,
       "last_error": null
+    },
+    {
+      "company_name": "APEC — offres récentes Data",
+      "ats_type": "apec",
+      "company_slug": "data",
+      "careers_url": "https://www.apec.fr/candidat/recherche-emploi.html/emploi",
+      "enabled": true,
+      "last_success_at": null,
+      "last_job_count": 0,
+      "last_error": null
     }
   ]
 }

@@ -29,7 +29,7 @@ let drawerVersion = 0;
 let requestTimer;
 const date = value => value ? new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short',year:'numeric'}).format(new Date(value)) : 'Non renseignée';
 const number = n => new Intl.NumberFormat('fr-FR').format(n || 0);
-const sourceName = source => (source || '').replace('snapshot:','').replace(/_/g,' ').replace(/^./, c=>c.toUpperCase());
+const sourceName = source => {const key=(source||'').replace('snapshot:','');const labels={apec:'APEC',business_france_vie:'Business France VIE'};return labels[key]||key.replace(/_/g,' ').replace(/^./, c=>c.toUpperCase());};
 const locationName = o => {const match=(o.raw_text||'').match(/(?:Location|Lieu|Localisation):\s*([^\n]+)/i);return match ? match[1].slice(0,75) : 'Lieu non renseigné';};
 const logo = name => `<span class="company-logo" data-company="${esc((name||'').toLowerCase())}">${esc((name||'?').charAt(0))}${name==='Stripe'?'':name==='Qonto'?'<span hidden>Qonto</span>':''}</span>`;
 const badge = s => `<span class="badge ${esc(s)}"><span class="tiny-dot"></span>${esc(labels[s]||s)}</span>`;

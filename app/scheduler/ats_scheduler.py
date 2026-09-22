@@ -38,6 +38,7 @@ REGISTRY_PATH = Path("app/database/ats_registry.json")
 LOCK_FILE = Path("/tmp/ats_ingest.lock")
 SOURCE_LABELS = {
     "business_france_vie": "Business France VIE",
+    "apec": "APEC",
     "lever": "Lever",
     "greenhouse": "Greenhouse",
     "ashby": "Ashby",
@@ -68,6 +69,10 @@ def build_telegram_summary(payload: dict) -> str:
         label = SOURCE_LABELS.get(name, name)
         if result.get("status") == "success":
             lines.append(f"- {label}: OK, +{result.get('created', 0)}, doublons {result.get('duplicates', 0)}")
+            if name == "apec" and result.get("stop_reason"):
+                lines.append(f"  APEC arrêt: {result['stop_reason']}")
+                if result.get("warning"):
+                    lines.append(f"  APEC alerte: {result['warning'][:120]}")
         else:
             lines.append(f"- {label}: ERREUR ({str(result.get('error', ''))[:80]})")
 
@@ -157,6 +162,17 @@ async def ingest_ats(ats_type, company_slug, max_per=50):
         from app.services.business_france_vie_adapter import BusinessFranceVieAdapter
         adapter = BusinessFranceVieAdapter()
         context = {"max_per_company": None}
+    elif ats_type == "apec":
+        from app.services.apec_api_adapter import ApecAdapter
+        adapter = ApecAdapter()
+        context = {
+            "search_terms": company_slug,
+            "max_results": max_per or int(os.getenv("APEC_MAX_RESULTS", "200")),
+            "window_hours": int(os.getenv("APEC_WINDOW_HOURS", "48")),
+            "date_field": os.getenv("APEC_DATE_FIELD", "datePublication"),
+            "page_size": int(os.getenv("APEC_PAGE_SIZE", "20")),
+            "sleep": float(os.getenv("APEC_PAGE_SLEEP", "0.2")),
+        }
     else:
         raise ValueError(f"Unknown ATS: {ats_type}")
 
@@ -174,8 +190,10 @@ async def ingest_ats(ats_type, company_slug, max_per=50):
                 logger.warning(f"Failed to extract {url_obj}: {exc}")
 
         # A partial source must never drive closures.
-        complete = extraction_errors == 0
-        return discovered, all_offers, complete
+        # APEC intentionally collects only the recent window. Missing recent
+        # results must never close older APEC rows in lifecycle reconciliation.
+        complete = extraction_errors == 0 and ats_type != "apec"
+        return discovered, all_offers, complete, getattr(adapter, "last_run", {})
     finally:
         await adapter.close()
 
@@ -224,8 +242,8 @@ def run_collection():
             start_time = datetime.now()
 
             try:
-                max_per = None if ats == "business_france_vie" else 50
-                discovered, all_offers, complete = asyncio.run(ingest_ats(ats, slug, max_per=max_per))
+                max_per = None if ats == "business_france_vie" else (int(os.getenv("APEC_MAX_RESULTS", "200")) if ats == "apec" else 50)
+                discovered, all_offers, complete, run_meta = asyncio.run(ingest_ats(ats, slug, max_per=max_per))
                 logger.info(f"{name}: discovered={len(discovered)} extracted={len(all_offers)} complete={complete}")
 
                 found_urls = set()
@@ -234,7 +252,11 @@ def run_collection():
                 seen_fps = set()
 
                 for offer in all_offers:
-                    fp = sha256(f"{offer.company_name}|{offer.job_title}|{offer.location}".encode()).hexdigest()
+                    # Prefer the source identifier/URL. Title + company alone
+                    # incorrectly merges distinct APEC postings with the same
+                    # role and location.
+                    identity = offer.external_job_id or offer.job_url
+                    fp = sha256(f"{offer.source}|{identity}".encode()).hexdigest()
                     found_urls.add(offer.job_url)
                     if fp in seen_fps:
                         duplicates += 1
@@ -270,7 +292,7 @@ def run_collection():
                 source_found_urls[ats].update(found_urls)
                 source_complete[ats] = source_complete[ats] and complete
                 duration = (datetime.now() - start_time).total_seconds()
-                results[name] = {"status": "success", "created": created, "duplicates": duplicates, "duration": duration}
+                results[name] = {"status": "success", "created": created, "duplicates": duplicates, "duration": duration, **run_meta}
             except Exception as exc:
                 db.rollback()
                 source_complete[ats] = False
