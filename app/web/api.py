@@ -101,6 +101,13 @@ def offer(identifier: int, db: Session = Depends(get_db)) -> dict:
     return svc.offer_data(db, svc.get_offer(db, identifier))
 
 
+@router.post('/offers/{identifier}/direct-source')
+async def direct_source(identifier: int, db: Session = Depends(get_db)) -> dict:
+    from app.services.direct_source_finder import DirectSourceFinder
+    row = svc.get_offer(db, identifier)
+    return await DirectSourceFinder.find(company=row.company.name, title=row.job_title, original_url=row.job_url)
+
+
 @router.post('/offers/{identifier}/save')
 def save_offer(identifier: int, db: Session = Depends(get_db)) -> dict:
     offer = svc.get_offer(db, identifier)

@@ -128,3 +128,34 @@ $('#navigation').innerHTML=nav.map(([page,i,label])=>`<a href="#${page}" data-na
 $('#settings-link').innerHTML=`${icon('settings')}Réglages & connexions`;
 $('#search-icon').innerHTML=icon('search');$('#today').textContent=new Intl.DateTimeFormat('fr-FR',{weekday:'short',day:'numeric',month:'short'}).format(new Date());
 window.addEventListener('hashchange',navigate);navigate();
+
+// Add the direct-source action to offer drawers without changing the canonical source URL.
+document.addEventListener('click', event => {
+  const offerButton = event.target.closest('[data-action="offer"]');
+  if (!offerButton) return;
+  setTimeout(() => {
+    if ($('#drawer').dataset.kind !== 'offer' || $('#direct-source-results')) return;
+    const id = $('#drawer').dataset.id;
+    const actions = $('.drawer-actions', $('#drawer'));
+    if (!actions) return;
+    actions.insertAdjacentHTML('beforeend', `<button class="btn" data-action="direct-source" data-id="${esc(id)}">${icon('search')}Chercher la source directe</button>`);
+    actions.insertAdjacentHTML('afterend', '<section class="drawer-section" id="direct-source-results"><p class="muted">Recherche facultative sur le site carrière de l’entreprise et les job boards.</p></section>');
+  }, 0);
+});
+
+document.addEventListener('click', async event => {
+  const button = event.target.closest('[data-action="direct-source"]');
+  if (!button || button.disabled) return;
+  button.disabled = true;
+  const box = $('#direct-source-results');
+  if (box) box.innerHTML = '<span class="spinner"></span> Recherche de la source directe…';
+  try {
+    const data = await post(`/offers/${button.dataset.id}/direct-source`);
+    if (!box) return;
+    box.innerHTML = data.status === 'ok' && data.results.length
+      ? `<h3>Sources directes possibles</h3>${data.results.map(r => `<div class="setting-row"><div><a class="text-link" href="${esc(safeURL(r.url))}" target="_blank" rel="noopener noreferrer">${esc(r.title || r.domain)} ${icon('external')}</a><small>${esc(r.domain)} · ${r.confidence}% de confiance</small><small>${esc(r.reasons.join(' · '))}</small></div></div>`).join('')}`
+      : '<p class="muted">Aucune source directe fiable trouvée. Le lien d’origine reste conservé.</p>';
+  } catch (error) {
+    if (box) box.innerHTML = `<p class="muted">Recherche indisponible : ${esc(error.message)}</p>`;
+  } finally { button.disabled = false; }
+});
