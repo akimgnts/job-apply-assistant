@@ -118,6 +118,10 @@ class DocumentGenerationV2:
             raise DocumentQualityError("Old generic CV template detected")
         if "Designed and deployed de" in html_doc or re.search(r"\b(de|des|du)\s+\d+\+", html_doc):
             raise DocumentQualityError("Hybrid French/English wording detected")
+        if re.search(r'<span class="project-title">\s*</span>\s*\|\s*(?:</p>|<)', html_doc):
+            raise DocumentQualityError("Empty project shell detected")
+        if re.search(r"<li>\s*</li>", html_doc):
+            raise DocumentQualityError("Empty bullet detected")
         if "AKIM GUENTAS" not in html_doc.upper():
             raise DocumentQualityError("Candidate identity missing")
 
@@ -143,6 +147,12 @@ class DocumentGenerationV2:
         role = analysis.get("job_title") or "Data / AI Role"
         language = DocumentGenerationV2._language(analysis)
         is_en = language == "en"
+        strategy = DocumentGenerationV2._cv_prime_strategy(analysis)
+
+        if strategy["family"] == "marketing_crm_bi":
+            return DocumentGenerationV2._fallback_marketing_crm_cv_payload(
+                analysis, master_cv, info, company, role, is_en
+            )
 
         if is_en:
             profile_title = "Profile"
@@ -236,6 +246,111 @@ class DocumentGenerationV2:
                 "disponibilite": availability,
             },
         }
+
+    @staticmethod
+    def _fallback_marketing_crm_cv_payload(
+        analysis: dict,
+        master_cv: dict,
+        info: dict,
+        company: str,
+        role: str,
+        is_en: bool,
+    ) -> dict:
+        vie_location = DocumentGenerationV2._vie_location(analysis)
+        mobility = f"Paris, France | Open to V.I.E in {vie_location} from January 2027"
+        return {
+            "nom_complet": (info["name"] or "Akim Guentas").upper(),
+            "intitule_cible": role,
+            "entreprise": company,
+            "mots_cles_differenciants": "Power BI · CRM & Digital Performance · Marketing Automation",
+            "localisation": mobility,
+            "telephone": info.get("phone", ""),
+            "email": info.get("email", ""),
+            "linkedin_url": DocumentGenerationV2._url(info.get("linkedin", ""), "https://"),
+            "linkedin_label": "linkedin.com/in/akimguentas",
+            "github_url": DocumentGenerationV2._url(info.get("github", ""), "https://"),
+            "github_label": "github.com/akimgnts",
+            "portfolio_url": DocumentGenerationV2._url(info.get("portfolio", ""), "https://"),
+            "portfolio_label": info.get("portfolio", "madebyakim.com"),
+            "titres": {
+                "profil": "Profile" if is_en else "Profil",
+                "competences": "Core Skills" if is_en else "Compétences clés",
+                "experiences": "Professional Experience" if is_en else "Expérience professionnelle",
+                "projet_cible": "Selected Digital & Automation Project" if is_en else "Projet digital & automation ciblé",
+                "projets_complementaires": "Selected Digital & Automation Projects" if is_en else "Projets digitaux & automation sélectionnés",
+                "formation": "Education & Certifications" if is_en else "Formation & certifications",
+            },
+            "resume": (
+                "Data & Business Analyst with an MSc focused on marketing analytics and two years' experience "
+                "turning CRM, commercial and customer data into performance dashboards and business recommendations. "
+                "At Sidel, delivered 6+ Power BI dashboards used weekly by dozens of employees and managers, connected "
+                "previously separate data sources and reduced a weekly reporting process by about 80%. Also builds "
+                "automation and data-integration workflows through MadeByAkim. Combines analytical rigor, business "
+                "understanding and proactive delivery in international environments."
+            ),
+            "competences": [
+                ("Digital performance & CRM", "Lead and funnel tracking, marketing KPIs, NPS, customer feedback, touchpoints, commercial prioritisation"),
+                ("Dashboards & analytics", "Power BI, Power Query, DAX (operational), advanced Excel, Tableau (intermediate)"),
+                ("Data integration & quality", "SQL, Python, PostgreSQL, REST APIs, webhooks, consistency checks, dimensional modelling"),
+                ("Marketing automation", "n8n, Make, Google Apps Script, automated workflows, system-to-system data flows"),
+                ("Business delivery", "KPI definition, user stories, testing, Agile/Kanban, cross-functional stakeholder management"),
+            ],
+            "precision": "",
+            "experiences": DocumentGenerationV2._fallback_marketing_crm_experiences(),
+            "projet_cible": {
+                "name": "Nuit Blanche — Content production automation",
+                "description": (
+                    "Designed a Google Sheets and Apps Script workflow that turns event data into visual deliverables "
+                    "through validation, filtering, prioritisation and automated generation."
+                ),
+                "status": "",
+            },
+            "projets_complementaires": [
+                {
+                    "name": "Job Apply Assistant — Multi-agent workflow",
+                    "description": (
+                        "Converted a manual process of about 45 minutes into an automated workflow of about 5 minutes, "
+                        "covering data parsing, analysis, matching, document generation and tracking."
+                    ),
+                }
+            ],
+            "formation": {
+                "diplomes": [
+                    ("MSc Business Intelligence & Analytics — Data Analyst for Marketing", "Eugenia School", "2025"),
+                    ("Bachelor in Business & Marketing Management", "EM Normandie", "2023"),
+                ],
+                "certifications": "Dataiku ML Practitioner · Python for Machine Learning · Fine-Tuning Large Language Models",
+                "langues": "French (native), English (professional), Spanish (intermediate)",
+                "disponibilite": f"V.I.E {vie_location} · January 2027 · 12 months",
+            },
+        }
+
+    @staticmethod
+    def _fallback_marketing_crm_experiences() -> list[dict]:
+        return [
+            {
+                "title": "Data & Business Analyst — Marketing, Sales & CRM Analytics",
+                "company": "Sidel (Tetra Laval Group)",
+                "dates": "2023 – 2025 | International",
+                "bullets": [
+                    "Designed and deployed 6+ Power BI dashboards used weekly by dozens of employees and managers to monitor business performance across Marketing, Sales, Communication and Management use cases.",
+                    "Built a European event-performance dashboard by reconciling attendance, contact and satisfaction data; structured a funnel from visits and contacts to meetings and commercial opportunities.",
+                    "Developed a CRM dashboard covering sales activity, meetings, new opportunities and customer touchpoints; used interaction history to help teams prioritise follow-ups.",
+                    "Tracked leads, marketing KPIs, NPS and customer feedback; translated analyses into recommendations and presentations for business teams.",
+                    "Automated a weekly Excel report from 5–6 hours to about 1 hour, including controls — approximately 80% less processing time.",
+                ],
+            },
+            {
+                "title": "AI Transformation Consultant & Product Builder (Freelance)",
+                "company": "MadeByAkim",
+                "dates": "2024 – Present | Paris / Remote",
+                "bullets": [
+                    "Analyse business needs and design end-to-end data solutions with Python, FastAPI, PostgreSQL, SQL and REST APIs, from ingestion and transformation to storage and delivery.",
+                    "Build automations with n8n, Make, Google Apps Script, webhooks and APIs to connect systems, reduce manual work and make recurring data flows more reliable.",
+                    "Set up tests, logs, Git versioning, Docker and Coolify deployment for traceability and maintainability.",
+                ],
+            },
+        ]
 
     @staticmethod
     def _fallback_experiences(master_cv: dict, is_en: bool) -> list[dict]:
@@ -407,7 +522,11 @@ class DocumentGenerationV2:
     @staticmethod
     def _cv_prompt(analysis: dict, master_cv: dict) -> str:
         instructions = DocumentGenerationV2._read_instruction("cv_instructions.md")
+        doctrine = DocumentGenerationV2._read_instruction("cv_prime_doctrine.md")
         return f"""{instructions}
+
+CV Prime doctrine to apply before writing:
+{doctrine}
 
 Return JSON only. Fill the supplied targeted CV template indirectly through these keys:
 nom_complet, intitule_cible, entreprise, mots_cles_differenciants, localisation,
@@ -450,6 +569,46 @@ Master CV source data:
     def _bullet(exp: dict, index: int) -> str:
         bullets = exp.get("bullets", [])
         return bullets[index] if index < len(bullets) else ""
+
+    @staticmethod
+    def _cv_prime_strategy(analysis: dict) -> dict:
+        text = DocumentGenerationV2._analysis_text(analysis)
+        marketing_markers = (
+            "crm", "marketing", "digital performance", "kpi", "lead", "funnel",
+            "nps", "customer feedback", "customer touchpoint", "power bi", "dashboard",
+            "campaign", "sales activity", "commercial", "event"
+        )
+        if sum(1 for marker in marketing_markers if marker in text) >= 3:
+            return {
+                "family": "marketing_crm_bi",
+                "positioning": "Data Marketing / CRM / BI",
+            }
+        return {
+            "family": "data_engineering",
+            "positioning": "Data pipelines / quality / production delivery",
+        }
+
+    @staticmethod
+    def _analysis_text(analysis: dict) -> str:
+        parts: list[str] = []
+        for key in ("company", "job_title", "location", "contract_type", "description", "raw_offer"):
+            parts.append(str(analysis.get(key, "")))
+        for key in ("missions", "required_skills", "ats_keywords", "soft_skills"):
+            value = analysis.get(key, [])
+            if isinstance(value, list):
+                parts.extend(str(item) for item in value)
+            else:
+                parts.append(str(value))
+        return " ".join(parts).lower()
+
+    @staticmethod
+    def _vie_location(analysis: dict) -> str:
+        text = DocumentGenerationV2._analysis_text(analysis)
+        if "rio" in text:
+            return "Rio de Janeiro"
+        if "brazil" in text or "brésil" in text:
+            return "Brazil"
+        return "the target location"
 
     @staticmethod
     def _url(value: str, prefix: str) -> str:

@@ -52,8 +52,9 @@
         <p><strong>{{FAMILLE_COMPETENCE_4}}</strong> {{COMPETENCES_PERTINENTES_4}}</p>
         <p><strong>{{FAMILLE_COMPETENCE_5}}</strong> {{COMPETENCES_PERTINENTES_5}}</p>
       </div>
-      <!-- Supprimer cette ligne si aucune compétence ne nécessite de précision de niveau. -->
+      {% if PRECISION_HONNETE_SUR_COMPETENCE_EN_COURS %}
       <p class="status">{{PRECISION_HONNETE_SUR_COMPETENCE_EN_COURS}}</p>
+      {% endif %}
     </section>
 
     <section>
@@ -86,20 +87,24 @@
       </article>
     </section>
 
-    <!-- Section facultative : la conserver uniquement si un projet constitue une preuve décisive. -->
+    {% if NOM_PROJET_CIBLE and PROBLEME_SOLUTION_TECHNOLOGIES_RESULTAT %}
     <section>
       <h2>{{TITRE_SECTION_PROJET_CIBLE}}</h2>
       <div class="project">
         <p><span class="project-title">{{NOM_PROJET_CIBLE}}</span> | {{PROBLEME_SOLUTION_TECHNOLOGIES_RESULTAT}} <span class="status">{{STATUT_EVENTUEL}}</span></p>
       </div>
     </section>
+    {% endif %}
 
-    <!-- Dupliquer ou supprimer les blocs .project selon la pertinence et l’espace disponible. -->
+    {% if NOM_PROJET_2 and DESCRIPTION_CIBLEE_PROJET_2_AVEC_PREUVE %}
     <section>
       <h2>{{TITRE_SECTION_PROJETS_COMPLEMENTAIRES}}</h2>
       <div class="project"><p><span class="project-title">{{NOM_PROJET_2}}</span> | {{DESCRIPTION_CIBLEE_PROJET_2_AVEC_PREUVE}}</p></div>
+      {% if NOM_PROJET_3 and DESCRIPTION_CIBLEE_PROJET_3_AVEC_PREUVE %}
       <div class="project"><p><span class="project-title">{{NOM_PROJET_3}}</span> | {{DESCRIPTION_CIBLEE_PROJET_3_AVEC_PREUVE}}</p></div>
+      {% endif %}
     </section>
+    {% endif %}
 
     <section>
       <h2>{{TITRE_SECTION_FORMATION}}</h2>

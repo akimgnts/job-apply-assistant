@@ -68,3 +68,46 @@ def test_letter_fallback_uses_apec_template_without_placeholders(luxurynsight_an
     assert "Madame, Monsieur" in html
     assert "{{" not in html
     assert "TEMPLATE DE RÉFÉRENCE" not in html
+
+
+def test_servier_fallback_uses_cv_prime_strategy_for_marketing_crm_vie():
+    analysis = {
+        "company": "Servier International",
+        "job_title": "Digital & Data Analytics Officer",
+        "missions": [
+            "Monitor digital performance and marketing KPIs",
+            "Build Power BI dashboards for CRM, leads and funnel tracking",
+            "Support teams in Rio de Janeiro during a V.I.E assignment",
+        ],
+        "required_skills": [
+            "Power BI",
+            "CRM",
+            "marketing performance",
+            "NPS",
+            "customer feedback",
+            "automation",
+        ],
+        "ats_keywords": ["digital analytics", "crm", "power bi", "marketing automation", "vie"],
+        "location": "Rio de Janeiro",
+        "contract_type": "V.I.E",
+    }
+
+    html = DocumentGenerationV2.build_fallback_cv_html(analysis, load_master_cv())
+
+    assert "Digital & Data Analytics Officer" in html
+    assert "CRM & Digital Performance" in html
+    assert "Open to V.I.E in Rio de Janeiro from January 2027" in html
+    assert "CDI, Paris, immediate" not in html
+    assert html.index("Data & Business Analyst — Marketing, Sales & CRM Analytics") < html.index("AI Transformation Consultant & Product Builder")
+    assert "CRM dashboard" in html
+    assert "NPS" in html
+    assert "Claude Code" not in html
+    assert "MCP" not in html
+    assert "<span class=\"project-title\"></span> |" not in html
+
+
+def test_quality_rejects_empty_project_shells():
+    with pytest.raises(DocumentQualityError):
+        DocumentGenerationV2.validate_cv_html(
+            "<html><body>AKIM GUENTAS<div class=\"project\"><p><span class=\"project-title\"></span> | </p></div></body></html>"
+        )
