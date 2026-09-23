@@ -112,6 +112,45 @@ def test_overview_profile_and_safe_document_download(workspace):
     assert client.get('/api/companies/1').json()['offers'][0]['job_title'] == 'Data analyst'
 
 
+def test_document_pdf_download_contract(workspace, monkeypatch):
+    async def fake_pdf(html: str) -> bytes:
+        assert "AKIM GUENTAS" in html
+        return b"%PDF-1.4\nfake\n%%EOF"
+
+    import app.web.api as web_api
+
+    monkeypatch.setattr(web_api, "render_document_pdf", fake_pdf)
+    client, session = workspace
+    created = client.post('/api/applications', json={'raw_offer': 'SQL analyst'}).json()
+    cv = GeneratedDocument(
+        application_id=created['id'],
+        telegram_user_id='local',
+        document_type='cv',
+        filename='../../Akim CV.html',
+        content='<html><body>AKIM GUENTAS</body></html>',
+        format='html',
+    )
+    mail = GeneratedDocument(
+        application_id=created['id'],
+        telegram_user_id='local',
+        document_type='mail',
+        filename='mail.txt',
+        content='Bonjour',
+        format='txt',
+    )
+    session.add_all([cv, mail])
+    session.commit()
+
+    response = client.get(f'/api/documents/{cv.id}/pdf')
+
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'application/pdf'
+    assert response.content.startswith(b'%PDF')
+    assert '../' not in response.headers['content-disposition']
+    assert response.headers['content-disposition'].endswith('.pdf"')
+    assert client.get(f'/api/documents/{mail.id}/pdf').status_code == 409
+
+
 def test_analysis_and_generation_use_existing_agents_without_exposing_errors(workspace, monkeypatch):
     import sys
     from types import SimpleNamespace

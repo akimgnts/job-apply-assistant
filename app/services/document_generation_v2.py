@@ -35,6 +35,8 @@ class DocumentGenerationV2:
     @staticmethod
     async def generate_cv_html(analysis: dict, master_cv: dict) -> str:
         """Generate a targeted CV using the strict template and quality gates."""
+        if DocumentGenerationV2._cv_prime_strategy(analysis)["family"] == "marketing_crm_bi":
+            return DocumentGenerationV2.build_fallback_cv_html(analysis, master_cv)
         try:
             payload = await DocumentGenerationV2._generate_cv_payload(analysis, master_cv)
             html_doc = DocumentGenerationV2.render_cv_payload(payload)

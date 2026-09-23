@@ -111,3 +111,27 @@ def test_quality_rejects_empty_project_shells():
         DocumentGenerationV2.validate_cv_html(
             "<html><body>AKIM GUENTAS<div class=\"project\"><p><span class=\"project-title\"></span> | </p></div></body></html>"
         )
+
+
+@pytest.mark.asyncio
+async def test_marketing_crm_family_bypasses_generic_llm(monkeypatch):
+    async def generic_llm(*args, **kwargs):
+        return '{"nom_complet":"AKIM GUENTAS"}'
+
+    import app.services.openai_service as openai_service
+
+    monkeypatch.setattr(openai_service, "call_openai", generic_llm)
+    analysis = {
+        "company": "Servier International",
+        "job_title": "Digital & Data Analytics Officer",
+        "missions": ["Power BI dashboards", "CRM funnel tracking", "marketing KPIs"],
+        "required_skills": ["CRM", "NPS", "Power BI"],
+        "location": "Rio de Janeiro",
+        "contract_type": "V.I.E",
+    }
+
+    html = await DocumentGenerationV2.generate_cv_html(analysis, load_master_cv())
+
+    assert "CRM dashboard" in html
+    assert "V.I.E Rio de Janeiro" in html
+    assert "CDI, Paris, immediate" not in html

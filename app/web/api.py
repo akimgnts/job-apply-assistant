@@ -256,6 +256,36 @@ def download(identifier: int, db: Session = Depends(get_db)) -> Response:
     return Response(doc.content, media_type='text/plain' if doc.document_type.value == 'mail' else 'text/html', headers={'Content-Disposition': f'attachment; filename="{filename}"', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'"})
 
 
+@router.get('/documents/{identifier}/pdf')
+async def download_pdf(identifier: int, db: Session = Depends(get_db)) -> Response:
+    doc = svc.get_document(db, identifier)
+    if doc.document_type.value == 'mail':
+        raise HTTPException(409, 'Les emails sont téléchargés en texte, pas en PDF.')
+    pdf = await render_document_pdf(doc.content)
+    stem = Path(doc.filename).stem or f'document-{doc.id}'
+    filename = re.sub(r'[^a-zA-Z0-9._-]', '_', stem).lstrip('.') or f'document-{doc.id}'
+    return Response(pdf, media_type='application/pdf', headers={'Content-Disposition': f'attachment; filename="{filename}.pdf"', 'X-Content-Type-Options': 'nosniff'})
+
+
+async def render_document_pdf(html_content: str) -> bytes:
+    try:
+        from playwright.async_api import async_playwright
+    except Exception:
+        raise HTTPException(503, 'Export PDF indisponible sur ce serveur.') from None
+    try:
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch(args=['--no-sandbox'])
+            page = await browser.new_page(viewport={'width': 1240, 'height': 1754})
+            await page.set_content(html_content, wait_until='networkidle')
+            pdf = await page.pdf(format='A4', print_background=True, margin={'top': '0', 'right': '0', 'bottom': '0', 'left': '0'})
+            await browser.close()
+            return pdf
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(503, 'Export PDF indisponible sur ce serveur.') from None
+
+
 @router.get('/companies')
 def companies(q: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(db.query(Company), q, Company.name)
