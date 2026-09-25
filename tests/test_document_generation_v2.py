@@ -135,3 +135,18 @@ async def test_marketing_crm_family_bypasses_generic_llm(monkeypatch):
     assert "CRM dashboard" in html
     assert "V.I.E Rio de Janeiro" in html
     assert "CDI, Paris, immediate" not in html
+
+
+@pytest.mark.parametrize("contract", [None, "CDI", "CDD"])
+def test_apec_marketing_cv_does_not_invent_vie_mobility(contract):
+    analysis = {
+        "company": "Gan Assurances",
+        "job_title": "Commercial Pilotage Analyst",
+        "missions": ["CRM dashboards", "marketing KPIs", "assurance vie"],
+        "source": "apec",
+        "contract_type": contract,
+    }
+    html = DocumentGenerationV2.build_fallback_cv_html(analysis, load_master_cv())
+    assert load_master_cv()["personal_info"]["location"] in html
+    for unwanted in ("V.I.E", "January 2027", "12 months", "the target location", "Availability:"):
+        assert unwanted not in html

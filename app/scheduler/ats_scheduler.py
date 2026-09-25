@@ -133,6 +133,14 @@ def acquisition_lock(timeout_secs=3600):
                 logger.warning("Owned lock disappeared before release")
 
 
+def normalized_offer_text(offer):
+    raw = offer.raw_text or ""
+    location = getattr(offer, "location", None)
+    if location and not raw.lower().lstrip().startswith(("lieu:", "location:", "localisation:")):
+        return f"Lieu: {location}\n\n{raw}".strip()
+    return raw
+
+
 def get_or_create_company(db, company_name):
     from app.database.models import Company
 
@@ -267,9 +275,12 @@ def run_collection():
                     source_company_ids[ats].add(company_obj.id)
                     existing = db.query(JobOffer).filter(JobOffer.job_url == offer.job_url).first()
                     persist_offer_contacts(db, company_obj, offer)
+                    offer_text = normalized_offer_text(offer)
                     if existing:
                         if offer.posted_date and not existing.posted_date:
                             existing.posted_date = offer.posted_date
+                        if offer_text and offer_text != (existing.raw_text or ""):
+                            existing.raw_text = offer_text
                         update_job_offer_lifecycle(db, offer.job_url)
                         duplicates += 1
                     else:
@@ -278,7 +289,7 @@ def run_collection():
                             job_title=offer.job_title,
                             job_url=offer.job_url,
                             source=offer.source,
-                            raw_text=offer.raw_text or "",
+                            raw_text=offer_text,
                             posted_date=offer.posted_date,
                             status="active",
                             first_seen_at=capture_time,

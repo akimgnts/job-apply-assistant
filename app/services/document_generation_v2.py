@@ -258,8 +258,13 @@ class DocumentGenerationV2:
         role: str,
         is_en: bool,
     ) -> dict:
-        vie_location = DocumentGenerationV2._vie_location(analysis)
-        mobility = f"Paris, France | Open to V.I.E in {vie_location} from January 2027"
+        contract = re.sub(r"[\s.]", "", str(analysis.get("contract_type") or "")).upper()
+        mobility = info.get("location") or "Paris, France"
+        availability = ""
+        if contract in {"VIE", "VOLONTARIATINTERNATIONALENENTREPRISE"}:
+            vie_location = DocumentGenerationV2._vie_location(analysis)
+            mobility = f"{mobility} | Open to V.I.E in {vie_location} from January 2027"
+            availability = f"V.I.E {vie_location} · January 2027 · 12 months"
         return {
             "nom_complet": (info["name"] or "Akim Guentas").upper(),
             "intitule_cible": role,
@@ -323,7 +328,7 @@ class DocumentGenerationV2:
                 ],
                 "certifications": "Dataiku ML Practitioner · Python for Machine Learning · Fine-Tuning Large Language Models",
                 "langues": "French (native), English (professional), Spanish (intermediate)",
-                "disponibilite": f"V.I.E {vie_location} · January 2027 · 12 months",
+                "disponibilite": availability,
             },
         }
 

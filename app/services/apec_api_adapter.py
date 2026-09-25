@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 APEC_SEARCH_URL = "https://www.apec.fr/cms/webservices/rechercheOffre"
 APEC_DETAIL_PAGE = "https://www.apec.fr/candidat/recherche-emploi.html/emploi/detail-offre/{id}"
+APEC_ILE_DE_FRANCE_ID = 711
 
 HEADERS = {
     "Content-Type": "application/json",
@@ -113,18 +114,20 @@ class ApecAdapter(JobSourceAdapter):
     def normalize_result(raw: dict) -> NormalizedJobOffer:
         number = str(raw.get("numeroOffre") or raw.get("id") or "")
         description = raw.get("texteOffre") or ""
+        location = raw.get("lieuTexte")
+        raw_text = "\n\n".join(part for part in (f"Lieu: {location}" if location else "", description) if part)
         posted = parse_apec_date(raw.get("datePublication"))
         return NormalizedJobOffer(
             job_title=raw.get("intitule") or "Offre APEC",
             company_name=raw.get("nomCommercial") or "Entreprise à préciser",
             job_url=APEC_DETAIL_PAGE.format(id=number),
             source="apec",
-            location=raw.get("lieuTexte"),
+            location=location,
             # typeContrat is an APEC nomenclature id; keep it out of the
             # canonical string field until a nomenclature endpoint is mapped.
             contract_type=None,
             posted_date=posted.replace(tzinfo=None) if posted else None,
-            raw_text=description,
+            raw_text=raw_text,
             external_job_id=number,
             required_skills=None,
             description=description,
@@ -143,6 +146,8 @@ class ApecAdapter(JobSourceAdapter):
         now = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
         cutoff = now.astimezone(timezone.utc) - timedelta(hours=window_hours)
         base = json.loads(json.dumps(context.get("payload") or BASE_PAYLOAD))
+        # Apply the region before pagination, including with custom payloads.
+        base["lieux"] = [APEC_ILE_DE_FRANCE_ID]
         discovered: list[DiscoveredJobUrl] = []
         start = 0
         previous_date = None

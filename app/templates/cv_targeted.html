@@ -112,7 +112,7 @@
         <p><strong>{{DIPLOME_1}}</strong> | {{ETABLISSEMENT_1}} | {{ANNEE_1}}</p>
         <p><strong>{{DIPLOME_2}}</strong> | {{ETABLISSEMENT_2}} | {{ANNEE_2}}</p>
         <p><strong>{{LABEL_CERTIFICATIONS}}</strong> {{CERTIFICATIONS_PERTINENTES}}</p>
-        <p class="meta"><strong>{{LABEL_LANGUES}}</strong> {{LANGUES}} | <strong>{{LABEL_DISPONIBILITE}}</strong> {{DISPONIBILITE}}</p>
+        <p class="meta"><strong>{{LABEL_LANGUES}}</strong> {{LANGUES}}{% if DISPONIBILITE %} | <strong>{{LABEL_DISPONIBILITE}}</strong> {{DISPONIBILITE}}{% endif %}</p>
       </div>
     </section>
   </main>

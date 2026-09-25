@@ -28,7 +28,7 @@ def test_normalize_api_result_uses_publication_date_and_public_url():
     assert normalized.external_job_id == "179465152W"
     assert normalized.posted_date == datetime(2026, 9, 22, 20, 45, 14)
     assert normalized.job_url.endswith("/detail-offre/179465152W")
-    assert normalized.raw_text == "SQL Python Power BI"
+    assert normalized.raw_text == "Lieu: Paris - 75\n\nSQL Python Power BI"
 
 
 def test_should_stop_after_oldest_recent_window_when_dates_are_sorted():
@@ -90,3 +90,49 @@ def test_discover_marks_old_results_and_stops_when_window_is_reached():
 
     assert [item.metadata["apec_id"] for item in discovered] == ["1W"]
     assert len(adapter.session.calls) == 1
+
+
+def test_discovery_filters_every_page_to_ile_de_france():
+    class FakeResponse:
+        status = 200
+
+        def __init__(self, number):
+            self.number = number
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+        async def json(self, **kwargs):
+            return {
+                "totalCount": 2,
+                "resultats": [result(self.number, "Data Analyst", "2026-09-22T20:00:00.000+0000")],
+            }
+
+    class FakeSession:
+        def __init__(self):
+            self.calls = []
+
+        def post(self, url, json, **kwargs):
+            self.calls.append(json)
+            return FakeResponse(str(len(self.calls)))
+
+    for custom_payload in (None, {"lieux": [], "typesContrat": [101888]}):
+        session = FakeSession()
+        adapter = ApecAdapter(session=session)
+        discovered = asyncio.run(adapter.discover_jobs({
+            "search_terms": "data",
+            "now": datetime(2026, 9, 22, 21, tzinfo=timezone.utc),
+            "page_size": 1,
+            "payload": custom_payload,
+        }))
+
+        assert len(discovered) == 2
+        assert [call["pagination"]["startIndex"] for call in session.calls] == [0, 1]
+        assert all(call["lieux"] == [711] for call in session.calls)
+        assert all(call["motsCles"] == "data" for call in session.calls)
+        if custom_payload is not None:
+            assert custom_payload["lieux"] == []
+            assert all(call["typesContrat"] == [101888] for call in session.calls)

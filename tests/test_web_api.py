@@ -293,3 +293,55 @@ def test_contacts_panel_only_lists_real_non_invalid_contacts(workspace):
     assert response.status_code == 200
     assert response.json()['total'] == 1
     assert response.json()['items'][0]['company'] == 'Acme'
+
+
+def test_apec_action_geo_filter_keeps_only_paris_idf_for_radar(workspace):
+    from datetime import datetime, timedelta
+    client, session = workspace
+    company = session.query(Company).filter_by(name='Acme').first()
+    recent = datetime.utcnow() - timedelta(hours=2)
+    paris = JobOffer(
+        company_id=company.id,
+        job_title='Data Analyst CRM',
+        job_url='https://example.org/apec-paris',
+        source='apec',
+        raw_text='Lieu: Paris - 75\n\nSQL Power BI CRM automation',
+        posted_date=recent,
+        first_seen_at=recent,
+        last_seen_at=recent,
+        status='active',
+    )
+    lyon = JobOffer(
+        company_id=company.id,
+        job_title='Data Analyst CRM',
+        job_url='https://example.org/apec-lyon',
+        source='apec',
+        raw_text='Lieu: Lyon - 69\n\nSQL Power BI CRM automation',
+        posted_date=recent,
+        first_seen_at=recent,
+        last_seen_at=recent,
+        status='active',
+    )
+    business_france = JobOffer(
+        company_id=company.id,
+        job_title='VIE Data Analyst CRM',
+        job_url='https://example.org/bf-anywhere',
+        source='business_france_vie',
+        raw_text='SQL Power BI CRM automation',
+        posted_date=recent,
+        first_seen_at=recent,
+        last_seen_at=recent,
+        status='active',
+    )
+    session.add_all([paris, lyon, business_france])
+    session.commit()
+
+    focused = client.get('/api/offers?status=active&signal=target&hours=48&geo=paris_idf&page_size=20').json()['items']
+    focused_urls = {item['job_url'] for item in focused}
+
+    assert 'https://example.org/apec-paris' in focused_urls
+    assert 'https://example.org/bf-anywhere' in focused_urls
+    assert 'https://example.org/apec-lyon' not in focused_urls
+
+    all_zones = client.get('/api/offers?status=active&signal=target&hours=48&geo=all&page_size=20').json()['items']
+    assert 'https://example.org/apec-lyon' in {item['job_url'] for item in all_zones}

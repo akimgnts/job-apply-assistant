@@ -19,6 +19,31 @@ class OfferSignalService:
     NEGATIVE_KEYWORDS = ('mechanical', 'mécanique', 'maintenance industrielle', 'production operator', 'juriste', 'comptable')
     SENIOR_KEYWORDS = ('senior', 'lead ', 'head of', 'manager', '10 ans', '10+ years', '8 ans')
 
+
+    PARIS_IDF_LOCATION_KEYWORDS = (
+        'paris', 'ile-de-france', 'île-de-france', 'idf', 'la defense', 'la défense',
+        '75', '77', '78', '91', '92', '93', '94', '95',
+        'hauts-de-seine', 'seine-saint-denis', 'val-de-marne', "val-d'oise",
+        'yvelines', 'essonne', 'seine-et-marne', 'boulogne', 'neuilly',
+    )
+
+    @classmethod
+    def location_text(cls, offer: JobOffer) -> str:
+        for line in (offer.raw_text or '').splitlines():
+            if re.match(r'\s*(lieu|location|localisation)\s*:', line, re.I):
+                return line.split(':', 1)[1].strip()
+        return ''
+
+    @classmethod
+    def is_action_geo_match(cls, offer: JobOffer, geo: str | None = None) -> bool:
+        if geo != 'paris_idf' or offer.source != 'apec':
+            return True
+        location = cls.location_text(offer)
+        if not location:
+            return False
+        normalized = location.lower().replace('é', 'e').replace('è', 'e').replace('ê', 'e').replace('î', 'i')
+        return any(keyword in normalized for keyword in cls.PARIS_IDF_LOCATION_KEYWORDS)
+
     @classmethod
     def score(cls, offer: JobOffer) -> dict:
         return cls._score_text(
