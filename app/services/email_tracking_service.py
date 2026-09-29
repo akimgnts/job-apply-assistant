@@ -100,3 +100,32 @@ def update_tracking(db: Session, event: EmailEvent) -> None:
     tracking.response_sentiment = 'negative' if confirmed_type == 'rejection' else 'positive' if confirmed_type == 'interview_request' else 'neutral'
     tracking.status = {'rejection':'rejected', 'interview_request':'interview', 'recruiter_reply':'responded'}[confirmed_type]
     tracking.next_follow_up = None
+
+
+def match_application(db: Session, event: EmailEvent):
+    """Return one certain match or none. Never choose between several candidates."""
+    if 'SENT' in (event.labels or []) or event.sender_email == event.mailbox:
+        return None, None, 0
+    owner = event.owner_id
+    apps = owned_applications(db, owner)
+    if event.thread_id:
+        matches = db.query(Application).join(EmailEvent, EmailEvent.application_id == Application.id).filter(
+            Application.telegram_user_id == owner, EmailEvent.owner_id == owner,
+            EmailEvent.mailbox == event.mailbox, EmailEvent.thread_id == event.thread_id,
+            EmailEvent.application_id.isnot(None)).distinct().all()
+        if len(matches) == 1:
+            return matches[0], 'thread', 100
+        if len(matches) > 1:
+            return None, None, 0
+    text = normalize((event.subject or '') + '\n' + (event.body_text or ''))
+    references = [app for app in apps.all() if app.source_url and len(app.source_url) > 15 and normalize(app.source_url) in text]
+    if references:
+        return (references[0], 'reference', 100) if len(references) == 1 else (None, None, 0)
+    matches = []
+    for app in apps.all():
+        company, title = normalize(app.company or '').strip(), normalize(app.job_title or '').strip()
+        if len(company) < 3 or len(title) < 4:
+            continue
+        if all(re.search(r'(?<!\w)' + re.escape(value) + r'(?!\w)', text) for value in (company, title)):
+            matches.append(app)
+    return (matches[0], 'company_title', 95) if len(matches) == 1 else (None, None, 0)

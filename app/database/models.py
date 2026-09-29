@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum as SQLEnum, UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, synonym
 import enum
 from app.database.db import Base
 
@@ -17,6 +17,9 @@ class TruthLevelEnum(str, enum.Enum):
     verified = "verified"
     declared = "declared"
     learning = "learning"
+    # Legacy rows retain their original qualification; reading does not promote them.
+    in_progress = "in_progress"
+    project = "project"
 
 class ProficiencyLevelEnum(int, enum.Enum):
     """Mastery level: 0 (learning) → 3 (expert)"""
@@ -38,6 +41,11 @@ class ApplicationStatusEnum(str, enum.Enum):
     generated = "generated"
     saved = "saved"
     archived = "archived"
+    applied = "applied"
+    received = "received"
+    replied = "replied"
+    interview = "interview"
+    rejected = "rejected"
 
 class DocumentTypeEnum(str, enum.Enum):
     cv = "cv"
@@ -104,6 +112,10 @@ class Application(Base):
     recommended_angle = Column(String(255), nullable=True)
     match_score = Column(Integer, nullable=True)
     status = Column(SQLEnum(ApplicationStatusEnum), default=ApplicationStatusEnum.analyzed)
+    plane_work_item_id = Column(String(50), nullable=True, unique=True, index=True)
+    job_offer_id = Column(Integer, ForeignKey("job_offers.id"), nullable=True, index=True)
+    applied_at = Column(DateTime, nullable=True)
+    status_updated_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -465,10 +477,11 @@ class EmailEvent(Base):
     """Private read-only Gmail event, with explicit user-confirmed application links."""
     __tablename__ = 'email_events'
     id = Column(Integer, primary_key=True)
-    owner_id = Column(String(255), nullable=False, index=True)
+    owner_id = Column(String(255), nullable=False, default='local', index=True)
     mailbox = Column(String(255), nullable=False)
     gmail_message_id = Column(String(255), nullable=False)
     thread_id = Column(String(255), index=True)
+    gmail_thread_id = synonym('thread_id')
     sender_email = Column(String(320))
     sender_name = Column(String(255))
     recipients = Column(JSON, default=list)
@@ -478,11 +491,13 @@ class EmailEvent(Base):
     received_at = Column(DateTime, index=True)
     labels = Column(JSON, default=list)
     detected_type = Column(String(50), default='unknown')
+    classification = synonym('detected_type')
     classification_reason = Column(Text)
     confirmed_type = Column(String(50), nullable=True)
     status = Column(String(30), default='pending', index=True)
     application_id = Column(Integer, ForeignKey('applications.id'), nullable=True, index=True)
     link_method = Column(String(30), nullable=True)
+    match_confidence = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     __table_args__ = (UniqueConstraint('owner_id', 'mailbox', 'gmail_message_id', name='uq_email_owner_mailbox_message'),)
@@ -503,7 +518,7 @@ class Opportunity(Base):
     """Canonical action item joining offers, Gmail, applications and documents."""
     __tablename__ = 'opportunities'
     id = Column(Integer, primary_key=True)
-    owner_id = Column(String(255), nullable=False, index=True)
+    owner_id = Column(String(255), nullable=False, default='local', index=True)
     company = Column(String(255), nullable=True, index=True)
     job_title = Column(String(255), nullable=True, index=True)
     canonical_key = Column(String(500), nullable=False)
@@ -544,3 +559,17 @@ class OpportunityEvent(Base):
     confidence = Column(Integer, default=100)
     created_at = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('opportunity_id', 'event_type', 'source_type', 'source_id', name='uq_opportunity_event_source'),)
+
+
+class ApplicationEvent(Base):
+    """Append-only audit trail for explicit actions and linked email evidence."""
+    __tablename__ = 'application_events'
+    id = Column(Integer, primary_key=True)
+    application_id = Column(Integer, ForeignKey('applications.id'), nullable=False, index=True)
+    email_event_id = Column(Integer, ForeignKey('email_events.id'), nullable=True, unique=True)
+    event_type = Column(String(50), nullable=False)
+    previous_status = Column(String(30))
+    new_status = Column(String(30))
+    source = Column(String(30), nullable=False, default='manual')
+    detail = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

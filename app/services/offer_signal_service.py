@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import re
 from typing import Any
 from app.database.models import Application, JobOffer
+from app.services.location_filters import is_ile_de_france_location
 
 
 class OfferSignalService:
@@ -20,13 +21,6 @@ class OfferSignalService:
     SENIOR_KEYWORDS = ('senior', 'lead ', 'head of', 'manager', '10 ans', '10+ years', '8 ans')
 
 
-    PARIS_IDF_LOCATION_KEYWORDS = (
-        'paris', 'ile-de-france', 'île-de-france', 'idf', 'la defense', 'la défense',
-        '75', '77', '78', '91', '92', '93', '94', '95',
-        'hauts-de-seine', 'seine-saint-denis', 'val-de-marne', "val-d'oise",
-        'yvelines', 'essonne', 'seine-et-marne', 'boulogne', 'neuilly',
-    )
-
     @classmethod
     def location_text(cls, offer: JobOffer) -> str:
         for line in (offer.raw_text or '').splitlines():
@@ -41,8 +35,7 @@ class OfferSignalService:
         location = cls.location_text(offer)
         if not location:
             return False
-        normalized = location.lower().replace('é', 'e').replace('è', 'e').replace('ê', 'e').replace('î', 'i')
-        return any(keyword in normalized for keyword in cls.PARIS_IDF_LOCATION_KEYWORDS)
+        return is_ile_de_france_location(location)
 
     @classmethod
     def score(cls, offer: JobOffer) -> dict:
@@ -115,6 +108,9 @@ class OfferSignalService:
                 score = 48 if family == 'Data / BI' else 36
                 reasons.append(f'{family} : intitulé {", ".join(hits[:2])}')
                 break
+        if source and source.replace('snapshot:', '') == 'business_france_vie':
+            score += 18
+            reasons.append('VIE Business France')
         tool_hits = cls.keyword_hits(text)
         weights = {'sql': 10, 'power bi': 12, 'python': 8, 'crm': 9, 'dashboard': 7, 'automation': 6, 'analytics': 6, 'excel': 4, 'api': 5}
         score += min(42, sum(weights[k] for k in tool_hits))

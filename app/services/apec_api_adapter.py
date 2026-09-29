@@ -15,6 +15,7 @@ from typing import Any
 from urllib.parse import urljoin
 
 from app.models.job_source_adapter import DiscoveredJobUrl, JobSourceAdapter, NormalizedJobOffer
+from app.services.location_filters import is_ile_de_france_location
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +196,8 @@ class ApecAdapter(JobSourceAdapter):
                     page_old = True
                     break
                 if not raw.get("numeroOffre"):
+                    continue
+                if not is_ile_de_france_location(raw.get("lieuTexte")):
                     continue
                 discovered.append(DiscoveredJobUrl(
                     url=APEC_DETAIL_PAGE.format(id=raw["numeroOffre"]),

@@ -149,5 +149,6 @@ class GmailService:
         from app.config import config
         try:
             return fetch_page(self.service, config.GMAIL_USER_ID, query, size, page_token)
-        except Exception:
-            raise GmailUnavailable('La lecture Gmail a échoué. Réessayez ; aucune page incomplète n’a été enregistrée.') from None
+        except Exception as exc:
+            detail = str(exc).replace("\n", " ")[:300]
+            raise GmailUnavailable(f'La lecture Gmail a échoué ({type(exc).__name__}: {detail}). Réessayez ; aucune page incomplète n’a été enregistrée.') from None

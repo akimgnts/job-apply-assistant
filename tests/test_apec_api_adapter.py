@@ -4,12 +4,12 @@ from datetime import datetime, timezone
 from app.services.apec_api_adapter import ApecAdapter
 
 
-def result(number, title, published):
+def result(number, title, published, location="Paris - 75"):
     return {
         "numeroOffre": number,
         "intitule": title,
         "nomCommercial": "Acme",
-        "lieuTexte": "Paris - 75",
+        "lieuTexte": location,
         "texteOffre": "SQL Python Power BI",
         "datePublication": published,
         "dateValidation": published,
@@ -136,3 +136,42 @@ def test_discovery_filters_every_page_to_ile_de_france():
         if custom_payload is not None:
             assert custom_payload["lieux"] == []
             assert all(call["typesContrat"] == [101888] for call in session.calls)
+
+
+def test_discovery_discards_broad_france_locations_returned_by_apec():
+    class FakeResponse:
+        status = 200
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+        async def json(self, **kwargs):
+            return {
+                "totalCount": 4,
+                "resultats": [
+                    result("1W", "Data Analyst", "2026-09-22T20:00:00.000+0000", "France"),
+                    result("2W", "Data Analyst", "2026-09-22T20:00:00.000+0000", "Usines France"),
+                    result("3W", "Data Analyst", "2026-09-22T20:00:00.000+0000", "France entière"),
+                    result("4W", "Data Analyst", "2026-09-22T20:00:00.000+0000", "Paris - 75"),
+                ],
+            }
+
+    class FakeSession:
+        def __init__(self):
+            self.calls = []
+
+        def post(self, url, json, **kwargs):
+            self.calls.append(json)
+            return FakeResponse()
+
+    adapter = ApecAdapter(session=FakeSession())
+    discovered = asyncio.run(adapter.discover_jobs({
+        "search_terms": "data",
+        "now": datetime(2026, 9, 22, 21, tzinfo=timezone.utc),
+        "page_size": 20,
+    }))
+
+    assert [item.metadata["apec_id"] for item in discovered] == ["4W"]

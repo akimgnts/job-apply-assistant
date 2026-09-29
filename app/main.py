@@ -17,9 +17,26 @@ logger = logging.getLogger(__name__)
 WEB_DIR = Path(__file__).parent / 'web'
 @asynccontextmanager
 async def lifespan(app):
-    from app.scheduler.email_ingestion_scheduler import start_scheduler
-    from app.scheduler.ats_ingestion_scheduler import start_ats_scheduler
-    schedulers = [s for s in (start_scheduler(), start_ats_scheduler()) if s]
+    from app.database.db import engine
+    from app.database.db import Base
+    from app.database.workflow_schema import ensure_workflow_schema
+    Base.metadata.create_all(engine)
+    ensure_workflow_schema(engine)
+    schedulers = []
+    try:
+        from app.scheduler.email_ingestion_scheduler import start_scheduler
+        scheduler = start_scheduler()
+        if scheduler:
+            schedulers.append(scheduler)
+    except Exception as exc:
+        logger.warning("Gmail scheduler not started: %s", type(exc).__name__)
+    try:
+        from app.scheduler.ats_ingestion_scheduler import start_ats_scheduler
+        scheduler = start_ats_scheduler()
+        if scheduler:
+            schedulers.append(scheduler)
+    except Exception as exc:
+        logger.warning("ATS scheduler not started: %s", type(exc).__name__)
     try:
         yield
     finally:
@@ -95,6 +112,14 @@ async def root():
 
 
 from app.api.tracking import router as tracking_router
+from app.api.daily import router as daily_router
+from app.api.preparation import router as preparation_router
+from app.api.workflow import router as workflow_router
+from app.api.assistant import router as assistant_router
 app.include_router(tracking_router)
+app.include_router(daily_router)
+app.include_router(preparation_router)
+app.include_router(workflow_router)
+app.include_router(assistant_router)
 app.include_router(router)
 app.mount('/static', StaticFiles(directory=WEB_DIR / 'static'), name='static')

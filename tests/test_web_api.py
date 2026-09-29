@@ -322,6 +322,17 @@ def test_apec_action_geo_filter_keeps_only_paris_idf_for_radar(workspace):
         last_seen_at=recent,
         status='active',
     )
+    france = JobOffer(
+        company_id=company.id,
+        job_title='Data Analyst CRM',
+        job_url='https://example.org/apec-france',
+        source='apec',
+        raw_text='Lieu: Usines France\n\nSQL Power BI CRM automation',
+        posted_date=recent,
+        first_seen_at=recent,
+        last_seen_at=recent,
+        status='active',
+    )
     business_france = JobOffer(
         company_id=company.id,
         job_title='VIE Data Analyst CRM',
@@ -333,7 +344,7 @@ def test_apec_action_geo_filter_keeps_only_paris_idf_for_radar(workspace):
         last_seen_at=recent,
         status='active',
     )
-    session.add_all([paris, lyon, business_france])
+    session.add_all([paris, lyon, france, business_france])
     session.commit()
 
     focused = client.get('/api/offers?status=active&signal=target&hours=48&geo=paris_idf&page_size=20').json()['items']
@@ -342,6 +353,34 @@ def test_apec_action_geo_filter_keeps_only_paris_idf_for_radar(workspace):
     assert 'https://example.org/apec-paris' in focused_urls
     assert 'https://example.org/bf-anywhere' in focused_urls
     assert 'https://example.org/apec-lyon' not in focused_urls
+    assert 'https://example.org/apec-france' not in focused_urls
 
     all_zones = client.get('/api/offers?status=active&signal=target&hours=48&geo=all&page_size=20').json()['items']
-    assert 'https://example.org/apec-lyon' in {item['job_url'] for item in all_zones}
+    all_zone_urls = {item['job_url'] for item in all_zones}
+    assert 'https://example.org/apec-lyon' in all_zone_urls
+    assert 'https://example.org/apec-france' in all_zone_urls
+
+
+def test_business_france_source_filter_includes_snapshot_archives(workspace):
+    from datetime import datetime, timedelta
+    client, session = workspace
+    company = session.query(Company).filter_by(name='Acme').first()
+    seen = datetime.utcnow() - timedelta(days=20)
+    snapshot = JobOffer(
+        company_id=company.id,
+        job_title='VIE Business Analyst CRM',
+        job_url='https://example.org/bf-snapshot',
+        source='snapshot:business_france_vie',
+        raw_text='Company: Acme\nLocation: Madrid\nID: 245000',
+        first_seen_at=seen,
+        last_seen_at=seen,
+        status='archived',
+    )
+    session.add(snapshot)
+    session.commit()
+
+    response = client.get('/api/offers?status=active&source=business_france_vie&signal=target&hours=48&page_size=20')
+    assert response.status_code == 200
+    urls = {item['job_url'] for item in response.json()['items']}
+
+    assert 'https://example.org/bf-snapshot' in urls

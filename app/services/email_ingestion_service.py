@@ -31,7 +31,7 @@ class EmailIngestionService:
         self.db = db
         self.gmail = gmail_service or GmailService()
 
-    def ingest_emails(self, max_pages=3):
+    def ingest_emails(self, max_pages=1):
         if not config.GMAIL_ENABLED:
             raise GmailUnavailable('Gmail est désactivé. Configurez GMAIL_ENABLED et autorisez le compte avant de synchroniser.')
         with ingestion_lock(self.db):
@@ -53,7 +53,7 @@ class EmailIngestionService:
                 state.next_page_token = None
             state.mailbox, state.query = mailbox, config.GMAIL_SEARCH_QUERY
             for _ in range(max_pages):
-                page = self.gmail.page(state.query, 100, state.next_page_token)
+                page = self.gmail.page(state.query, 25, state.next_page_token)
                 page_imported = page_duplicate = 0
                 for item in page['messages']:
                     existing = self.db.query(EmailEvent).filter_by(owner_id=owner, mailbox=mailbox, gmail_message_id=item['gmail_message_id']).first()

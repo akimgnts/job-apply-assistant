@@ -70,13 +70,19 @@ def overview(db: Session = Depends(get_db)) -> dict:
 def offers(q: str | None = None, source: str | None = None, status: Literal['active', 'archived', 'closed', 'all'] = 'active', signal: str | None = None, hours: int | None = Query(None, ge=1, le=720), sort: Literal['recent', 'relevance'] = 'recent', geo: Literal['all', 'paris_idf'] = 'all', page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(db.query(JobOffer).join(Company), q, JobOffer.job_title, Company.name, JobOffer.raw_text)
     if source:
-        query = query.filter(JobOffer.source == source)
+        if source == 'business_france_vie':
+            query = query.filter(JobOffer.source.in_(['business_france_vie', 'snapshot:business_france_vie']))
+        else:
+            query = query.filter(JobOffer.source == source)
     if status == 'archived':
         query = query.filter(JobOffer.status.in_(['archived', 'closed']))
     elif status != 'all':
-        query = query.filter(JobOffer.status == status)
+        if source == 'business_france_vie':
+            query = query.filter(JobOffer.status.in_(['active', 'archived']))
+        else:
+            query = query.filter(JobOffer.status == status)
     rows = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
-    if hours is not None:
+    if hours is not None and source != 'business_france_vie':
         rows = [row for row in rows if OfferSignalService.is_recent(row, hours / 24)]
     rows = [row for row in rows if OfferSignalService.is_action_geo_match(row, geo)]
     scored = [(row, OfferSignalService.score(row)) for row in rows]
