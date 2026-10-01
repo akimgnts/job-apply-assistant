@@ -142,8 +142,8 @@ class GmailService:
             return profile['emailAddress'].lower()
         except GmailUnavailable:
             raise
-        except Exception:
-            raise GmailUnavailable('Connexion Gmail impossible. Vérifiez les dépendances Google et l’autorisation du compte.') from None
+        except Exception as exc:
+            raise GmailUnavailable(f'Connexion Gmail impossible ({type(exc).__name__}). Vérifiez les dépendances Google et l’autorisation du compte.') from None
 
     def page(self, query, size=100, page_token=None):
         from app.config import config
