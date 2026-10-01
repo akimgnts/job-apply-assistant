@@ -48,6 +48,8 @@ def ensure_workflow_schema(engine) -> None:
 
     existing = {column["name"] for column in inspect(engine).get_columns("applications")}
     with engine.begin() as conn:
+        if "plane_work_item_id" not in existing:
+            _add_column(conn, "applications", "plane_work_item_id", _type_for(engine, "string"))
         if "job_offer_id" not in existing:
             _add_column(conn, "applications", "job_offer_id", _type_for(engine, "integer"))
         if "applied_at" not in existing:
