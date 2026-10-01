@@ -25,8 +25,22 @@ def _add_column(conn, table: str, column: str, definition: str) -> None:
     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {definition}"))
 
 
+def _ensure_application_status_enum(engine) -> None:
+    """Add workflow statuses to the PostgreSQL enum used by applications.status."""
+    if engine.dialect.name != "postgresql":
+        return
+    statuses = ["saved", "analyzed", "generated", "applied", "received", "replied", "interview", "rejected", "archived"]
+    with engine.begin() as conn:
+        enum_exists = conn.execute(text("SELECT 1 FROM pg_type WHERE typname = 'applicationstatusenum'")).scalar()
+        if not enum_exists:
+            return
+        for status in statuses:
+            conn.execute(text(f"ALTER TYPE applicationstatusenum ADD VALUE IF NOT EXISTS '{status}'"))
+
+
 def ensure_workflow_schema(engine) -> None:
     """Create missing workflow tables and add new columns without touching data."""
+    _ensure_application_status_enum(engine)
     inspector = inspect(engine)
     tables = set(inspector.get_table_names())
     Base.metadata.create_all(

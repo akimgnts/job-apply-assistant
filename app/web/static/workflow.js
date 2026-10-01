@@ -180,8 +180,7 @@ function addAssistantMessage(role, html) {
   log.scrollTop = log.scrollHeight;
 }
 
-installDailyNav();
-pages.daily = dailyPage;
+// Keep the canonical Offres du jour page from app.js. Workflow.js must not override it.
 pages.applications = workflowApplicationsPage;
 installAssistant();
 navigate();
