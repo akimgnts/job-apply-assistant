@@ -9,11 +9,11 @@ _MASTER_CV_CACHE = None
 
 
 def load_master_cv() -> dict:
-    """Load Master CV V3 from JSON file (single source of truth).
+    """Load Master CV V4 from JSON file (single source of truth).
 
-    JSON file is locked source: app/data/master_cv_v3.json
-    Locked date: 2026-08-28
-    Source: c8606019-Akim_Guentas_MASTER_CV_V3_SOURCE_DE_VERITE_1.html
+    JSON file is locked source: app/data/master_cv_v4.json
+    Locked date: 2026-10-05
+    Source: Akim_Guentas_MASTER_CV_V4_SOURCE_DE_VERITE.html
 
     Philosophy: Truth is immutable. Narrative is flexible.
     - AI preserves all facts (dates, companies, accomplishments)
@@ -27,13 +27,13 @@ def load_master_cv() -> dict:
     if _MASTER_CV_CACHE is not None:
         return _MASTER_CV_CACHE
 
-    json_path = Path(__file__).parent.parent / "data" / "master_cv_v3.json"
+    json_path = Path(__file__).parent.parent / "data" / "master_cv_v4.json"
 
     if not json_path.exists():
         raise FileNotFoundError(
-            f"Master CV V3 source not found: {json_path}\n"
+            f"Master CV V4 source not found: {json_path}\n"
             "This is CRITICAL — no fallback to old hardcoded Master CV exists.\n"
-            "Please restore app/data/master_cv_v3.json from repository."
+            "Please restore app/data/master_cv_v4.json from repository."
         )
 
     try:
@@ -41,7 +41,7 @@ def load_master_cv() -> dict:
             raw_data = json.load(f)
     except json.JSONDecodeError as e:
         raise ValueError(
-            f"Master CV V3 JSON is malformed: {e}\n"
+            f"Master CV V4 JSON is malformed: {e}\n"
             f"File: {json_path}\n"
             "Check that the JSON is valid and locked facts are intact."
         )
@@ -51,7 +51,7 @@ def load_master_cv() -> dict:
 
     _MASTER_CV_CACHE = data
     logger.info(
-        f"Master CV V3 loaded from {json_path} "
+        f"Master CV V4 loaded from {json_path} "
         f"(locked {raw_data['metadata']['locked_date']})"
     )
 
@@ -172,7 +172,7 @@ def _validate_master_cv(data: dict) -> None:
     if "61" not in sidel_bullets_text:
         errors.append("Sidel: '61' accounts (Wines & Spirits) fact missing")
 
-    # Check projects count (3 authorized in Master CV V3 HTML: Elevia, Job Apply, Nuit Blanche)
+    # Check projects count (3 authorized in Master CV V4 HTML: Elevia, Job Apply, Nuit Blanche)
     if len(data.get("projects", [])) != 3:
         errors.append(
             f"Expected 3 projects (authorized in Master CV V3), got {len(data.get('projects', []))}"
@@ -181,9 +181,9 @@ def _validate_master_cv(data: dict) -> None:
     # Check project titles (Nuit Blanche should exist, no stale SkillMap or V.I.E Matcher)
     project_titles = [p.get("title", "") for p in data.get("projects", [])]
     if "SkillMap Automation Console" in project_titles:
-        errors.append("Stale project 'SkillMap Automation Console' found (not in Master CV V3)")
+        errors.append("Stale project 'SkillMap Automation Console' found (not in Master CV V4)")
     if "V.I.E Matcher" in project_titles:
-        errors.append("Stale project 'V.I.E Matcher' found (not in Master CV V3 HTML)")
+        errors.append("Stale project 'V.I.E Matcher' found (not in Master CV V4 HTML)")
     if "Nuit Blanche" not in " ".join(project_titles):
         errors.append("Project 'Nuit Blanche' not found")
 
@@ -222,10 +222,10 @@ def _validate_master_cv(data: dict) -> None:
             errors.append(f"Excluded skill '{tool}' not in exclusion list")
 
     if errors:
-        error_msg = "Master CV V3 validation FAILED:\n" + "\n".join(f"  • {e}" for e in errors)
+        error_msg = "Master CV V4 validation FAILED:\n" + "\n".join(f"  • {e}" for e in errors)
         raise ValueError(error_msg)
 
-    logger.info("Master CV V3 validation PASSED ✓")
+    logger.info("Master CV V4 validation PASSED ✓")
 
 
 

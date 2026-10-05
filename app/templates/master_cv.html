@@ -1,184 +1,336 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
 <head>
-<meta charset="UTF-8">
-<title>{{ candidate.name }} – Master CV</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-@page{size:A4;margin:8mm}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;font-family:'Manrope',sans-serif;background:#f3f3f3;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{padding:12px 0}
-.page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:9mm 11mm;display:flex;flex-direction:column}
-.top-title{text-align:center;margin-bottom:2px}
-.top-title h1{margin:0;font-size:24px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#111827}
-.top-subtitle{text-align:center;font-size:11px;line-height:1.35;font-weight:700;color:#334155;margin-bottom:4px}
-.contact-line{text-align:center;font-size:9.5px;line-height:1.35;color:#555;margin-bottom:10px}
-.intro{font-size:10.2px;line-height:1.48;text-align:justify;margin-bottom:11px;color:#222;padding:7px 9px;border-left:3px solid #334155;background:#f8fafc}
-.section{margin-bottom:9px;page-break-inside:avoid}
-.section-title{margin:0 0 6px;padding-bottom:4px;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid #cbd5e1;color:#111827}
-.job{margin-bottom:8px;page-break-inside:avoid}
-.job-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:3px;align-items:baseline}
-.job-title{font-size:10.7px;font-weight:800;line-height:1.2;color:#111827}
-.job-company{font-size:9.6px;color:#475569;line-height:1.22}
-.job-date{font-size:9.2px;color:#64748b;white-space:nowrap}
-ul{margin:3px 0 0 0;padding-left:15px}
-li{font-size:9.35px;line-height:1.33;margin-bottom:1px}
-.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.skill-block{margin-bottom:6px}
-.skill-label{font-size:9.3px;font-weight:800;letter-spacing:.45px;text-transform:uppercase;margin-bottom:2px;color:#111827}
-.skill-text{font-size:9.15px;line-height:1.35;color:#222}
-.bottom-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-top:8px;align-items:start}
-.edu-item{margin-bottom:6px}
-.edu-title{font-size:9.8px;font-weight:800;line-height:1.2;color:#111827}
-.edu-meta{font-size:9.2px;color:#475569;line-height:1.25}
-.simple-text{font-size:9.25px;line-height:1.4;color:#222}
-@media print{body{background:#fff;padding:0}.page{box-shadow:none;margin:0;min-height:297mm}}
-@media screen{.page{box-shadow:0 8px 30px rgba(0,0,0,.08)}}
-</style>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+<meta content="text/css" http-equiv="Content-Style-Type"/>
+<title></title>
+<meta content="Cocoa HTML Writer" name="Generator"/>
+<meta content="2685.6" name="CocoaVersion"/>
+<style type="text/css">
+    body {background-color: #e9ecef}
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.5px Arial; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #b60925}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Arial; color: #b60925; -webkit-text-stroke: #b60925}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.3px Arial; color: #414953; -webkit-text-stroke: #414953}
+    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.3px Arial; color: #121418; -webkit-text-stroke: #121418; background-color: #f5f6f7}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.5px Arial; color: #414953; -webkit-text-stroke: #414953}
+    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 7.6px Arial; color: #b60925; -webkit-text-stroke: #b60925}
+    p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; font: 8.6px Arial; color: #414953; -webkit-text-stroke: #414953}
+    p.p11 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.8px Arial; color: #2a323b; -webkit-text-stroke: #2a323b}
+    p.p12 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.0px Arial; color: #414953; -webkit-text-stroke: #414953}
+    p.p13 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.6px Arial; color: #2a323b; -webkit-text-stroke: #2a323b}
+    p.p15 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.2px Arial; color: #121418; -webkit-text-stroke: #121418; background-color: #f5f6f7}
+    p.p16 {margin: 0.0px 0.0px 0.0px 0.0px; font: 9.6px Arial; color: #121418; -webkit-text-stroke: #121418}
+    p.p17 {margin: 0.0px 0.0px 10.2px 0.0px; font: 10.2px Arial; color: #121418; -webkit-text-stroke: #121418}
+    p.p18 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.2px Arial; color: #121418; -webkit-text-stroke: #121418}
+    p.p19 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.2px Arial; color: #414953; -webkit-text-stroke: #414953}
+    p.p20 {margin: 0.0px 0.0px 8.8px 0.0px; font: 8.8px Arial; color: #414953; -webkit-text-stroke: #414953}
+    li.li14 {margin: 0.0px 0.0px 3.0px 0.0px; font: 10.2px Arial; color: #121418; -webkit-text-stroke: #121418}
+    span.s1 {font-kerning: none}
+    span.s2 {font-kerning: none; background-color: #ffffff}
+    span.s3 {vertical-align: 1.0px; font-kerning: none; background-color: #f1e3e5}
+    span.s4 {font: 8.8px Arial; font-kerning: none; color: #414953; background-color: #ffffff; -webkit-text-stroke: 0px #414953}
+    span.s5 {font: 7.6px Arial; vertical-align: 1.0px; font-kerning: none; color: #1b6927; background-color: #ddf1e0; -webkit-text-stroke: 0px #1b6927}
+    span.s6 {font: 7.6px Arial; vertical-align: 1.0px; font-kerning: none; color: #875803; background-color: #fceed0; -webkit-text-stroke: 0px #875803}
+    span.s7 {font: 7.6px Arial; vertical-align: 1.0px; font-kerning: none; background-color: #e7ebf0}
+    span.s8 {font: 7.6px Arial; color: #b60925; background-color: #f1e3e5; -webkit-text-stroke: 0px #000000}
+    span.s9 {font: 7.6px Arial; vertical-align: 1.0px; font-kerning: none; color: #b60925; background-color: #f1e3e5; -webkit-text-stroke: 0px #b60925}
+    span.s10 {background-color: #ffffff; -webkit-text-stroke: 0px #000000}
+    table.t1 {margin: 4.0px 0.0px 0.0px 0.0px}
+    td.td1 {width: 130.0px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 4.0px 6.0px 4.0px 0.0px}
+    td.td2 {width: 550.3px; margin: 0.5px 0.5px 0.5px 0.5px; padding: 4.0px 0.0px 4.0px 0.0px}
+    ul.ul1 {list-style-type: disc}
+  </style>
 </head>
-
 <body>
-<div class="page">
+<p class="p1"><span class="s1">MASTER CV V4 — SOURCE DE VÉRITÉ INTERNE — MAJ 05/10/2026 — NE JAMAIS ENVOYER TEL QUEL — SÉLECTIONNER ~30–40% PAR OFFRE</span></p>
+<h1 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 23.0px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>AKIM GUENTAS</b><b></b></span></h1>
+<p class="p3"><span class="s2"><b>BUSINESS × DATA × AUTOMATION/IA</b><b></b></span></p>
+<p class="p4"><span class="s2"><b>Paris, Ile-de-France</b> · 07 83 75 04 83 · akimguentas13@gmail.com · linkedin.com/in/akimguentas · github.com/akimgnts · madebyakim.com</span></p>
+<p class="p5"><span class="s1"><b>Fil rouge :</b> ni uniquement Data Analyst, ni uniquement Automation, ni uniquement Business Analyst — je suis à l'interface des trois. Deux ans chez Sidel à transformer de la donnée commerciale/client en dashboards et recommandations métier, une activité freelance réelle (MadeByAkim) à concevoir des produits Data/IA de bout en bout, et une double culture business/technique qui permet de porter un sujet du cadrage à la mise en production.</span></p>
+<p class="p6"><span class="s2">Ce positionnement ouvre plusieurs familles de postes à partir des <i>mêmes</i> expériences, juste avec une focale différente : Data Analyst / Analytics &amp; AI · Chef de projet Data · Business Analyst / Data Analyst · Data / Databricks / Automation · Marketing de l'offre &amp; Data · Growth / Data.</span></p>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>LÉGENDE</b><b></b></span></h2>
+<p class="p8"><span class="s3"><b><i>DATA/BI</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>MARKETING/BUSINESS</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>AUTOMATION/IA</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>PM/DELIVERY</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>STAKEHOLDER/INTL</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>DATA QUALITY</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>EVENTS/CONTENT</i></b></span><span class="s4"><i> </i></span><span class="s3"><b><i>BA/PRODUCT</i></b></span><span class="s4"><i> — sélection mécanique par tag selon l'offre.</i><i></i></span></p>
+<p class="p9"><span class="s5"><b>●●● maîtrisé</b></span><span class="s2"> </span><span class="s6"><b>●●○ opérationnel</b></span><span class="s2"> </span><span class="s7"><b>●○○ notions / montée en compétence</b></span><span class="s2"> — niveau verrouillé le 27/08/2026 ; ne jamais monter un niveau pour matcher un mot-clé d'offre.</span></p>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>EXPÉRIENCE — BULLETS EXHAUSTIFS DÉFENDABLES</b><b></b></span></h2>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>Data &amp; Business Analyst — International Stakeholder Reporting</b><b></b></span></h3>
+<p class="p11"><span class="s2"><b>Sidel — Groupe Tetra Laval</b><b></b></span></p>
+<p class="p12"><span class="s2">2023 – 2025 · Octeville-sur-Mer / International</span></p>
+<p class="p13"><span class="s2"><b>Data &amp; BI</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2"><b>Conception et déploiement de 6+ dashboards Power BI</b> utilisés chaque semaine par des dizaines de collaborateurs et managers de différentes fonctions métier.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIAUTOMATION/IA</b></span><span class="s2">Automatisation d'un reporting hebdomadaire auparavant traité sous Excel en <b>5–6 h</b>, ramenant le processus à environ <b>1 h/semaine</b>, contrôle des résultats inclus — soit environ <b>80 % de temps de traitement économisé</b>.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2">Développement de dashboards Power BI et de reportings décisionnels pour les équipes Marketing, Sales et Management d'un groupe industriel international.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIDATA QUALITY</b></span><span class="s2">Consolidation et analyse de données clients, commerciales et Installed Base avec Excel, Power Query, Power BI, Python et SQL ; contrôle de cohérence et amélioration de la qualité des données.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2">Construction de mesures et KPI sous DAX pour fiabiliser les indicateurs affichés aux équipes métier </span><span class="s6"><b>●●○ opérationnel</b></span><span class="s2">.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2">Modélisation des données en amont des dashboards (star schema, tables de faits et dimensions) pour structurer les modèles Power BI </span><span class="s6"><b>●●○ opérationnel</b></span><span class="s2">.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Cas d'usage BI — Pilotage commercial / CRM</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIMARKETING/BUSINESS</b></span><span class="s2">Conception d'un dashboard de pilotage commercial permettant aux responsables de suivre rapidement l'activité de leurs équipes : performance par commercial, rendez-vous, nouvelles opportunités, évolution et touchpoints clients.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Exploitation de l'historique des interactions clients afin d'aider les commerciaux à <b>prioriser les relances</b> selon la date du dernier contact et le contexte business.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2">Transformation des données CRM en priorités commerciales directement actionnables par les équipes Sales.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Cas d'usage BI — Event Analytics Europe</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIEVENTS/CONTENT</b></span><span class="s2">Conception d'un dashboard Power BI de pilotage des salons européens, utilisable par les équipes Communication pour suivre les événements passés et à venir.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIDATA QUALITY</b></span><span class="s2">Rapprochement de plusieurs sources auparavant séparées : données de présence/contacts collectées sur les salons et réponses aux questionnaires de satisfaction.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Construction d'un funnel événementiel et commercial suivant visites, contacts, prises de contact, rendez-vous et progression vers les opportunités commerciales.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2">Centralisation des KPI de performance événementielle et de satisfaction dans un reporting continuellement actualisé à l'échelle Europe.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Initiative exploratoire — Installed Base / Service / Spare Parts</b><b></b></span></p>
+<p class="p15"><span class="s1"><b>Statut : projet commencé mais non finalisé / non déployé.</b> Toujours conserver cette précision lorsqu'il est utilisé dans un CV ou en entretien.</span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIMARKETING/BUSINESS</b></span><span class="s2">Exploration d'un cas d'usage exploitant les données d'Installed Base et les caractéristiques d'utilisation des équipements (cycles, cadence, fonctionnement) afin d'anticiper des besoins potentiels liés à l'usure.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Réflexion sur l'utilisation de ces signaux techniques propriétaires pour identifier et prioriser des opportunités de relance Service / spare parts auprès des clients.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>PM/DELIVERY</b></span><span class="s2">Projet exploratoire uniquement : ne jamais le présenter comme modèle prédictif finalisé ou solution mise en production.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Business &amp; Marketing</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Analyse d'un portefeuille Wines &amp; Spirits de <b>61 comptes</b> en croisant équipements installés, services et potentiel commercial afin d'identifier opportunités et priorités.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Suivi des leads, KPI marketing, NPS et retours clients ; production de synthèses, recommandations et présentations adaptées aux métiers.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Traduction d'analyses Installed Base en priorités commerciales exploitables par les équipes Sales.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Stakeholders &amp; International</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>STAKEHOLDER/INTL</b></span><span class="s2">Coordination de sujets transverses et présentation des résultats en français et en anglais auprès de parties prenantes internationales.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>STAKEHOLDER/INTL</b></span><span class="s2">Préparation de supports de présentation pour comités et réunions avec des interlocuteurs Marketing, Sales et Management dans plusieurs pays.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Business Analyst / Product</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>BA/PRODUCT</b></span><span class="s2">Recueil et formalisation de besoins utilisateurs, notamment sous forme de user stories, pour des besoins de reporting et d'outillage interne.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>BA/PRODUCT</b></span><span class="s2">Conception autonome de dashboards à partir du besoin métier : choix et ajout de KPI pertinents, règles de calcul, filtres, structure de restitution et évolutions fonctionnelles.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>BA/PRODUCT</b></span><span class="s2">Réalisation des phases de recette/tests, vérification des résultats, identification des anomalies et correction autonome lorsque possible avant diffusion.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>BA/PRODUCT</b></span><span class="s2">Collaboration transverse avec les équipes IT, CRM, Service après-vente, Sales, Communication et Marketing pour cadrer les besoins, résoudre les problèmes de données et rendre les livrables exploitables.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>BA/PRODUCT</b></span><span class="s2">Fonctionnement en mode Agile (sprints, priorisation Kanban) sur le suivi des sujets reporting </span><span class="s6"><b>●●○ opérationnel</b></span><span class="s2">.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Contenu &amp; Événementiel</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>EVENTS/CONTENT</b></span><span class="s2">Production de contenus et supports analytiques pour les salons professionnels internationaux Hispack Barcelona et PPMA Birmingham.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>EVENTS/CONTENT</b></span><span class="s2">Contribution à la mise en forme de synthèses et recommandations diffusées aux équipes métier.</span></li>
+</ul>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>AI Transformation Consultant &amp; Product Builder</b><b></b></span></h3>
+<p class="p11"><span class="s2"><b>MadeByAkim (freelance)</b><b></b></span></p>
+<p class="p12"><span class="s2">2024 – Aujourd'hui · Paris / Remote</span></p>
+<p class="p13"><span class="s2"><b>Angle Data/IA</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIAUTOMATION/IA</b></span><span class="s2">Analyse des besoins métiers et traduction en cas d'usage Data/IA, règles fonctionnelles et architectures.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2">Conception de solutions de bout en bout avec Python, FastAPI, PostgreSQL, SQL et APIs REST : ingestion, transformation, stockage et restitution.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA QUALITY</b></span><span class="s2">Développement de pipelines intégrant contrôle qualité, normalisation, classification, scoring et validation humaine avant persistance en base.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Angle Automation</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2">Automatisation avec n8n, Make, Google Apps Script, webhooks et APIs afin de réduire les tâches manuelles et fiabiliser les traitements.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2">Orchestration agentique et multi-agent (parsing, analyse, scoring, génération documentaire) sur des workflows métier réels.</span></li>
+</ul>
+<p class="p13"><span class="s2"><b>Angle Product / Project Management</b><b></b></span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>PM/DELIVERY</b></span><span class="s2">Cadrage de bout en bout de chaque produit : besoin métier → architecture → développement → mise en production, en autonomie.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>PM/DELIVERY</b></span><span class="s2">Gestion de plusieurs projets en parallèle (Elevia, Job Apply Assistant, Nuit Blanche) avec priorisation et arbitrages de scope.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>PM/DELIVERY</b></span><span class="s2">Mise en place de tests, logs, documentation, versioning Git, Docker et déploiement (Coolify) pour assurer robustesse, traçabilité et maintenabilité.</span></li>
+</ul>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>Business Development &amp; Reporting</b><b></b></span></h3>
+<p class="p11"><span class="s2"><b>Vassard OMB Mobilier</b><b></b></span></p>
+<p class="p12"><span class="s2">2022 – 2023</span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BI</b></span><span class="s2">Structuration des données CRM et du reporting pour améliorer la visibilité commerciale et le pilotage de la prospection.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>MARKETING/BUSINESS</b></span><span class="s2">Qualification des besoins clients, analyse d'opportunités et accompagnement du développement commercial B2B.</span></li>
+</ul>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>Elevia — Plateforme de recommandation &amp; Data Quality</b><b></b></span></h3>
+<p class="p11"><span class="s2"><b>MadeByAkim — projet produit</b><b></b></span></p>
+<p class="p12"><span class="s2">2025 – Aujourd'hui</span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA/BIAUTOMATION/IA</b></span><span class="s2">Conception d'un moteur combinant extraction structurée, matching sémantique, classification et scoring explicable (Python, FastAPI, PostgreSQL, OpenAI, LangChain, ESCO).</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA QUALITY</b></span><span class="s2"><b>10+ cycles d'évaluation sur 30 profils et 1 000+ offres</b> pour mesurer la pertinence métier et réduire les faux positifs.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA QUALITY</b></span><span class="s2">Intégration d'ESCO, normalisation des compétences et workflows de replay pour conserver un système testable et auditable.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>PM/DELIVERY</b></span><span class="s2">Scoring gelé (freeze strict) pour garantir reproductibilité et confiance métier avant toute optimisation.</span></li>
+</ul>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>Job Apply Assistant — Pipeline Data &amp; IA multi-agent</b><b></b></span></h3>
+<p class="p11"><span class="s2"><b>MadeByAkim — projet produit</b><b></b></span></p>
+<p class="p12"><span class="s2">2025 – Aujourd'hui</span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2">Transformation d'un processus manuel d'environ <b>45 minutes en un workflow automatisé d'environ 5 minutes</b>.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IAPM/DELIVERY</b></span><span class="s2">Architecture multi-agent couvrant parsing, analyse d'offre, matching, positionnement, génération documentaire et suivi.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>DATA QUALITY</b></span><span class="s2">Persistance PostgreSQL, migrations Alembic et schémas structurés assurant traçabilité et reproductibilité.</span></li>
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2">Notifications Telegram, déploiement Docker/Coolify.</span></li>
+</ul>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>Nuit Blanche — Automatisation de production de contenus</b><b></b></span></h3>
+<p class="p11"><span class="s2"><b>MadeByAkim — projet ponctuel</b><b></b></span></p>
+<p class="p12"><span class="s2">2024</span></p>
+<ul class="ul1">
+<li class="li14"><span class="s8"><b></b></span><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2">Conception d'un workflow transformant des données événementielles en livrables visuels (Google Sheets, Apps Script) : validation, filtres, priorisation et génération automatisée.</span></li>
+</ul>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>HARD SKILLS — VERROUILLÉES PAR NIVEAU (27/08/2026)</b><b></b></span></h2>
+<p class="p13"><span class="s2"><b>●●● Maîtrisé</b><b></b></span></p>
+<table cellpadding="0" cellspacing="0" class="t1">
+<tbody>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>BI &amp; Data Viz</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Power BI, Power Query</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Data Engineering</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">SQL, Python, PostgreSQL</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Développement</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">FastAPI, SQLAlchemy, Alembic, REST APIs, intégration d’API, Git/GitHub, Docker, Coolify</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Automation &amp; IA</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">n8n, Make, Google Apps Script, webhooks, APIs, agents IA, orchestration multi-agent, OpenAI API, intégration de LLM</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Bureautique</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Excel avancé, PowerPoint</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="p13"><span class="s2"><b>●●○ Opérationnel</b><b></b></span></p>
+<table cellpadding="0" cellspacing="0" class="t1">
+<tbody>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>BI avancé</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">DAX (mesures et KPI)</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Data Modeling</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Modélisation dimensionnelle, star schema, tables de faits/dimensions</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Gestion de projet</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Agile, Scrum, Kanban</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Data Viz</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Tableau (intermédiaire)</span></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="p13"><span class="s2"><b>●○○ Notions / montée en compétence — à mentionner seulement si l'offre le demande, jamais présenté comme expertise</b><b></b></span></p>
+<table cellpadding="0" cellspacing="0" class="t1">
+<tbody>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Data Engineering cloud</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Databricks, PySpark, Spark SQL, Delta Lake, Unity Catalog, Databricks Workflows, Lakeflow, Azure Storage — pratique encadrée / notions ; BigQuery et AWS — pratique initiale</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>Architecture data</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">Architecture medallion / couches Silver-Gold, pipelines ETL/ELT, tables de faits/dimensions — notions / pratique encadrée</span></p>
+</td>
+</tr>
+<tr>
+<td class="td1" valign="top">
+<p class="p13"><span class="s2"><b>RPA / Low-code</b><b></b></span></p>
+</td>
+<td class="td2" valign="top">
+<p class="p16"><span class="s2">UiPath, Microsoft Power Platform, Power Automate, Power Apps — notions</span></p>
+</td>
+</tr>
 
-<div class="top-title">
-<h1>{{ master_cv.personal_info.name }}</h1>
-</div>
+<tr>
+<td class="td1" valign="top"><p class="p13"><span class="s2"><b>LLM / IA générative</b></span></p></td>
+<td class="td2" valign="top"><p class="p16"><span class="s2">Intégration de LLM via OpenAI API, prompting, génération structurée, agents IA et orchestration multi-agent — pratique projet ; fine-tuning LLM — formation/certification</span></p></td>
+</tr>
+<tr>
+<td class="td1" valign="top"><p class="p13"><span class="s2"><b>MCP</b></span></p></td>
+<td class="td2" valign="top"><p class="p16"><span class="s2">Non ajouté comme compétence à ce stade : usage professionnel / développement MCP non documenté dans la source de vérité actuelle. À intégrer seulement après validation d'un cas d'usage défendable.</span></p></td>
+</tr>
+</tbody>
+</table>
+<p class="p15"><span class="s1"><b>Retirés du Master (27/08/2026) — ne jamais les réintroduire, même sur mot-clé d'offre :</b> Jira, Confluence (l'Agile/Scrum/Kanban est réel, l'outillage Atlassian ne l'est pas), GCP (non défendable), Looker Studio (non défendable). Si une offre les demande explicitement, ne pas les ajouter au CV — le signaler à l'oral si pertinent, jamais les écrire.</span></p><p class="p15"><span class="s1"><b>MCP — garde-fou : </b>ne pas l'afficher comme compétence CV tant qu'un projet ou une implémentation personnelle défendable n'est pas documenté dans le Master.</span></p>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>SOFT SKILLS</b><b></b></span></h2>
+<p class="p17"><span class="s2">Relation client · compréhension des enjeux business · esprit analytique · rigueur · curiosité · sens critique · autonomie · proactivité · force de proposition · pédagogie · vulgarisation · présentation des résultats · collaboration transverse · gestion multi-projets · culture data marketing et média</span></p>
 
-<div class="top-subtitle">
-{{ adaptation.title or positioning or analysis_job_title or "Data & AI Analyst" }}
-</div>
-
-<div class="contact-line">
-{% set contact_items = [] %}
-{% if master_cv.personal_info.location %}{% set _ = contact_items.append(master_cv.personal_info.location) %}{% endif %}
-{% if master_cv.personal_info.email %}{% set _ = contact_items.append(master_cv.personal_info.email) %}{% endif %}
-{% if master_cv.personal_info.phone %}{% set _ = contact_items.append(master_cv.personal_info.phone) %}{% endif %}
-{% if master_cv.personal_info.linkedin %}{% set _ = contact_items.append(master_cv.personal_info.linkedin) %}{% endif %}
-{% if master_cv.personal_info.github %}{% set _ = contact_items.append(master_cv.personal_info.github) %}{% endif %}
-{% if master_cv.personal_info.portfolio %}{% set _ = contact_items.append(master_cv.personal_info.portfolio) %}{% endif %}
-{{ contact_items|join(" · ") }}
-</div>
-
-{% if adaptation.summary and adaptation.summary.strip() %}
-<div class="intro">
-{{ adaptation.summary }}
-</div>
-{% endif %}
-
-<section class="section">
-<h2 class="section-title">{{ titles.experience or "EXPERIENCE" }}</h2>
-
-{% for exp_id in adaptation.experience_order %}
-  {% if master_cv.experiences_by_id[exp_id] %}
-    {% set exp = master_cv.experiences_by_id[exp_id] %}
-    {% set exp_id_str = exp_id|string %}
-    <div class="job">
-      <div class="job-head">
-        <div>
-          <div class="job-title">{{ exp.title or "" }}</div>
-          <div class="job-company">{{ exp.company or "" }}{% if exp.context %} · {{ exp.context }}{% endif %}</div>
-        </div>
-        <div class="job-date">{{ exp.dates or "" }}</div>
-      </div>
-      <ul>
-        {% for bullet in adaptation.experience_bullets[exp_id_str] %}
-        <li>{{ bullet }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
-{% endfor %}
-
-</section>
-
-<section class="section">
-<h2 class="section-title">{{ titles.projects or "PROJECTS" }}</h2>
-
-{% for proj_id in adaptation.project_order %}
-  {% if master_cv.projects_by_id[proj_id] %}
-    {% set proj = master_cv.projects_by_id[proj_id] %}
-    {% set proj_id_str = proj_id|string %}
-    <div class="job">
-      <div class="job-head">
-        <div>
-          <div class="job-title">{{ proj.title or "" }}</div>
-          {% if proj.stack %}<div class="job-company">{{ proj.stack or "" }}</div>{% endif %}
-        </div>
-        {% if proj.dates %}<div class="job-date">{{ proj.dates or "" }}</div>{% endif %}
-      </div>
-      <ul>
-        {% for bullet in adaptation.project_bullets[proj_id_str] %}
-        <li>{{ bullet }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
-{% endfor %}
-
-</section>
-
-<section class="section">
-<h2 class="section-title">{{ titles.skills or "TECHNICAL SKILLS" }}</h2>
-
-<div class="two-cols">
-  {% if adaptation.get('skill_groups') and adaptation.get('skill_section_order') %}
-    {% for group_name in adaptation.skill_section_order %}
-      {% set skills_in_group = adaptation.skill_groups.get(group_name, []) %}
-      {% for skill_label in skills_in_group %}
-        {% for skill in master_cv.skills %}
-          {% if skill.label == skill_label %}
-          <div class="skill-block">
-            <div class="skill-label">{{ skill.label }}</div>
-          </div>
-          {% endif %}
-        {% endfor %}
-      {% endfor %}
-    {% endfor %}
-  {% else %}
-    {% for skill in master_cv.skills %}
-    <div class="skill-block">
-      <div class="skill-label">{{ skill.label }}</div>
-      <div class="skill-text">{{ skill.content }}</div>
-    </div>
-    {% endfor %}
-  {% endif %}
-</div>
-
-</section>
-
-<div class="bottom-grid">
-
-<section class="section">
-<h2 class="section-title">{{ titles.education or "EDUCATION" }}</h2>
-
-{% for edu in master_cv.education %}
-<div class="edu-item">
-  <div class="edu-title">{{ edu.title or "" }}</div>
-  <div class="edu-meta">{{ edu.school or "" }}{% if edu.year %} · {{ edu.year }}{% endif %}</div>
-</div>
-{% endfor %}
-
-</section>
-
-<section class="section">
-<h2 class="section-title">{{ titles.certifications or "CERTIFICATIONS & LANGUAGES" }}</h2>
-
-<div class="simple-text">
-{% for cert in master_cv.certifications %}
-{{ cert.name or "" }}<br>
-{% endfor %}
-<br>
-{% for lang in master_cv.languages %}
-{{ lang.name or "" }} – {{ lang.level or "Intermediate" }}<br>
-{% endfor %}
-</div>
-
-</section>
-
-</div>
-
-</div>
+<ul class="ul1">
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> Construction d'une chaîne de traitement de bout en bout dans Databricks : sources → couche Silver → couche Gold → Workflow → données prêtes pour restitution.</span></li>
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> Manipulation et transformation de données avec SQL, Spark SQL et PySpark ; utilisation de DataFrames et création de tables Delta.</span></li>
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> TP Bakehouse : inspection des schémas sources, création de tables Silver structurées puis de tables Gold agrégées par produit, profil client et franchise.</span></li>
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> Mise en pratique des jointures SQL, alias, SUM, GROUP BY, logique tables de faits / dimensions et préparation de données analytiques.</span></li>
+<li class="li14"><span class="s9"><b>PM/DELIVERY</b></span><span class="s2"> Orchestration avec Databricks Workflows : séparation Silver / Gold en tâches dépendantes et exécution conditionnée au succès de la tâche amont.</span></li>
+<li class="li14"><span class="s9"><b>DATA QUALITY</b></span><span class="s2"> Cycle de vie Delta Lake : MERGE, OPTIMIZE, Z-ORDER, VACUUM, historique, Time Travel et RESTORE.</span></li>
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> Structuration et gouvernance avec Unity Catalog : Catalog, Schema, Tables, Views, Volumes et principes de permissions.</span></li>
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> Compréhension de la chaîne d'accès Azure : Storage Account, Container, Access Connector, IAM, Storage Credential et External Location.</span></li>
+<li class="li14"><span class="s9"><b>DATA/BI</b></span><span class="s2"> Utilisation et compréhension des principaux Compute Databricks : All-Purpose, Job Compute, SQL Warehouse et Serverless.</span></li>
+<li class="li14"><span class="s9"><b>AUTOMATION/IA</b></span><span class="s2"> Introduction à Lakeflow Declarative Pipelines : pipelines déclaratifs, tables de streaming, vues matérialisées et gestion des dépendances.</span></li>
+</ul>
+<p class="p15"><span class="s1"><b>Niveau CV : ●○○ notions / montée en compétence.</b> Formation pratique récente : ne pas présenter Databricks, Spark, PySpark, Delta Lake, Unity Catalog ou Azure comme plusieurs années d'expérience.</span></p>
+<p class="p12"><span class="s2">28–30 septembre 2026 · 3 jours · Paris La Défense · pratique encadrée</span></p>
+<h3 style="margin: 0.0px 0.0px 0.0px 0.0px; font: 10.8px Arial; color: #121418; -webkit-text-stroke: #121418"><span class="s2"><b>Databricks pour Data Engineers — ORSYS</b></span></h3>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>FORMATION TECHNIQUE — DATABRICKS / DATA ENGINEERING</b></span></h2>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>FORMATION &amp; CERTIFICATIONS</b><b></b></span></h2>
+<p class="p18"><span class="s2"><b>MSc Business Intelligence &amp; Analytics — Data Analyst for Marketing</b><b></b></span></p>
+<p class="p19"><span class="s2">Eugenia School · 2025</span></p>
+<p class="p18"><span class="s2"><b>Bachelor Responsable Commerce &amp; Marketing</b><b></b></span></p>
+<p class="p19"><span class="s2">EM Normandie · 2023</span></p>
+<p class="p18"><span class="s2"><b>BTS Management Commercial Opérationnel</b><b></b></span></p>
+<p class="p19"><span class="s2">2021</span></p>
+<p class="p18"><span class="s2"><b>Certifications</b><b></b></span></p>
+<p class="p19"><span class="s2">Dataiku ML Practitioner · Python for Machine Learning · Fine-Tuning Large Language Models</span></p>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>LANGUES &amp; DISPONIBILITÉ</b><b></b></span></h2>
+<p class="p17"><span class="s2"><b>Français :</b> natif · <b>Anglais :</b> professionnel · <b>Espagnol :</b> intermédiaire</span></p>
+<p class="p17"><span class="s2"><b>Disponibilité :</b> CDI · Paris / Puteaux · Mobilité immédiate</span></p>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>BANQUE DE RÉSULTATS QUANTIFIÉS — FAITS VERROUILLÉS</b><b></b></span></h2>
+<ul class="ul1">
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Sidel :</b> 6+ dashboards Power BI ; utilisés chaque semaine par des dizaines de collaborateurs et managers.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Sidel :</b> reporting Excel 5–6 h/semaine → environ 1 h/semaine après automatisation (~80 % de réduction du temps de traitement).</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Sidel :</b> analyse Wines &amp; Spirits sur 61 comptes.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Elevia :</b> 10+ cycles d'évaluation sur 30 profils et 1 000+ offres/opportunités.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Job Apply Assistant :</b> processus manuel d'environ 45 min → workflow automatisé d'environ 5 min.</span></li>
+</ul>
+<p class="p15"><span class="s1"><b>Garde-fous :</b> ne jamais remplacer « des dizaines » par un nombre précis sans nouveau fait fourni ; ne pas inventer de gain de temps pour le dashboard Event Analytics Europe ; conserver le statut exploratoire/non déployé du projet Installed Base / usure / spare parts.</span></p>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>BIBLIOTHÈQUE D'ANGLES PAR FAMILLE DE POSTE</b><b></b></span></h2>
+<ul class="ul1">
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Data Analyst / BI :</b> 6+ dashboards, adoption hebdomadaire, automatisation 5–6 h → 1 h, Power BI/SQL/Python/Power Query/DAX, data quality, modélisation, Event Analytics multi-sources, CRM/Sales.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Business Analyst :</b> user stories, autonomie sur les KPI, formalisation fonctionnelle, recette/anomalies, collaboration IT/CRM/Sales/Service/Marketing, traduction du besoin en solution.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Automation / AI :</b> reporting automatisé Sidel, Job Apply Assistant 45 → 5 min, MadeByAkim, n8n/Make/Apps Script, APIs, FastAPI, agents IA, Docker/Coolify.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Marketing / Growth / CRM :</b> funnel salons Europe, satisfaction, leads, dashboard de relance commerciale, touchpoints clients, Wines &amp; Spirits 61 comptes.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Chef de projet Data / Product :</b> cadrage, autonomie de conception, coordination transverse, tests/recette, arbitrages, delivery de bout en bout et projets MadeByAkim.</span></li>
+<li class="li14"><span class="s10"><b></b></span><span class="s2"><b>Data Engineering / Databricks :</b> formation pratique Databricks 3 jours, pipeline sources → Silver → Gold, SQL/PySpark, Delta Lake, Unity Catalog, Workflows, Lakeflow, Azure Storage ; à présenter comme montée en compétence récente, jamais comme expertise senior.</span></li></ul>
+<h2 style="margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Arial; color: #b60925; -webkit-text-stroke: #b60925"><span class="s2"><b>RÈGLE D'USAGE — VERROUILLÉE 28/08/2026</b><b></b></span></h2>
+<p class="p20"><span class="s2"><i>Aucun CV n'est envoyé directement depuis ce Master. Pour chaque offre : identifier la famille de poste visée, sélectionner ~30–40% des bullets par tag pertinent, réécrire le headline et le premier paragraphe pour cette focale précise, garder les faits identiques (dates, chiffres, entreprises, niveaux de maîtrise) — on ne change jamais le parcours, on change l'angle de lecture. Un mot-clé d'offre ne fait jamais monter un niveau de compétence : si l'offre demande Jira et que le niveau verrouillé est "retiré", le CV généré ne doit pas le faire apparaître.</i><i></i></span></p>
 </body>
 </html>
