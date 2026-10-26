@@ -30,6 +30,21 @@ def test_cross_origin_mutations_rejected(monkeypatch):
     assert response.status_code == 403
 
 
+def test_password_login_uses_http_only_session_cookie(monkeypatch):
+    monkeypatch.setenv('WEB_LOGIN_PASSWORD', 'correct-password')
+    monkeypatch.setenv('WEB_SESSION_SECRET', 'a-long-test-session-secret')
+    client = TestClient(app, base_url='https://localhost')
+    assert client.get('/api/settings').status_code == 401
+    assert client.post('/auth/login', json={'password': 'wrong'}).status_code == 401
+    response = client.post('/auth/login', json={'password': 'correct-password'})
+    assert response.status_code == 200
+    cookie = response.headers['set-cookie']
+    assert 'HttpOnly' in cookie and 'SameSite=lax' in cookie
+    assert client.get('/api/settings').status_code != 401
+    assert client.post('/auth/logout').status_code == 200
+    assert client.get('/api/settings').status_code == 401
+
+
 def test_static_assets_are_served():
     client = TestClient(app)
     assert client.get('/static/app.js').status_code == 200

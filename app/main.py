@@ -4,9 +4,13 @@ import hmac
 import ipaddress
 import logging
 import os
+import base64
+import hashlib
+import secrets
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
@@ -46,6 +50,60 @@ async def lifespan(app):
 
 app = FastAPI(lifespan=lifespan, title='Job Apply Assistant', description='Votre espace personnel de candidature', version='0.2.0')
 
+SESSION_COOKIE = 'jobapply_session'
+SESSION_TTL = 12 * 60 * 60
+
+
+def _session_secret() -> str:
+    return os.getenv('WEB_SESSION_SECRET') or os.getenv('WEB_ACCESS_TOKEN', '')
+
+
+def _session_signature(payload: str) -> str:
+    return hmac.new(_session_secret().encode(), payload.encode(), hashlib.sha256).hexdigest()
+
+
+def _valid_session(value: str | None) -> bool:
+    if not value or not _session_secret():
+        return False
+    try:
+        payload, signature = value.rsplit('.', 1)
+        expires = int(payload)
+    except (ValueError, TypeError):
+        return False
+    return expires >= int(time.time()) and hmac.compare_digest(signature, _session_signature(payload))
+
+
+def _password_configured() -> bool:
+    return bool(os.getenv('WEB_LOGIN_PASSWORD') and _session_secret())
+
+
+@app.post('/auth/login')
+async def login(request: Request):
+    """Create a short-lived signed browser session without exposing a bearer token."""
+    if not _password_configured():
+        return JSONResponse({'detail': 'WEB_LOGIN_PASSWORD et WEB_SESSION_SECRET doivent être configurés.'}, status_code=503)
+    body = await request.json()
+    password = str(body.get('password') or '')
+    if not hmac.compare_digest(password, os.getenv('WEB_LOGIN_PASSWORD', '')):
+        return JSONResponse({'detail': 'Mot de passe incorrect.'}, status_code=401)
+    payload = str(int(time.time()) + SESSION_TTL)
+    response = JSONResponse({'authenticated': True, 'expires_in': SESSION_TTL})
+    response.set_cookie(SESSION_COOKIE, f'{payload}.{_session_signature(payload)}', max_age=SESSION_TTL,
+                        httponly=True, secure=request.url.scheme == 'https', samesite='lax', path='/')
+    return response
+
+
+@app.post('/auth/logout')
+async def logout():
+    response = JSONResponse({'authenticated': False})
+    response.delete_cookie(SESSION_COOKIE, path='/')
+    return response
+
+
+@app.get('/auth/me')
+async def auth_me(request: Request):
+    return {'authenticated': _valid_session(request.cookies.get(SESSION_COOKIE))}
+
 
 def is_local(request: Request) -> bool:
     """Require both a loopback peer and host to avoid DNS-rebinding exposure."""
@@ -61,10 +119,15 @@ async def protect_workspace(request: Request, call_next):
     """Keep candidate data private and reject cross-origin writes."""
     if request.url.path.startswith('/api/'):
         token = os.getenv('WEB_ACCESS_TOKEN', '')
-        if token:
+        session_ok = _valid_session(request.cookies.get(SESSION_COOKIE))
+        if session_ok:
+            pass
+        elif token:
             supplied = request.headers.get('authorization', '')
             if not hmac.compare_digest(supplied.encode(), f'Bearer {token}'.encode()):
                 return JSONResponse({'detail': 'Saisissez la clé d’accès de cet espace pour continuer.'}, status_code=401)
+        elif _password_configured():
+            return JSONResponse({'detail': 'Connexion requise.'}, status_code=401)
         elif not is_local(request) or config.APP_ENV == 'production':
             return JSONResponse({'detail': 'L’accès distant nécessite WEB_ACCESS_TOKEN sur le serveur.'}, status_code=403)
         if request.method not in ('GET', 'HEAD', 'OPTIONS'):
