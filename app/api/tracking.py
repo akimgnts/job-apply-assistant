@@ -1,7 +1,9 @@
 """Private candidate tracking API. Does not expose Gmail credentials or mutate Gmail."""
 import hmac
+import hashlib
 import ipaddress
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
@@ -22,6 +24,23 @@ from app.services.opportunity_service import OpportunityService
 
 def private_access(request: Request):
     token = os.getenv('WEB_ACCESS_TOKEN', '')
+    # The rest of the API accepts the signed browser session created by
+    # /auth/login. Keep the Gmail tracker on the same authentication path;
+    # otherwise a user logged in with the password is incorrectly asked for
+    # the legacy bearer token again.
+    session = request.cookies.get('jobapply_session')
+    session_ok = False
+    secret = os.getenv('WEB_SESSION_SECRET') or token
+    if session and secret:
+        try:
+            payload, signature = session.rsplit('.', 1)
+            session_ok = int(payload) >= int(time.time()) and hmac.compare_digest(
+                signature, hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+            )
+        except (TypeError, ValueError):
+            session_ok = False
+    if session_ok:
+        token = ''
     if token:
         if not hmac.compare_digest(request.headers.get('authorization','').encode(), ('Bearer '+token).encode()):
             raise HTTPException(401, 'Accès au suivi non autorisé. Configurez le jeton côté serveur web.')

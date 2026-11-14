@@ -82,7 +82,10 @@ def offers(q: str | None = None, source: str | None = None, status: Literal['act
         else:
             query = query.filter(JobOffer.status == status)
     rows = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
-    if hours is not None and source != 'business_france_vie':
+    # Freshness is a display concern, not a source exception. Business France
+    # offers remain in the database for market analysis, but they must obey the
+    # same recent-window filter when the radar asks for 24/48h results.
+    if hours is not None:
         rows = [row for row in rows if OfferSignalService.is_recent(row, hours / 24)]
     rows = [row for row in rows if OfferSignalService.is_action_geo_match(row, geo)]
     scored = [(row, OfferSignalService.score(row)) for row in rows]

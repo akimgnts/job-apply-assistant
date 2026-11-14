@@ -41,6 +41,7 @@ def test_password_login_uses_http_only_session_cookie(monkeypatch):
     cookie = response.headers['set-cookie']
     assert 'HttpOnly' in cookie and 'SameSite=lax' in cookie
     assert client.get('/api/settings').status_code != 401
+    assert client.get('/api/tracking/status').status_code != 401
     assert client.post('/auth/logout').status_code == 200
     assert client.get('/api/settings').status_code == 401
 
