@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Job Apply — Agent candidature",
+  "description": "Prépare les candidatures depuis Job Apply et remplit le formulaire ouvert après relecture.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "scripting", "sidePanel", "storage"],
+  "host_permissions": ["https://jobapply-web.37.59.112.53.sslip.io/*", "http://127.0.0.1/*", "http://localhost/*"],
+  "action": {"default_title": "Préparer cette candidature"},
+  "background": {"service_worker": "background.js"},
+  "side_panel": {"default_path": "panel.html"}
+}

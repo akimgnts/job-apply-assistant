@@ -179,10 +179,12 @@ from app.api.daily import router as daily_router
 from app.api.preparation import router as preparation_router
 from app.api.workflow import router as workflow_router
 from app.api.assistant import router as assistant_router
+from app.api.extension import router as extension_router
 app.include_router(tracking_router)
 app.include_router(daily_router)
 app.include_router(preparation_router)
 app.include_router(workflow_router)
 app.include_router(assistant_router)
+app.include_router(extension_router)
 app.include_router(router)
 app.mount('/static', StaticFiles(directory=WEB_DIR / 'static'), name='static')

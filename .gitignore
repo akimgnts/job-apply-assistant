@@ -57,6 +57,7 @@ migrations/versions/__pycache__/
 
 .venv/
 !app/web/*.html
+!extension/*.html
 
 # Private Google OAuth credentials
 credentials.json
