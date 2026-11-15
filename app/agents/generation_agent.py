@@ -25,6 +25,25 @@ class GenerationAgent:
     """Generate CV, letter, and email from analysis."""
 
     @staticmethod
+    def _normalize_mail_body(content: str) -> str:
+        """Keep only the body when a model returns a complete email by mistake."""
+        lines = [line.strip() for line in (content or "").strip().splitlines()]
+        while lines and (
+            not lines[0]
+            or re.match(r"^(bonjour|hello|dear|madame|monsieur)\b", lines[0], re.I)
+            or re.match(r"^(subject|objet)\s*:", lines[0], re.I)
+        ):
+            lines.pop(0)
+
+        closing = next(
+            (index for index, line in enumerate(lines)
+             if re.match(r"^(best regards|kind regards|regards|cordialement|bien cordialement|sincerely)\b", line, re.I)),
+            len(lines),
+        )
+        body = lines[:closing]
+        return "\n\n".join(line for line in body if line).strip()
+
+    @staticmethod
     def _build_candidate_info(db: Session) -> dict:
         """Build candidate contact info from config/database with safe defaults."""
         candidate = {
@@ -846,7 +865,7 @@ class GenerationAgent:
         from app.services.candidate_editorial_context import editorial_context
         import json
         prompt += '\n' + editorial_context() + '\nMaster CV factuel :\n' + json.dumps(load_master_cv(), ensure_ascii=False)
-        content = await generate_text(prompt)
+        content = GenerationAgent._normalize_mail_body(await generate_text(prompt))
 
         context = {
             "candidate_name": "Akim Guentas",

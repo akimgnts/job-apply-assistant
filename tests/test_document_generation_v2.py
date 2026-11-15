@@ -6,6 +6,7 @@ from app.services.document_generation_v2 import (
     DocumentQualityError,
 )
 from app.services.master_cv_service import load_master_cv
+from app.agents.generation_agent import GenerationAgent
 
 
 @pytest.fixture
@@ -108,6 +109,23 @@ def test_letter_uses_the_generation_date_not_an_llm_supplied_date():
 
     assert date.today().strftime("%d/%m/%Y") in html
     assert "1900-01-01" not in html
+
+
+def test_mail_body_removes_a_model_generated_wrapper_before_template_rendering():
+    body = GenerationAgent._normalize_mail_body("""Bonjour,
+
+Subject: Application for Data Analyst
+
+Dear [Recruiter's Name],
+
+I am applying for the Data Analyst position at Credit Agricole Business Digital.
+
+Best regards,
+  
+Akim Guentas
+""")
+
+    assert body == "I am applying for the Data Analyst position at Credit Agricole Business Digital."
 
 
 def test_servier_fallback_uses_cv_prime_strategy_for_marketing_crm_vie():

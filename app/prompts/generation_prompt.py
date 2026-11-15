@@ -230,16 +230,17 @@ Structure:
 CRITICAL: Never invent experience. Reference only what was provided in profile."""
 
 def get_mail_prompt(analysis_json: dict, positioning: str) -> str:
-    return f"""Write a short professional email to recruiter (max 120 words, plain text).
+    return f"""Write only the body of a short professional application email (max 120 words, plain text).
 
 JOB: {analysis_json['job_title']} at {analysis_json['company']}
 POSITIONING: {positioning}
 
-Tone: Direct, professional, natural (not robotic)
+Use the language of the job offer. Tone: direct, professional, natural (not robotic).
 
 Structure:
-1. Quick intro + role you're applying for
+1. Quick application message for the role
 2. 1-2 key points why you're interested
 3. Call to action (e.g., "happy to discuss further")
 
-CRITICAL: Keep it SHORT and genuine."""
+CRITICAL: Return the body only. Do not include a subject line, greeting, salutation,
+recipient placeholder, signature, contact details, or attachment claim. Keep it SHORT and genuine."""
