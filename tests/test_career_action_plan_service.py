@@ -30,6 +30,21 @@ def test_verified_power_bi_evidence_is_not_labelled_missing():
         db.close(); engine.dispose()
 
 
+def test_ai_api_experience_does_not_establish_machine_learning_evidence():
+    from app.database.models import ProfileBlock
+    db, engine = make_session()
+    try:
+        row = Application(telegram_user_id='local', raw_offer='Machine learning')
+        db.add(row); db.flush()
+        db.add(JobAnalysis(application_id=row.id, analysis_json={}, missing_points=['Machine learning']))
+        db.add(ProfileBlock(category='project', title='AI builder', content='AI API and automation workflows', truth_level='verified'))
+        db.commit()
+        gap = CareerActionPlanService.build(db, 'local')['gap_priorities'][0]
+        assert not gap['already_documented']
+    finally:
+        db.close(); engine.dispose()
+
+
 def test_builds_action_plan_from_latest_analyses_and_gap_events():
     db, engine = make_session()
     try:

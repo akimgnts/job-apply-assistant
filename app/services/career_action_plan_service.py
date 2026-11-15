@@ -62,6 +62,9 @@ class CareerActionPlanService:
                            if str(getattr(block.truth_level, 'value', block.truth_level)) == 'verified']
         for item in gap_priorities:
             tokens = CareerActionPlanService.SKILL_KEYWORDS.get(item['skill'], (item['skill'].lower(),))
+            if item['skill'] == 'Machine learning':
+                # Using AI APIs or automation is not evidence of training ML models.
+                tokens = ('machine learning', 'scikit-learn', 'sklearn')
             evidence = [block.title for block in verified_blocks
                         if any(re.search(r'(?<!\w)' + re.escape(token.strip()) + r'(?!\w)',
                                          f'{block.title or ""} {block.content or ""}'.lower()) for token in tokens)]
