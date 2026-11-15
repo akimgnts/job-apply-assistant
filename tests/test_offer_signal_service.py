@@ -78,3 +78,9 @@ def test_content_confidence_and_fit_do_not_depend_on_recency():
     assert score['confidence'] == 'low'
     sparse.first_seen_at = datetime.utcnow() - timedelta(days=60)
     assert OfferSignalService.score(sparse)['score'] == score['score']
+def test_industrial_automation_is_not_business_workflow_automation():
+    from app.services.offer_signal_service import OfferSignalService
+    for title in ('Industrial automation engineer', 'AUTOMATION AND ROBOTICS ENGINEER'):
+        result = OfferSignalService._score_text(text=title.lower()+' SQL Python automation', title=title, source='business_france_vie')
+        assert result['score'] < 45
+        assert result['tier'] == 'noise'

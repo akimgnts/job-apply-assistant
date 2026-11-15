@@ -125,6 +125,9 @@ class OfferSignalService:
         if negative_hits:
             score -= 35
             reasons.append(f'Signal hors cible : {", ".join(negative_hits[:2])}')
+        if any(cls.contains(title, keyword) for keyword in ('industrial automation', 'robotics', 'automatisme', 'automates industriels', 'plc engineer')):
+            score -= 65
+            reasons.append('Automatisation industrielle / robotique : hors du périmètre data et processus métier')
         if any(cls.contains(title, kw) for kw in cls.SENIOR_KEYWORDS if kw != 'manager') or re.search(r'\b(?:[8-9]|1[0-9])\+?\s*(?:ans|years)\b', text):
             score -= 22
             reasons.append('Seniorité probablement trop élevée')
@@ -134,7 +137,7 @@ class OfferSignalService:
         if confidence == 'low':
             reasons.append('Description incomplète : pertinence à confirmer')
         if recency == 'new':
-            reasons.append('Récente : publiée ou repérée depuis moins de 48 h')
+            reasons.append('Récente : publiée depuis moins de 48 h')
         score = max(0, min(100, score))
         return {'score': score, 'tier': cls.tier(score), 'role_family': role_family,
                 'recency': recency, 'confidence': confidence, 'reasons': reasons,
