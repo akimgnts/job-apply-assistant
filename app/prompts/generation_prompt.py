@@ -230,12 +230,13 @@ Structure:
 CRITICAL: Never invent experience. Reference only what was provided in profile."""
 
 def get_mail_prompt(analysis_json: dict, positioning: str) -> str:
+    language = "French" if analysis_json.get("source_language") == "fr" else "English"
     return f"""Write only the body of a short professional application email (max 120 words, plain text).
 
 JOB: {analysis_json['job_title']} at {analysis_json['company']}
 POSITIONING: {positioning}
 
-Use the language of the job offer. Tone: direct, professional, natural (not robotic).
+Write in {language}. Tone: direct, professional, natural (not robotic).
 
 Structure:
 1. Quick application message for the role

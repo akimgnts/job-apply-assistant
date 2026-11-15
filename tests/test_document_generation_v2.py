@@ -7,6 +7,7 @@ from app.services.document_generation_v2 import (
 )
 from app.services.master_cv_service import load_master_cv
 from app.agents.generation_agent import GenerationAgent
+from app.prompts.generation_prompt import get_mail_prompt
 
 
 @pytest.fixture
@@ -126,6 +127,19 @@ Akim Guentas
 """)
 
     assert body == "I am applying for the Data Analyst position at Credit Agricole Business Digital."
+
+
+def test_source_language_overrides_an_english_analysis_summary():
+    assert DocumentGenerationV2._language({
+        "source_language": "fr",
+        "job_title": "Data Analyst",
+        "missions": ["Build and maintain dashboards"],
+    }) == "fr"
+
+
+def test_mail_prompt_uses_the_source_offer_language():
+    prompt = get_mail_prompt({"job_title": "Data Analyst", "company": "Entreprise", "source_language": "fr"}, "Data Analyst")
+    assert "Write in French." in prompt
 
 
 def test_servier_fallback_uses_cv_prime_strategy_for_marketing_crm_vie():

@@ -232,7 +232,10 @@ async def generate(identifier: int, payload: GenerationInput, db: Session = Depe
         raise HTTPException(409, 'Analysez cette candidature avant de générer des documents.')
     try:
         from app.agents.generation_agent import GenerationAgent
-        result = await GenerationAgent.generate_documents(db, application_id=row.id, analysis=analysis.analysis_json, positioning=row.recommended_angle or '', document_types=list(dict.fromkeys(payload.document_types)), skill_profile=(analysis.analysis_json.get('positioning') or {}).get('skill_profile', 'general_business_data'), telegram_user_id=svc.user_id())
+        from app.services.language_service import detect_job_offer_language
+        generation_analysis = dict(analysis.analysis_json)
+        generation_analysis['source_language'] = detect_job_offer_language(row.raw_offer or '', generation_analysis)
+        result = await GenerationAgent.generate_documents(db, application_id=row.id, analysis=generation_analysis, positioning=row.recommended_angle or '', document_types=list(dict.fromkeys(payload.document_types)), skill_profile=(analysis.analysis_json.get('positioning') or {}).get('skill_profile', 'general_business_data'), telegram_user_id=svc.user_id())
         successful = any(result.get('documents', {}).values())
         if successful:
             row.status = ApplicationStatusEnum.generated

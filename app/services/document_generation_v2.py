@@ -638,6 +638,9 @@ Master CV source data:
 
     @staticmethod
     def _language(analysis: dict) -> str:
+        source_language = analysis.get("source_language")
+        if source_language in {"fr", "en"}:
+            return source_language
         text = " ".join([
             str(analysis.get("job_title", "")),
             " ".join(analysis.get("missions", [])),
