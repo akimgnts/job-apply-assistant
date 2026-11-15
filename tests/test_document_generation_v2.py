@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 
 from app.services.document_generation_v2 import (
     DocumentGenerationV2,
@@ -68,6 +69,45 @@ def test_letter_fallback_uses_apec_template_without_placeholders(luxurynsight_an
     assert "Madame, Monsieur" in html
     assert "{{" not in html
     assert "TEMPLATE DE RÉFÉRENCE" not in html
+
+
+def test_letter_payload_rejects_a_string_instead_of_four_paragraphs(monkeypatch, luxurynsight_analysis):
+    async def malformed_letter_payload(*args, **kwargs):
+        return '''{
+          "nom_complet": "Akim Guentas",
+          "intitule_cible": "Data Engineer",
+          "positionnement": "Data",
+          "entreprise": "Luxurynsight",
+          "objet": "Candidature",
+          "formule_appel": "Madame, Monsieur,",
+          "paragraphes": "Le texte entier de la lettre"
+        }'''
+
+    import app.services.openai_service as openai_service
+
+    monkeypatch.setattr(openai_service, "call_openai", malformed_letter_payload)
+    html = __import__("asyncio").run(
+        DocumentGenerationV2.generate_letter_html(luxurynsight_analysis, load_master_cv())
+    )
+
+    assert "Le texte entier de la lettre" not in html
+    assert "Chez Sidel" in html
+
+
+def test_letter_uses_the_generation_date_not_an_llm_supplied_date():
+    html = DocumentGenerationV2.render_letter_payload({
+        "nom_complet": "Akim Guentas",
+        "intitule_cible": "Data Analyst",
+        "positionnement": "Data",
+        "entreprise": "Entreprise test",
+        "objet": "Candidature",
+        "formule_appel": "Madame, Monsieur,",
+        "paragraphes": ["A", "B", "C", "D"],
+        "date": "1900-01-01",
+    })
+
+    assert date.today().strftime("%d/%m/%Y") in html
+    assert "1900-01-01" not in html
 
 
 def test_servier_fallback_uses_cv_prime_strategy_for_marketing_crm_vie():

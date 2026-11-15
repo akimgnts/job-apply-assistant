@@ -11,6 +11,7 @@ import html
 import json
 import logging
 import re
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -82,6 +83,13 @@ class DocumentGenerationV2:
             "nom_complet", "intitule_cible", "positionnement",
             "entreprise", "objet", "formule_appel", "paragraphes",
         })
+        paragraphs = payload["paragraphes"]
+        if (
+            not isinstance(paragraphs, list)
+            or len(paragraphs) < 4
+            or any(not isinstance(paragraph, str) or not paragraph.strip() for paragraph in paragraphs[:4])
+        ):
+            raise DocumentQualityError("Letter payload must contain four non-empty paragraphs")
         return payload
 
     @staticmethod
@@ -513,7 +521,7 @@ class DocumentGenerationV2:
             "ENTREPRISE": payload.get("entreprise", ""),
             "DESTINATAIRE_OU_EQUIPE_RECRUTEMENT": payload.get("destinataire", "Équipe de recrutement"),
             "VILLE_ENTREPRISE": payload.get("ville", ""),
-            "DATE_LETTRE": payload.get("date", ""),
+            "DATE_LETTRE": date.today().strftime("%d/%m/%Y"),
             "LABEL_OBJET": "Objet :",
             "OBJET_CANDIDATURE": payload.get("objet", ""),
             "FORMULE_APPEL": payload.get("formule_appel", "Madame, Monsieur,"),
