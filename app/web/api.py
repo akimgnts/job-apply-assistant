@@ -63,7 +63,7 @@ def overview(db: Session = Depends(get_db)) -> dict:
     return {'counts': {'offers': db.query(JobOffer).count(), 'active_offers': db.query(JobOffer).filter(JobOffer.status == 'active').count(), 'archived_offers': db.query(JobOffer).filter(JobOffer.status.in_(['archived', 'closed'])).count(), 'applications': applications.count(), 'documents': svc.documents(db).count(), 'companies': db.query(Company).count(), 'profile_blocks': db.query(ProfileBlock).count()},
             'statuses': {status.value: applications.filter(Application.status == status).count() for status in ApplicationStatusEnum},
             'recent_applications': [svc.application_data(db, row) for row in applications.order_by(Application.id.desc()).limit(5)],
-            'sources': [{'source': source, 'count': count} for source, count in db.query(JobOffer.source, func.count(JobOffer.id)).group_by(JobOffer.source).all()], 'ai_available': bool(config.OPENAI_API_KEY)}
+            'sources': [{'source': source, 'count': count, 'last_seen_at': seen.isoformat() if seen else None, 'latest_publication': posted.isoformat() if posted else None} for source, count, seen, posted in db.query(JobOffer.source, func.count(JobOffer.id), func.max(JobOffer.last_seen_at), func.max(JobOffer.posted_date)).group_by(JobOffer.source).all()], 'ai_available': bool(config.OPENAI_API_KEY)}
 
 
 @router.get('/offers')
@@ -77,10 +77,7 @@ def offers(q: str | None = None, source: str | None = None, status: Literal['act
     if status == 'archived':
         query = query.filter(JobOffer.status.in_(['archived', 'closed']))
     elif status != 'all':
-        if source == 'business_france_vie':
-            query = query.filter(JobOffer.status.in_(['active', 'archived']))
-        else:
-            query = query.filter(JobOffer.status == status)
+        query = query.filter(JobOffer.status == status)
     rows = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
     # Freshness is a display concern, not a source exception. Business France
     # offers remain in the database for market analysis, but they must obey the
@@ -238,7 +235,9 @@ async def generate(identifier: int, payload: GenerationInput, db: Session = Depe
         result = await GenerationAgent.generate_documents(db, application_id=row.id, analysis=generation_analysis, positioning=row.recommended_angle or '', document_types=list(dict.fromkeys(payload.document_types)), skill_profile=(analysis.analysis_json.get('positioning') or {}).get('skill_profile', 'general_business_data'), telegram_user_id=svc.user_id())
         successful = any(result.get('documents', {}).values())
         if successful:
-            row.status = ApplicationStatusEnum.generated
+            from app.services.preparation_service import ready_document_types
+            if row.status in (ApplicationStatusEnum.saved, ApplicationStatusEnum.analyzed, ApplicationStatusEnum.generated):
+                row.status = ApplicationStatusEnum.generated if {'cv', 'letter', 'mail'} <= ready_document_types(db, row.id) else ApplicationStatusEnum.analyzed
             svc.commit(db)
         else:
             db.rollback()

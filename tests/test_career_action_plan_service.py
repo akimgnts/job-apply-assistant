@@ -12,6 +12,24 @@ def make_session():
     return sessionmaker(bind=engine)(), engine
 
 
+def test_verified_power_bi_evidence_is_not_labelled_missing():
+    from app.database.models import ProfileBlock
+    db, engine = make_session()
+    try:
+        row = Application(telegram_user_id='local', raw_offer='Power BI', company='Acme')
+        db.add(row); db.flush()
+        db.add(JobAnalysis(application_id=row.id, analysis_json={}, missing_points=['Power BI']))
+        db.add(ProfileBlock(category='experience', title='Sidel dashboards', content='Built Power BI dashboards', truth_level='verified'))
+        db.commit()
+        result = CareerActionPlanService.build(db, 'local')
+        action = result['action_plan'][0]
+        assert action['priority'] == 'leverage'
+        assert 'déjà documentée' in action['why_now']
+        assert 'Sidel dashboards' in action['steps'][0]
+    finally:
+        db.close(); engine.dispose()
+
+
 def test_builds_action_plan_from_latest_analyses_and_gap_events():
     db, engine = make_session()
     try:

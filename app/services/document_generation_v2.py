@@ -570,6 +570,13 @@ linkedin_url, linkedin_label, github_url, github_label, portfolio_url,
 portfolio_label, entreprise, destinataire, ville, date, objet, formule_appel,
 paragraphes, formule_politesse, signature.
 
+Write every paragraph in {"French" if DocumentGenerationV2._language(analysis) == "fr" else "English"}.
+The field paragraphes MUST be an array of exactly four non-empty strings,
+one for each section of the letter, never a string or an object.
+All other fields are strings. Return complete paragraphs with concrete evidence.
+Use absolute https:// URLs for linkedin_url, github_url and portfolio_url.
+The generation service sets the current date; do not copy a date from the Master CV.
+
 Job analysis:
 {json.dumps(analysis, ensure_ascii=False)}
 

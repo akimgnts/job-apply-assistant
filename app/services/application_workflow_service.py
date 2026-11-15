@@ -152,6 +152,12 @@ def serialize_email(event, detail=False):
 def serialize_application(db, app, detail=False):
     status = status_value(app)
     documents = db.query(GeneratedDocument).filter_by(application_id=app.id, telegram_user_id=app.telegram_user_id).order_by(GeneratedDocument.id.desc()).all()
+    latest_documents = {}
+    for document in documents:
+        kind = document.document_type.value
+        if document.content and document.content.strip():
+            latest_documents.setdefault(kind, document)
+    missing_documents = [kind for kind in ('cv', 'letter', 'mail') if kind not in latest_documents]
     emails = db.query(EmailEvent).filter_by(application_id=app.id, owner_id=app.telegram_user_id).order_by(EmailEvent.received_at.desc()).all()
     tracks = _tracks(db, app)
     due = min((t.next_follow_up for t in tracks if t.next_follow_up), default=None)
@@ -162,9 +168,12 @@ def serialize_application(db, app, detail=False):
     follow_up_due = bool(due and due <= datetime.utcnow() and status in ('applied','received'))
     if follow_up_due:
         action = 'Préparer une relance'
+    if status == 'generated' and missing_documents:
+        action = 'Compléter le dossier avant envoi'
     result = dict(id=app.id, company=app.company, job_title=app.job_title, source_url=app.source_url,
         job_offer_id=app.job_offer_id, status=status, status_label=LABELS[status], match_score=app.match_score,
-        documents=[{'id':d.id,'type':d.document_type.value,'filename':d.filename,'url':f'/api/documents/{d.id}/download'} for d in documents],
+        documents=[{'id':d.id,'type':d.document_type.value,'filename':d.filename,'url':f'/api/documents/{d.id}/download'} for d in latest_documents.values()],
+        document_version_count=len(documents), missing_documents=missing_documents, documents_ready=not missing_documents,
         next_action=action, follow_up_due=follow_up_due, next_follow_up=iso(due),
         applied_at=iso(app.applied_at), created_at=iso(app.created_at), updated_at=iso(app.updated_at), email_count=len(emails))
     if detail:

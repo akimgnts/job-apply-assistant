@@ -27,7 +27,7 @@ function installDailyNav() {
 
 function actionLabel(row) {
   if (row.follow_up_due) return 'Relance';
-  if (row.status === 'generated') return 'Envoyer';
+  if (row.status === 'generated') return row.documents_ready ? 'Relire et postuler' : 'Compléter';
   if (row.status === 'applied' || row.status === 'received') return 'Attendre';
   if (row.status === 'replied') return 'Lire';
   if (row.status === 'interview') return 'Préparer';
@@ -80,19 +80,19 @@ async function workflowApplicationsPage() {
   });
   const metrics = [
     ['briefcase', 'Dossiers', rows.length, 'Candidatures visibles'],
-    ['file', 'Documents prêts', rows.filter(r => r.documents?.length >= 3).length, 'CV, lettre, mail'],
+    ['file', 'Documents prêts', rows.filter(r => r.documents_ready).length, 'CV, lettre, mail'],
     ['mail', 'Emails liés', rows.reduce((sum, r) => sum + (r.email_count || 0), 0), 'Gmail / réception'],
     ['clock', 'Relances', rows.filter(r => r.follow_up_due).length, 'À traiter maintenant']
   ];
   return heading('PIPELINE CANDIDATURE', 'À traiter, candidaté, relancé', 'Une vue courte pour agir vite : préparer le dossier, marquer candidaté, relier les mails et passer à la suite.',
     btn('Nouvelle candidature', 'create')) + applicationTabs() +
     `<section class="metrics">${metrics.map(([i,l,n,c]) => `<div class="metric"><div class="metric-top"><span>${l}</span>${icon(i)}</div><div class="metric-number">${number(n)}</div><div class="metric-caption">${c}</div></div>`).join('')}</section>
-    <section class="gmail-connection"><span class="connection-mark">${icon('mail')}</span><div><strong>${data.gmail?.mailbox || 'Gmail lecture seule'}</strong><p>${data.gmail?.configured ? `Dernière synchro : ${date(data.gmail.last_sync)}` : 'Non configuré. Les dossiers restent utilisables sans Gmail.'}</p></div><button class="btn btn-small" data-action="workflow-sync">${icon('refresh')}Sync</button></section>
+    <section class="gmail-connection"><span class="connection-mark">${icon('mail')}</span><div><strong>${esc(data.gmail?.mailbox || 'Gmail lecture seule')}</strong><p>${data.gmail?.connected ? `Dernière synchro : ${date(data.gmail.last_sync)}` : data.gmail?.error ? 'Gmail déconnecté : autorisation à renouveler. Les messages déjà importés restent accessibles.' : 'Gmail non connecté.'}</p></div><a class="btn btn-small" href="#tracking">${data.gmail?.connected ? 'Voir le suivi' : 'Vérifier la connexion'}</a></section>
     <section class="panel">
       <div class="toolbar">${searchInput('Rechercher une candidature…')}<span class="muted">${number(rows.length)} dossiers</span></div>
       ${rows.length ? `<div class="table-wrap"><table><thead><tr><th>Dossier</th><th>Statut</th><th class="hide-mobile">Action</th><th class="hide-mobile">Documents</th><th class="hide-mobile">Emails</th><th></th></tr></thead><tbody>${rows.map(row => `<tr>
         <td><div class="table-job">${logo(row.company)}<button data-action="workflow-app" data-id="${row.id}"><strong>${esc(row.job_title || 'Offre')}</strong><small>${esc(row.company || 'Entreprise')} · ${row.match_score === null ? 'score à analyser' : `${row.match_score}/10`}</small></button></div></td>
-        <td>${badge(row.status)}</td>
+        <td>${row.status === 'generated' && !row.documents_ready ? '<span class="badge saved">Dossier incomplet</span>' : badge(row.status)}</td>
         <td class="hide-mobile"><span class="badge ${row.follow_up_due ? 'saved' : 'generated'}">${esc(actionLabel(row))}</span></td>
         <td class="hide-mobile">${number(row.documents?.length || 0)}/3</td>
         <td class="hide-mobile">${number(row.email_count || 0)}</td>
@@ -181,6 +181,13 @@ function addAssistantMessage(role, html) {
 }
 
 // Keep the canonical Offres du jour page from app.js. Workflow.js must not override it.
+pages.outreach = async function() {
+  const [applications, drafts] = await Promise.all([wfApi('/workflow/applications'), api(`/outreach?${new URLSearchParams({q:state.q,page:state.pagination,page_size:12})}`)]);
+  const mails = applications.items.filter(row => (!state.q || `${row.company} ${row.job_title}`.toLowerCase().includes(state.q.toLowerCase())) && row.documents.some(doc => doc.type === 'mail'));
+  return heading('PRÊTS À RELIRE', 'Mes brouillons', 'Les messages préparés dans Job Apply. Leur présence ici ne signifie pas qu’ils sont enregistrés dans Gmail ou envoyés.') +
+    `<section class="panel settings-panel"><div class="toolbar">${searchInput('Rechercher un brouillon…')}</div><h2>Emails de candidature</h2>${mails.length ? mails.map(row => {const mail=row.documents.find(doc=>doc.type==='mail');return `<div class="setting-row"><div><strong>${esc(row.company)}</strong><p>${esc(row.job_title)}</p></div>${btn('Relire le message','document','btn-small','eye',`data-id="${mail.id}"`)}${btn('Voir le dossier','workflow-app','btn-small','briefcase',`data-id="${row.id}"`)}</div>`;}).join('') : empty('mail','Aucun email préparé','Préparez un dossier pour retrouver son message ici.', '<a class="btn" href="#applications">Préparer un dossier</a>')}</section>` +
+    `<section class="panel settings-panel mt"><h2>Brouillons de contact</h2>${drafts.items.length ? drafts.items.map(d=>`<details class="drawer-section"><summary>${esc(d.company)} · ${esc(d.contact_name)}</summary><h3>${esc(d.subject_line)}</h3><div class="mail-preview">${esc(d.message_text)}</div></details>`).join('')+pagination(drafts) : '<p>Aucun brouillon de contact. Les coordonnées et leur source sont consultables dans Entreprises.</p>'}</section>`;
+};
 pages.applications = workflowApplicationsPage;
 installAssistant();
 navigate();
@@ -190,6 +197,10 @@ document.addEventListener('click', async event => {
   if (actionEl && !actionEl.disabled) {
     try {
       switch (actionEl.dataset.action) {
+        case 'daily-window':
+          state.dailyHours = actionEl.dataset.hours;
+          await render();
+          return;
         case 'daily-refresh':
           state.dailyDate = $('#daily-date')?.value || todayISO();
           await render({preserveFocus: true});

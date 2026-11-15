@@ -11,6 +11,23 @@ def test_workflow_service_is_available():
     assert importlib.util.find_spec('app.services.application_workflow_service') is not None
 
 
+def test_readiness_counts_latest_nonempty_types_not_versions(db):
+    from app.database.models import GeneratedDocument
+    from app.services.application_workflow_service import serialize_application
+    row = application(db, status='generated')
+    for kind, content in [('cv', 'old CV'), ('cv', 'new CV'), ('letter', ' '), ('mail', 'mail')]:
+        db.add(GeneratedDocument(application_id=row.id, telegram_user_id='local', document_type=kind, filename=kind+'.html', content=content))
+    db.commit()
+    data = serialize_application(db, row)
+    assert len(data['documents']) == 2
+    assert data['document_version_count'] == 4
+    assert data['missing_documents'] == ['letter']
+    assert not data['documents_ready']
+    assert data['next_action'] == 'Compléter le dossier avant envoi'
+    cv = next(d for d in data['documents'] if d['type'] == 'cv')
+    assert db.get(GeneratedDocument, cv['id']).content == 'new CV'
+
+
 @pytest.fixture
 def db(monkeypatch):
     monkeypatch.delenv('GMAIL_APPLICATION_USER_ID', raising=False)

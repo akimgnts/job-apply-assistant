@@ -58,6 +58,16 @@ class CareerActionPlanService:
                 gap_counter[skill] = payload['frequency']
 
         gap_priorities = CareerActionPlanService._gap_priorities(gap_counter, event_gap_scores, market_sample_size, limit)
+        verified_blocks = [block for block in db.query(ProfileBlock).all()
+                           if str(getattr(block.truth_level, 'value', block.truth_level)) == 'verified']
+        for item in gap_priorities:
+            tokens = CareerActionPlanService.SKILL_KEYWORDS.get(item['skill'], (item['skill'].lower(),))
+            evidence = [block.title for block in verified_blocks
+                        if any(re.search(r'(?<!\w)' + re.escape(token.strip()) + r'(?!\w)',
+                                         f'{block.title or ""} {block.content or ""}'.lower()) for token in tokens)]
+            item['profile_evidence'] = evidence[:3]
+            item['already_documented'] = bool(evidence)
+        gap_priorities.sort(key=lambda item: item['already_documented'])
         top_strength_items = sorted(strength_counter.items(), key=lambda item: (-item[1], item[0].lower()))[:limit]
         top_strengths = [
             {'skill': skill, 'frequency': count, 'percentage': CareerActionPlanService._percentage(count, market_sample_size)}
@@ -233,6 +243,17 @@ class CareerActionPlanService:
     @staticmethod
     def _action_for_gap(gap: dict[str, Any], rank: int) -> dict[str, Any]:
         skill = gap['skill']
+        if gap.get('already_documented'):
+            return {
+                'rank': rank, 'skill': skill, 'priority': 'leverage',
+                'action': f'Préciser le niveau attendu en {skill} et valoriser les preuves existantes.',
+                'steps': [f'Examiner les preuves : {", ".join(gap["profile_evidence"])}.',
+                          'Comparer le niveau demandé avec les réalisations concrètes.',
+                          'Adapter le dossier ; ne prévoir une formation que pour un besoin précis non couvert.'],
+                'why_now': f'Signal relevé {gap["frequency"]} fois, mais la compétence est déjà documentée dans le profil vérifié. Ce signal ne prouve pas un manque de maîtrise.',
+                'deliverable': 'Une preuve adaptée au besoin et une formulation défendable en entretien.',
+                'estimated_effort': '1-2h',
+            }
         practice = {
             'dbt': ("Construire un mini-projet de transformation SQL avec dbt.", ["Évaluer votre niveau : transformer une table brute en modèle métier.", "Pratiquer les modèles, les tests de qualité et la documentation dans dbt.", "Construire trois modèles liés sur un jeu de données public et expliquer vos choix."], "Un dépôt avec modèles SQL, tests exécutables et schéma des données."),
             'Airflow': ("Orchestrer un flux de données avec Airflow.", ["Identifier ce qui manque : planification, dépendances ou gestion des erreurs.", "Créer un DAG qui récupère, transforme et enregistre des données publiques.", "Simuler un échec et vérifier la reprise sans doublons."], "Un DAG reproductible, un journal d’exécution et une procédure de reprise."),

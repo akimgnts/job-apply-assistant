@@ -55,6 +55,39 @@ def test_radar_save_is_idempotent_and_scoped(workspace):
     assert opportunities['items'][0]['application_count'] == 1
 
 
+def test_business_france_archives_stay_out_of_active_view(workspace):
+    from datetime import datetime
+    client, session = workspace
+    company = session.query(Company).first()
+    session.add(JobOffer(company_id=company.id, job_title='Data Analyst', source='business_france_vie', job_url='https://example.org/archived-vie', status='archived', posted_date=datetime.utcnow()))
+    session.commit()
+    assert client.get('/api/offers?source=business_france_vie&status=active').json()['total'] == 0
+    assert client.get('/api/offers?source=business_france_vie&status=archived').json()['total'] == 1
+    source = next(s for s in client.get('/api/overview').json()['sources'] if s['source'] == 'business_france_vie')
+    assert source['latest_publication']
+
+
+def test_single_document_generation_is_not_complete_and_preserves_sent_status(workspace, monkeypatch):
+    from app.config import config
+    from app.database.models import JobAnalysis
+    from app.agents.generation_agent import GenerationAgent
+    monkeypatch.setattr(config, 'OPENAI_API_KEY', 'test-key')
+    client, db = workspace
+    row = client.post('/api/applications', json={'raw_offer': 'Missions SQL et Power BI'}).json()
+    db.add(JobAnalysis(application_id=row['id'], analysis_json={}))
+    db.commit()
+    async def generate(db, **kwargs):
+        db.add(GeneratedDocument(application_id=row['id'], telegram_user_id='local', document_type='cv', filename='cv.html', content='CV'))
+        db.commit()
+        return {'documents': {'cv': 'CV'}, 'status': 'full_success'}
+    monkeypatch.setattr(GenerationAgent, 'generate_documents', generate)
+    response = client.post(f'/api/applications/{row["id"]}/generate', json={'document_types':['cv']})
+    assert response.json()['application']['status'] == 'analyzed'
+    client.patch(f'/api/applications/{row["id"]}', json={'status':'applied'})
+    response = client.post(f'/api/applications/{row["id"]}/generate', json={'document_types':['cv']})
+    assert response.json()['application']['status'] == 'applied'
+
+
 def test_offers_include_signal_score_and_filter_priority_recent(workspace):
     from datetime import datetime, timedelta
     client, session = workspace
@@ -184,7 +217,8 @@ def test_analysis_and_generation_use_existing_agents_without_exposing_errors(wor
     assert 'secret' not in failed.text
     generation_agent.return_value = {'status': 'full_success', 'documents': {'mail': 'Bonjour'}, 'errors': {'mail': None}}
     succeeded = client.post(f'/api/applications/{identifier}/generate', json={'document_types': ['mail']})
-    assert succeeded.json()['application']['status'] == 'generated'
+    # One successful email does not make the three-piece dossier complete.
+    assert succeeded.json()['application']['status'] == 'analyzed'
     assert generation_agent.call_args.kwargs['telegram_user_id'] == 'local'
 
 
@@ -361,7 +395,7 @@ def test_apec_action_geo_filter_keeps_only_paris_idf_for_radar(workspace):
     assert 'https://example.org/apec-france' in all_zone_urls
 
 
-def test_business_france_source_filter_includes_snapshot_archives(workspace):
+def test_business_france_snapshot_remains_accessible_only_in_archives(workspace):
     from datetime import datetime, timedelta
     client, session = workspace
     company = session.query(Company).filter_by(name='Acme').first()
@@ -383,4 +417,6 @@ def test_business_france_source_filter_includes_snapshot_archives(workspace):
     assert response.status_code == 200
     urls = {item['job_url'] for item in response.json()['items']}
 
-    assert 'https://example.org/bf-snapshot' in urls
+    assert 'https://example.org/bf-snapshot' not in urls
+    archives = client.get('/api/offers?status=archived&source=business_france_vie').json()
+    assert 'https://example.org/bf-snapshot' in {item['job_url'] for item in archives['items']}
