@@ -843,6 +843,9 @@ class GenerationAgent:
     ) -> str:
         """Generate email to recruiter."""
         prompt = get_mail_prompt(analysis, positioning)
+        from app.services.candidate_editorial_context import editorial_context
+        import json
+        prompt += '\n' + editorial_context() + '\nMaster CV factuel :\n' + json.dumps(load_master_cv(), ensure_ascii=False)
         content = await generate_text(prompt)
 
         context = {

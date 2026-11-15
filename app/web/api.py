@@ -321,11 +321,12 @@ def company(identifier: int, db: Session = Depends(get_db)) -> dict:
 @router.get('/profile')
 def profile(db: Session = Depends(get_db)) -> dict:
     from app.services.master_cv_service import load_master_cv
+    from app.services.candidate_editorial_context import PREFERENCES
     try:
         master = load_master_cv()
     except (ValueError, FileNotFoundError):
         master = None
-    return {'blocks': [svc.serialize(row) for row in db.query(ProfileBlock).order_by(ProfileBlock.priority.desc()).all()], 'master_cv': master}
+    return {'blocks': [svc.serialize(row) for row in db.query(ProfileBlock).order_by(ProfileBlock.priority.desc()).all()], 'master_cv': master, 'editorial_preferences': PREFERENCES}
 
 
 @router.get('/intelligence')

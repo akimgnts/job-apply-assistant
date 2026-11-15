@@ -40,8 +40,8 @@ def private_access(request: Request):
         except (TypeError, ValueError):
             session_ok = False
     if session_ok:
-        token = ''
-    if token:
+        pass
+    elif token:
         if not hmac.compare_digest(request.headers.get('authorization','').encode(), ('Bearer '+token).encode()):
             raise HTTPException(401, 'Accès au suivi non autorisé. Configurez le jeton côté serveur web.')
     else:

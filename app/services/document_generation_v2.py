@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
+from app.services.candidate_editorial_context import editorial_context
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,6 @@ class DocumentGenerationV2:
     @staticmethod
     async def generate_cv_html(analysis: dict, master_cv: dict) -> str:
         """Generate a targeted CV using the strict template and quality gates."""
-        if DocumentGenerationV2._cv_prime_strategy(analysis)["family"] == "marketing_crm_bi":
-            return DocumentGenerationV2.build_fallback_cv_html(analysis, master_cv)
         try:
             payload = await DocumentGenerationV2._generate_cv_payload(analysis, master_cv)
             html_doc = DocumentGenerationV2.render_cv_payload(payload)
@@ -535,6 +534,8 @@ class DocumentGenerationV2:
 CV Prime doctrine to apply before writing:
 {doctrine}
 
+{editorial_context()}
+
 Return JSON only. Fill the supplied targeted CV template indirectly through these keys:
 nom_complet, intitule_cible, entreprise, mots_cles_differenciants, localisation,
 telephone, email, linkedin_url, linkedin_label, github_url, github_label,
@@ -545,13 +546,15 @@ Job analysis:
 {json.dumps(analysis, ensure_ascii=False)}
 
 Master CV source data:
-{json.dumps(master_cv, ensure_ascii=False)[:24000]}
+{json.dumps(master_cv, ensure_ascii=False)}
 """
 
     @staticmethod
     def _letter_prompt(analysis: dict, master_cv: dict) -> str:
         instructions = DocumentGenerationV2._read_instruction("letter_apec_instructions.md")
         return f"""{instructions}
+
+{editorial_context()}
 
 Return JSON only with keys:
 nom_complet, intitule_cible, positionnement, localisation, telephone, email,
@@ -563,7 +566,7 @@ Job analysis:
 {json.dumps(analysis, ensure_ascii=False)}
 
 Master CV source data:
-{json.dumps(master_cv, ensure_ascii=False)[:20000]}
+{json.dumps(master_cv, ensure_ascii=False)}
 """
 
     @staticmethod
