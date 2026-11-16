@@ -197,17 +197,17 @@ NEVER USE (hard forbidden):
   • passionate about / results-oriented / team player
 
 PREFER specific, grounded language:
-  • "Built and maintained 10 dashboards used by 30–40 stakeholders" (not "created reporting tools")
-  • "Automated tasks that previously required half a day to several days" (not "reduced manual effort")
+  • "Designed 6+ Power BI dashboards used weekly by dozens of stakeholders" (not "created reporting tools")
+  • "Automated weekly Excel reporting from 5–6 hours to about 1 hour" (not "reduced manual effort")
   • "Analyzed 61 customer accounts" (not "performed customer analysis")
   • "Iterated through 10+ versions of the matching engine" (not "developed an AI system")
 
 EVIDENCE-FIRST BULLET RULE:
 Every bullet must contain at least one of:
-  ✓ A concrete number (10 dashboards, 30–40 users, 61 customers, half a day saved)
+  ✓ A concrete number (6+ dashboards, dozens of users, 61 accounts, 5–6h/week to about 1h/week)
   ✓ An operational before/after (previously X days → now Y hours)
   ✓ A specific stakeholder scope (marketing, commercial and management teams)
-  ✓ A measurable output (100+ documents generated, 1,000+ opportunities processed)
+  ✓ A measurable output (1,000+ offers/opportunities evaluated as part of 10+ cycles across 30 profiles)
 
 If no number is available in the source data, use truthful qualitative specificity.
 Never invent numbers. Never use vague percentages. Never use "significantly" or "greatly".
@@ -261,12 +261,12 @@ These rules MUST be respected. They prevent hallucinations while improving reada
    - Strong verbs signal ownership and impact
 
 3. ACTION + CONTEXT + RESULT (when applicable)
-   - "Built 10+ dashboards" (action + object)
-   - "for 30–40 international stakeholders" (context + scale)
-   - "reducing manual work from 5-6 hours to ~1 hour" (result/impact)
+   - "Designed 6+ Power BI dashboards" (action + object)
+   - "for dozens of business stakeholders" (context + scale)
+   - "reducing weekly Excel reporting from 5–6 hours to about 1 hour" (result/impact)
 
 4. QUANTIFY IMPACT ONLY WITH VERIFIED METRICS
-   - Use exact metrics from Master CV: ~10, 30–40, 61, 1000+
+   - Use only metrics from Master CV V4: 6+, dozens, 61, 10+ cycles, 30 profiles, 1,000+ opportunities
    - NEVER derive, calculate, or estimate new metrics
    - If no metric exists, use truthful qualitative specificity
    - Example OK: "Analyzed 61 customer accounts"
@@ -278,9 +278,9 @@ These rules MUST be respected. They prevent hallucinations while improving reada
    - Keep: specific, grounded language
 
 6. BUSINESS IMPACT OVER TASK DESCRIPTION
-   - Good: "Reducing processes that previously required half a day of manual work"
+   - Good: "Reducing weekly Excel reporting from 5–6 hours to about 1 hour"
    - Bad: "Updated reporting processes"
-   - Good: "Structured CRM data for 30–40 stakeholders across 4 European teams"
+   - Good: "Structured CRM data for business reporting across international teams"
    - Bad: "Worked with CRM systems"
 
 7. USE OFFER TERMINOLOGY ONLY IF SUPPORTED BY SOURCE FACTS
@@ -310,8 +310,8 @@ BULLET STRUCTURE:
 ACTION + EVIDENCE + IMPACT
 
 Prefer (evidence-first, numbers anchored, direct):
-  "Built and maintained around 10 dashboards covering installed base, events and KPIs — used weekly by ~30–40 stakeholders across marketing, commercial and management teams."
-  "Automated extraction, cleaning and visualization tasks — reducing processes that previously required half a day to several days of manual work."
+  "Designed 6+ Power BI dashboards covering installed base, events and KPIs, used weekly by dozens of marketing, commercial and management stakeholders."
+  "Automated weekly Excel reporting, reducing processing time from 5–6 hours to about 1 hour, including result checks."
   "Analyzed 61 customer accounts in the Wines & Spirits sector and produced commercial action plans supporting account prioritization by machine age and business opportunity."
 
 Avoid (generic, tool-heavy, no evidence):
@@ -514,3 +514,4 @@ Premium positioning. Premium narrative.
 No fabrications. No exaggeration. No noise.
 Clarity. Credibility. Positioning. Signal. Substance. Truth.
 """
+

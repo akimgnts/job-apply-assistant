@@ -73,7 +73,7 @@ def test_single_document_generation_is_not_complete_and_preserves_sent_status(wo
     from app.agents.generation_agent import GenerationAgent
     monkeypatch.setattr(config, 'OPENAI_API_KEY', 'test-key')
     client, db = workspace
-    row = client.post('/api/applications', json={'raw_offer': 'Missions SQL et Power BI'}).json()
+    row = client.post('/api/applications', json={'raw_offer': 'Missions SQL et Power BI. Nous recherchons une personne pour analyser les besoins, suivre les indicateurs, construire des tableaux de bord et présenter des recommandations aux équipes métier.'}).json()
     db.add(JobAnalysis(application_id=row['id'], analysis_json={}))
     db.commit()
     async def generate(db, **kwargs):
@@ -94,7 +94,7 @@ def test_offers_include_signal_score_and_filter_priority_recent(workspace):
     from app.database.models import Company, JobOffer
     company = session.query(Company).filter_by(name='Acme').first()
     old = JobOffer(company_id=company.id, job_title='Senior Mechanical Engineer', job_url='https://example.org/noise', source='archive', raw_text='maintenance industrielle 10 ans', first_seen_at=datetime.utcnow()-timedelta(days=80), last_seen_at=datetime.utcnow()-timedelta(days=80), status='active')
-    strong = JobOffer(company_id=company.id, job_title='VIE Data Analyst', job_url='https://example.org/priority', posted_date=datetime.utcnow()-timedelta(days=1), source='business_france_vie', raw_text='SQL Power BI CRM automation', first_seen_at=datetime.utcnow()-timedelta(days=1), last_seen_at=datetime.utcnow()-timedelta(days=1), status='active')
+    strong = JobOffer(company_id=company.id, job_title='VIE Data Analyst', job_url='https://example.org/priority', posted_date=datetime.utcnow()-timedelta(days=1), source='business_france_vie', raw_text='Missions: Analyser les données opérationnelles, construire des tableaux de bord Power BI, suivre les indicateurs métier et automatiser les reportings avec SQL, Python et CRM. Profil: formation data, collaboration avec les équipes métier et capacité à présenter des recommandations concrètes.', first_seen_at=datetime.utcnow()-timedelta(days=1), last_seen_at=datetime.utcnow()-timedelta(days=1), status='active')
     session.add_all([old, strong])
     session.commit()
 
@@ -104,7 +104,7 @@ def test_offers_include_signal_score_and_filter_priority_recent(workspace):
     assert all(item['signal_tier'] == 'priority' for item in offers)
 
     recent = client.get('/api/offers?signal=recent&page_size=10').json()['items']
-    assert all(item['recency'] == 'new' for item in recent)
+    assert all(item['recency'].startswith('under_') for item in recent)
     assert any(item['job_url'] == 'https://example.org/priority' for item in recent)
 
 
@@ -127,6 +127,44 @@ def test_manual_application_status_validation_and_missing_ai(workspace, monkeypa
     assert client.post(f'/api/applications/{app_id}/generate', json={'document_types': ['unknown']}).status_code == 422
     assert client.get('/api/offers?page=0').status_code == 422
     assert client.get('/api/settings').json()['ai_configured'] is False
+
+
+def test_active_radar_defaults_to_72_hours_and_archives_remain_historical(workspace):
+    from datetime import datetime, timedelta
+    client, db = workspace
+    company = db.query(Company).filter_by(name='Acme').first()
+    recent = JobOffer(company_id=company.id, job_title='Data Analyst', job_url='https://example.org/recent', source='apec', raw_text='A' * 140, posted_date=datetime.utcnow()-timedelta(hours=71), status='active')
+    stale = JobOffer(company_id=company.id, job_title='Data Analyst', job_url='https://example.org/stale', source='apec', raw_text='A' * 140, posted_date=datetime.utcnow()-timedelta(hours=73), status='active')
+    archive = JobOffer(company_id=company.id, job_title='Data Analyst', job_url='https://example.org/archive', source='apec', raw_text='A' * 140, posted_date=datetime.utcnow()-timedelta(days=60), status='archived')
+    db.add_all([recent, stale, archive]); db.commit()
+    active = client.get('/api/offers?signal=&geo=all').json()
+    urls = {item['job_url'] for item in active['items']}
+    assert 'https://example.org/recent' in urls
+    assert 'https://example.org/stale' not in urls
+    historical = client.get('/api/offers?status=archived&signal=&geo=all').json()
+    assert any(item['job_url'] == 'https://example.org/archive' for item in historical['items'])
+
+
+def test_incomplete_offer_cannot_appear_as_a_priority_recommendation(workspace):
+    from datetime import datetime
+    client, db = workspace
+    company = db.query(Company).filter_by(name='Acme').first()
+    sparse = JobOffer(company_id=company.id, job_title='VIE Data Analyst', job_url='https://example.org/sparse', source='business_france_vie', raw_text='SQL Power BI CRM automation', posted_date=datetime.utcnow(), status='active')
+    db.add(sparse); db.commit()
+    result = client.get('/api/offers?signal=priority&geo=all').json()
+    assert all(item['job_url'] != sparse.job_url for item in result['items'])
+
+
+def test_generation_rejects_metadata_only_offer(workspace, monkeypatch):
+    from app.config import config
+    from app.database.models import JobAnalysis
+    monkeypatch.setattr(config, 'OPENAI_API_KEY', 'test-key')
+    client, db = workspace
+    created = client.post('/api/applications', json={'raw_offer': 'Data Analyst · Paris', 'company': 'Acme'}).json()
+    db.add(JobAnalysis(application_id=created['id'], analysis_json={})); db.commit()
+    response = client.post(f"/api/applications/{created['id']}/generate", json={'document_types':['cv']})
+    assert response.status_code == 409
+    assert 'descriptif complet' in response.json()['detail']
 
 
 def test_overview_profile_and_safe_document_download(workspace):
@@ -420,3 +458,4 @@ def test_business_france_snapshot_remains_accessible_only_in_archives(workspace)
     assert 'https://example.org/bf-snapshot' not in urls
     archives = client.get('/api/offers?status=archived&source=business_france_vie').json()
     assert 'https://example.org/bf-snapshot' in {item['job_url'] for item in archives['items']}
+

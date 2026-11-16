@@ -140,6 +140,27 @@ def test_source_language_overrides_an_english_analysis_summary():
 def test_mail_prompt_uses_the_source_offer_language():
     prompt = get_mail_prompt({"job_title": "Data Analyst", "company": "Entreprise", "source_language": "fr"}, "Data Analyst")
     assert "Write in French." in prompt
+    assert "No attachments are confirmed" in prompt
+    with_attachments = get_mail_prompt({"job_title": "Data Analyst", "company": "Entreprise", "source_language": "fr", "available_documents": ["letter", "cv"], "letter_argument": "Power BI dashboards for the sales team"}, "Data Analyst")
+    assert "the motivation letter and the CV" in with_attachments
+    assert "Power BI dashboards for the sales team" in with_attachments
+
+
+def test_french_offer_with_english_skill_terms_stays_french():
+    assert DocumentGenerationV2._language({
+        "raw_offer": "Nous recherchons un analyste pour construire des dashboards Power BI et suivre les KPI de l'équipe.",
+        "job_title": "Data Analyst",
+        "missions": ["Build pipelines SQL"],
+        "required_skills": ["Python", "Data Quality"],
+    }) == "fr"
+
+
+def test_offer_language_uses_description_not_english_job_title_or_skills():
+    from app.services.language_service import detect_job_offer_language
+    french = "Nous recherchons un Data Engineer pour accompagner les équipes. Vos missions : analyser les besoins, assurer le suivi et contribuer aux projets avec Python et SQL."
+    english = "We are looking for a Data Engineer to join our team. You will develop and support data pipelines, work with business users, and provide reporting."
+    assert detect_job_offer_language(french, {"job_title": "Data Engineer", "required_skills": ["Data Quality"]}) == "fr"
+    assert detect_job_offer_language(english, {"job_title": "Data Analyst"}) == "en"
 
 
 def test_servier_fallback_uses_cv_prime_strategy_for_marketing_crm_vie():
@@ -222,3 +243,4 @@ def test_apec_marketing_cv_does_not_invent_vie_mobility(contract):
     assert load_master_cv()["personal_info"]["location"] in html
     for unwanted in ("V.I.E", "January 2027", "12 months", "the target location", "Availability:"):
         assert unwanted not in html
+

@@ -34,6 +34,8 @@ def save_offer(db: Session, identifier: int) -> Application:
 def import_daily_offer(db: Session, data: dict) -> Application:
     """Persist a source-verified daily offer, keeping its original ID and URL."""
     url = data['business_france_url']
+    from app.services.activity_taxonomy_service import classify_activity_domain
+    activity_domain, domain_confidence = classify_activity_domain(data['title'], data.get('description') or data.get('profile'))
     offer = db.query(JobOffer).filter(JobOffer.job_url == url).first()
     if offer is None:
         company = db.query(Company).filter(func.lower(Company.name) == data['company'].lower()).first()
@@ -47,8 +49,17 @@ def import_daily_offer(db: Session, data: dict) -> Application:
             posted = None
         offer = JobOffer(company_id=company.id, job_title=data['title'], job_url=url,
                          source='business_france', raw_text='\n\n'.join(filter(None, [data.get('description'), data.get('profile')])),
-                         posted_date=posted)
+                         posted_date=posted, source_payload=data.get('raw') or {},
+                         activity_sector=data.get('activity_sector'),
+                         activity_sector_source='business_france' if data.get('activity_sector') else None,
+                         activity_domain=activity_domain, activity_domain_confidence=domain_confidence)
         db.add(offer); db.flush()
+    else:
+        offer.source_payload = data.get('raw') or offer.source_payload
+        offer.activity_sector = data.get('activity_sector') or offer.activity_sector
+        offer.activity_sector_source = 'business_france' if data.get('activity_sector') else offer.activity_sector_source
+        offer.activity_domain = activity_domain
+        offer.activity_domain_confidence = domain_confidence
     contact = data.get('contact') or {}
     if contact.get('name') or contact.get('email'):
         exists = db.query(CompanyContact).filter(
@@ -103,3 +114,4 @@ async def prepare_application(db: Session, identifier: int) -> dict:
         return {'status': 'full_success' if not missing else result.get('status', 'partial_success'),
                 'errors': result.get('errors', {}), 'missing': missing,
                 'application': serialize_application(db, row, detail=True)}
+

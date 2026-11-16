@@ -648,13 +648,11 @@ Master CV source data:
         source_language = analysis.get("source_language")
         if source_language in {"fr", "en"}:
             return source_language
-        text = " ".join([
-            str(analysis.get("job_title", "")),
-            " ".join(analysis.get("missions", [])),
-            " ".join(analysis.get("required_skills", [])),
-        ]).lower()
-        english_markers = ("build", "maintain", "pipeline", "deliver", "data quality", "engineer")
-        return "en" if any(marker in text for marker in english_markers) else "fr"
+        from app.services.language_service import detect_job_offer_language
+        return detect_job_offer_language(
+            str(analysis.get("raw_offer") or analysis.get("description") or ""),
+            analysis,
+        )
 
     @staticmethod
     def _read_instruction(filename: str) -> str:
@@ -664,3 +662,4 @@ Master CV source data:
     @staticmethod
     def _strip_reference_comments(html_doc: str) -> str:
         return re.sub(r"<!--.*?-->", "", html_doc, flags=re.S)
+

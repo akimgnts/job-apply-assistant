@@ -5,6 +5,8 @@ Principle: Never invent content, only translate already-selected facts.
 """
 
 import logging
+import re
+import unicodedata
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -16,40 +18,32 @@ def detect_job_offer_language(job_offer_text: str, analysis: dict) -> str:
     Returns: "fr" or "en"
     Default: "fr" (assume French unless clear English indicators)
     """
-    if not job_offer_text:
-        return "fr"
+    source_text = job_offer_text or ""
+    if not source_text and isinstance(analysis, dict):
+        missions = analysis.get("missions") or []
+        source_text = " ".join(str(item) for item in missions)
+    normalized = unicodedata.normalize("NFKD", source_text.lower())
+    text = "".join(char for char in normalized if not unicodedata.combining(char))
+    tokens = re.findall(r"[a-z]+", text)
+    english_markers = {
+        "the", "and", "with", "you", "your", "will", "within", "from", "our",
+        "who", "this", "team", "role", "responsibilities", "qualifications", "degree",
+        "skills", "apply", "support", "based", "looking", "join", "provide", "develop",
+        "manage", "ensure", "reporting", "experience", "required", "bachelor",
+    }
+    french_markers = {
+        "nous", "vous", "pour", "dans", "avec", "au", "aux", "de", "des", "les",
+        "une", "un", "est", "sont", "vos", "votre", "missions", "profil", "competences",
+        "formation", "poste", "entreprise", "recherche", "recherchons", "participer",
+        "assurer", "contribuer", "mettre", "place", "accompagner", "afin", "ainsi",
+        "plusieurs", "charge", "travail", "equipe", "offre", "candidature", "postuler",
+    }
+    english_count = sum(token in english_markers for token in tokens)
+    french_count = sum(token in french_markers for token in tokens)
 
-    text_lower = job_offer_text.lower()
-
-    # English indicators
-    english_words = [
-        "english", "fluent", "required", "experience", "responsibilities",
-        "qualifications", "about us", "job description", "apply now",
-        "years of experience", "bachelor", "master", "degree"
-    ]
-
-    # French indicators
-    french_words = [
-        "français", "anglais", "expérience requise", "missions", "profil",
-        "compétences", "qualifications", "candidature", "postuler",
-        "années d'expérience", "diplôme", "master", "bac"
-    ]
-
-    english_count = sum(1 for word in english_words if word in text_lower)
-    french_count = sum(1 for word in french_words if word in text_lower)
-
-    # Also check analysis metadata if available
-    if analysis and isinstance(analysis, dict):
-        job_title = analysis.get("job_title", "").lower()
-        company = analysis.get("company", "").lower()
-        missions = " ".join(analysis.get("missions", [])).lower()
-
-        text_check = job_title + company + missions
-        english_count += sum(1 for word in ["engineer", "developer", "lead", "senior"] if word in text_check)
-        french_count += sum(1 for word in ["ingénieur", "développeur", "chef", "senior"] if word in text_check)
-
-    # Decide language
-    if english_count > french_count:
+    # Require a clear textual signal. Titles, company names and technical skills
+    # (e.g. "Data Engineer", "Data Quality") are not language evidence.
+    if english_count >= french_count + 2:
         logger.info("Language detected: ENGLISH")
         return "en"
     else:
@@ -144,3 +138,4 @@ def get_translated_section_titles(language: str) -> dict:
             "languages": "LANGUES",
             "summary": "RÉSUMÉ PROFESSIONNEL",
         }
+

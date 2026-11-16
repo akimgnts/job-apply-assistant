@@ -136,8 +136,12 @@ class OfferSignalService:
         confidence = 'medium' if len(content) >= 120 else 'low'
         if confidence == 'low':
             reasons.append('Description incomplète : pertinence à confirmer')
-        if recency == 'new':
+        if recency == 'under_24h':
+            reasons.append('Très récente : publiée depuis moins de 24 h')
+        elif recency == 'under_48h':
             reasons.append('Récente : publiée depuis moins de 48 h')
+        elif recency == 'under_72h':
+            reasons.append('Publiée depuis moins de 72 h')
         score = max(0, min(100, score))
         return {'score': score, 'tier': cls.tier(score), 'role_family': role_family,
                 'recency': recency, 'confidence': confidence, 'reasons': reasons,
@@ -151,7 +155,7 @@ class OfferSignalService:
         return value
 
     @classmethod
-    def is_recent(cls, offer: JobOffer, days: float = 7) -> bool:
+    def is_recent(cls, offer: JobOffer, days: float = 3) -> bool:
         date = cls.reference_date(offer)
         return bool(date and timedelta(0) <= datetime.utcnow() - date <= timedelta(days=days))
 
@@ -161,10 +165,12 @@ class OfferSignalService:
         if not date or date > datetime.utcnow():
             return 'unknown'
         age = datetime.utcnow() - date
+        if age <= timedelta(hours=24):
+            return 'under_24h'
         if age <= timedelta(hours=48):
-            return 'new'
-        if age <= timedelta(days=30):
-            return 'fresh'
+            return 'under_48h'
+        if age <= timedelta(hours=72):
+            return 'under_72h'
         return 'stale'
 
     @staticmethod
@@ -204,3 +210,4 @@ class OfferSignalService:
         if offer.required_skills:
             parts.extend(str(skill) for skill in offer.required_skills)
         return ' '.join(parts).lower()
+
