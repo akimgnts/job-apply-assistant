@@ -79,7 +79,7 @@ def offer_data(db: Session, offer: JobOffer) -> dict:
     )
     signal = OfferSignalService.score(offer)
     return {
-        **serialize(offer),
+        **serialize(offer, ('source_payload',)),
         'company': offer.company.name,
         'saved_application_id': saved.id if saved else None,
         'opportunity_id': opportunity.id if opportunity else None,
@@ -93,6 +93,7 @@ def offer_data(db: Session, offer: JobOffer) -> dict:
         'signal_confidence': signal['confidence'],
         'date_basis': 'published' if offer.posted_date else 'unknown',
         'display_date': OfferSignalService.reference_date(offer),
+        'date_precision': ('day' if offer.posted_date and offer.posted_date.hour == 0 and offer.posted_date.minute == 0 and offer.posted_date.second == 0 else 'hour') if offer.posted_date else 'unknown',
     }
 
 
@@ -105,7 +106,10 @@ def application_data(db: Session, row: Application, detail: bool = False) -> dic
     if detail:
         latest = db.query(JobAnalysis).filter(JobAnalysis.application_id == row.id).order_by(JobAnalysis.id.desc()).first()
         data['analysis'] = latest.analysis_json if latest else None
-        data['documents'] = [document_data(doc) for doc in documents(db).filter(GeneratedDocument.application_id == row.id).order_by(GeneratedDocument.id.desc()).all()]
+        document_order = {"mail": 0, "letter": 1, "cv": 2}
+        saved_documents = documents(db).filter(GeneratedDocument.application_id == row.id).all()
+        saved_documents.sort(key=lambda doc: (document_order.get(doc.document_type.value, 9), -doc.id))
+        data['documents'] = [document_data(doc) for doc in saved_documents]
     return data
 
 
@@ -116,3 +120,4 @@ def commit(db: Session) -> None:
     except Exception:
         db.rollback()
         raise HTTPException(503, 'Enregistrement impossible. Réessayez après vérification de la base de données.') from None
+

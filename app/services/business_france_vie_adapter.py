@@ -17,6 +17,7 @@ from app.models.job_source_adapter import (
     DiscoveredJobUrl,
     NormalizedJobOffer,
 )
+from app.services.activity_taxonomy_service import source_activity_sector
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +155,10 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
                             "posted_date": posted_date,
                             "offer_id": offer_id,
                             "source": "business_france_vie",
+                            "source_payload": offer,
+                            "description": offer.get("missionDescription") or "",
+                            "profile": offer.get("missionProfile") or "",
+                            "activity_sector": source_activity_sector(offer),
                             "contacts": [c for c in [self.extract_contact(offer, offer_url)] if c],
                         },
                     )
@@ -183,6 +188,10 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             "duration": metadata.get("duration"),
             "posted_date": metadata.get("posted_date"),
             "contacts": metadata.get("contacts", []),
+            "source_payload": metadata.get("source_payload") or {},
+            "description": metadata.get("description") or "",
+            "profile": metadata.get("profile") or "",
+            "activity_sector": metadata.get("activity_sector"),
         }
 
     async def normalize_job(self, extracted: dict) -> NormalizedJobOffer:
@@ -197,7 +206,15 @@ class BusinessFranceVieAdapter(JobSourceAdapter):
             posted_date=(datetime.fromisoformat(str(extracted["posted_date"]).replace("Z", "+00:00")).replace(tzinfo=None)
                          if extracted.get("posted_date") else None),
             external_job_id=extracted.get("offer_id"),
-            raw_text=f"Company: {extracted.get('company')}\nDuration: {extracted.get('duration')} months\nLocation: {extracted.get('location') or 'N/A'}",
-            description=None,
+            raw_text="\n\n".join(filter(None, [
+                f"Company: {extracted.get('company')}",
+                f"Duration: {extracted.get('duration')} months",
+                f"Location: {extracted.get('location') or 'N/A'}",
+                extracted.get("description"), extracted.get("profile"),
+            ])),
+            description="\n\n".join(filter(None, [extracted.get("description"), extracted.get("profile")])),
             contacts=extracted.get("contacts") or [],
+            source_payload=extracted.get("source_payload") or {},
+            activity_sector=extracted.get("activity_sector") or source_activity_sector(extracted.get("source_payload")),
         )
+

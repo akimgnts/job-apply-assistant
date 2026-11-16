@@ -281,6 +281,11 @@ class JobOffer(Base):
     job_url = Column(Text, nullable=False, unique=True)
     source = Column(String(50), nullable=False)  # "indeed", "linkedin", "website", etc.
     raw_text = Column(Text, nullable=True)  # trafilatura output
+    source_payload = Column(JSON, nullable=True)  # Source fields retained for market analysis
+    activity_sector = Column(String(255), nullable=True)  # Employer's business sector, only when source-provided
+    activity_sector_source = Column(String(50), nullable=True)
+    activity_domain = Column(String(100), nullable=True)  # Role/function domain, rule-classified
+    activity_domain_confidence = Column(String(16), nullable=True)
     required_skills = Column(JSON, default=list)  # ["Python", "SQL", ...]
     posted_date = Column(DateTime, nullable=True)
     status = Column(String(20), default="active")  # "active", "closed", "archived"
@@ -573,3 +578,4 @@ class ApplicationEvent(Base):
     source = Column(String(30), nullable=False, default='manual')
     detail = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+

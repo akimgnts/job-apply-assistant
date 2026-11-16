@@ -27,9 +27,9 @@ def test_scores_data_bi_offer_with_recent_boost_and_reasons():
     assert result['score'] >= 80
     assert result['tier'] == 'priority'
     assert result['role_family'] == 'Data / BI'
-    assert result['recency'] == 'new'
+    assert result['recency'] == 'under_24h'
     assert any('Data / BI' in reason for reason in result['reasons'])
-    assert any('Récente' in reason for reason in result['reasons'])
+    assert any('récente' in reason.lower() for reason in result['reasons'])
 
 
 def test_penalizes_irrelevant_senior_or_non_target_offer():
@@ -66,7 +66,11 @@ def test_recency_uses_publication_not_latest_scrape_and_precise_48_hours():
     assert OfferSignalService.recency_label(offer) == 'stale'
     assert not OfferSignalService.is_recent(offer, 2)
     offer.posted_date = datetime.utcnow() - timedelta(hours=49)
-    assert OfferSignalService.recency_label(offer) == 'fresh'
+    assert OfferSignalService.recency_label(offer) == 'under_72h'
+    offer.posted_date = datetime.utcnow() - timedelta(hours=47)
+    assert OfferSignalService.recency_label(offer) == 'under_48h'
+    offer.posted_date = datetime.utcnow() - timedelta(hours=23)
+    assert OfferSignalService.recency_label(offer) == 'under_24h'
     offer.posted_date = None
     offer.first_seen_at = datetime.utcnow() - timedelta(days=40)
     assert OfferSignalService.recency_label(offer) == 'unknown'
@@ -84,3 +88,4 @@ def test_industrial_automation_is_not_business_workflow_automation():
         result = OfferSignalService._score_text(text=title.lower()+' SQL Python automation', title=title, source='business_france_vie')
         assert result['score'] < 45
         assert result['tier'] == 'noise'
+

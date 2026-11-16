@@ -12,6 +12,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Iterable
 from urllib.parse import parse_qs, quote_plus, urlparse
+from app.services.activity_taxonomy_service import source_activity_sector
 
 import aiohttp
 
@@ -130,6 +131,7 @@ def normalize_business_france_offer(offer: dict[str, Any]) -> dict[str, Any]:
         },
         "description": description,
         "profile": profile,
+        "activity_sector": source_activity_sector(offer),
         "description_excerpt": description[:360],
         "profile_excerpt": profile[:280],
         "raw": offer,
@@ -435,3 +437,4 @@ class BusinessFranceDailyService:
 
         self._write_cache(cache_file, result)
         return result
+

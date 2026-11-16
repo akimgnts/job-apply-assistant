@@ -859,9 +859,17 @@ class GenerationAgent:
         analysis: dict,
         positioning: str,
         telegram_user_id: str = None,
+        letter_content: str = "",
+        available_documents: list[str] | None = None,
     ) -> str:
         """Generate email to recruiter."""
-        prompt = get_mail_prompt(analysis, positioning)
+        mail_analysis = dict(analysis)
+        if letter_content:
+            letter_text = re.sub(r"<[^>]+>", " ", letter_content)
+            letter_text = re.sub(r"\s+", " ", letter_text).strip()
+            mail_analysis["letter_argument"] = letter_text[:900]
+        mail_analysis["available_documents"] = available_documents or []
+        prompt = get_mail_prompt(mail_analysis, positioning)
         from app.services.candidate_editorial_context import editorial_context
         import json
         prompt += '\n' + editorial_context() + '\nMaster CV factuel :\n' + json.dumps(load_master_cv(), ensure_ascii=False)
@@ -931,23 +939,8 @@ class GenerationAgent:
         generated_count = 0
         failed_count = 0
 
-        # Generate CV (independent)
-        if "cv" in document_types:
-            try:
-                cv_content = await GenerationAgent.generate_cv(
-                    db, application_id, analysis, positioning, skill_profile, telegram_user_id
-                )
-                results["documents"]["cv"] = cv_content
-                results["errors"]["cv"] = None
-                generated_count += 1
-                logger.info(f"CV generated successfully for application {application_id}")
-            except Exception as e:
-                results["documents"]["cv"] = None
-                results["errors"]["cv"] = str(e)[:200]
-                failed_count += 1
-                logger.error(f"CV generation failed for application {application_id}: {str(e)}", exc_info=True)
-
-        # Generate Letter (independent)
+        letter_content = None
+        # The letter defines the argument the email opens onto; generate it first.
         if "letter" in document_types:
             try:
                 letter_content = await GenerationAgent.generate_letter(
@@ -963,11 +956,29 @@ class GenerationAgent:
                 failed_count += 1
                 logger.error(f"Letter generation failed for application {application_id}: {str(e)}", exc_info=True)
 
+        # Generate the CV after the letter so the packet reads email → letter → CV.
+        if "cv" in document_types:
+            try:
+                cv_content = await GenerationAgent.generate_cv(
+                    db, application_id, analysis, positioning, skill_profile, telegram_user_id
+                )
+                results["documents"]["cv"] = cv_content
+                results["errors"]["cv"] = None
+                generated_count += 1
+                logger.info(f"CV generated successfully for application {application_id}")
+            except Exception as e:
+                results["documents"]["cv"] = None
+                results["errors"]["cv"] = str(e)[:200]
+                failed_count += 1
+                logger.error(f"CV generation failed for application {application_id}: {str(e)}", exc_info=True)
+
         # Generate Mail (independent)
         if "mail" in document_types:
             try:
                 mail_content = await GenerationAgent.generate_mail(
-                    db, application_id, analysis, positioning, telegram_user_id
+                    db, application_id, analysis, positioning, telegram_user_id,
+                    letter_content=results["documents"].get("letter") or "",
+                    available_documents=[kind for kind, content in results["documents"].items() if content],
                 )
                 results["documents"]["mail"] = mail_content
                 results["errors"]["mail"] = None
@@ -995,3 +1006,4 @@ class GenerationAgent:
         )
 
         return results
+

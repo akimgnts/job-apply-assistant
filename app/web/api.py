@@ -60,15 +60,25 @@ def require_ai() -> None:
 @router.get('/overview')
 def overview(db: Session = Depends(get_db)) -> dict:
     applications = svc.applications(db)
+    sectors = db.query(JobOffer.activity_sector, func.count(JobOffer.id)).filter(JobOffer.activity_sector.isnot(None)).group_by(JobOffer.activity_sector).order_by(func.count(JobOffer.id).desc()).limit(20).all()
+    domains = db.query(JobOffer.activity_domain, func.count(JobOffer.id)).filter(JobOffer.activity_domain.isnot(None)).group_by(JobOffer.activity_domain).order_by(func.count(JobOffer.id).desc()).all()
+    total_offers = db.query(JobOffer).count()
+    classified_sectors = db.query(JobOffer).filter(JobOffer.activity_sector.isnot(None)).count()
+    classified_domains = db.query(JobOffer).filter(JobOffer.activity_domain.isnot(None)).count()
     return {'counts': {'offers': db.query(JobOffer).count(), 'active_offers': db.query(JobOffer).filter(JobOffer.status == 'active').count(), 'archived_offers': db.query(JobOffer).filter(JobOffer.status.in_(['archived', 'closed'])).count(), 'applications': applications.count(), 'documents': svc.documents(db).count(), 'companies': db.query(Company).count(), 'profile_blocks': db.query(ProfileBlock).count()},
             'statuses': {status.value: applications.filter(Application.status == status).count() for status in ApplicationStatusEnum},
             'recent_applications': [svc.application_data(db, row) for row in applications.order_by(Application.id.desc()).limit(5)],
-            'sources': [{'source': source, 'count': count, 'last_seen_at': seen.isoformat() if seen else None, 'latest_publication': posted.isoformat() if posted else None} for source, count, seen, posted in db.query(JobOffer.source, func.count(JobOffer.id), func.max(JobOffer.last_seen_at), func.max(JobOffer.posted_date)).group_by(JobOffer.source).all()], 'ai_available': bool(config.OPENAI_API_KEY)}
+        'sources': [{'source': source, 'count': count, 'last_seen_at': seen.isoformat() if seen else None, 'latest_publication': posted.isoformat() if posted else None} for source, count, seen, posted in db.query(JobOffer.source, func.count(JobOffer.id), func.max(JobOffer.last_seen_at), func.max(JobOffer.posted_date)).group_by(JobOffer.source).all()],
+            'market_segments': {'sectors': [{'label': label, 'count': count} for label, count in sectors], 'domains': [{'label': label, 'count': count} for label, count in domains], 'sector_unknown_count': total_offers - classified_sectors, 'domain_unknown_count': total_offers - classified_domains}, 'ai_available': bool(config.OPENAI_API_KEY)}
 
 
 @router.get('/offers')
-def offers(q: str | None = None, source: str | None = None, status: Literal['active', 'archived', 'closed', 'all'] = 'active', signal: str | None = None, hours: int | None = Query(None, ge=1, le=720), sort: Literal['recent', 'relevance'] = 'recent', geo: Literal['all', 'paris_idf'] = 'all', page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
+def offers(q: str | None = None, source: str | None = None, status: Literal['active', 'archived', 'closed', 'all'] = 'active', signal: str | None = None, hours: int = Query(72, ge=1, le=72), sort: Literal['recent', 'relevance'] = 'recent', geo: Literal['all', 'paris_idf'] = 'all', activity_sector: str | None = None, activity_domain: str | None = None, page: int = Page, page_size: int = PageSize, db: Session = Depends(get_db)) -> dict:
     query = svc.search(db.query(JobOffer).join(Company), q, JobOffer.job_title, Company.name, JobOffer.raw_text)
+    if activity_sector:
+        query = query.filter(JobOffer.activity_sector == activity_sector)
+    if activity_domain:
+        query = query.filter(JobOffer.activity_domain == activity_domain)
     if source:
         if source == 'business_france_vie':
             query = query.filter(JobOffer.source.in_(['business_france_vie', 'snapshot:business_france_vie']))
@@ -79,10 +89,9 @@ def offers(q: str | None = None, source: str | None = None, status: Literal['act
     elif status != 'all':
         query = query.filter(JobOffer.status == status)
     rows = query.order_by(JobOffer.created_at.desc(), JobOffer.id.desc()).all()
-    # Freshness is a display concern, not a source exception. Business France
-    # offers remain in the database for market analysis, but they must obey the
-    # same recent-window filter when the radar asks for 24/48h results.
-    if hours is not None:
+    # Keep the action radar focused on the last 72 hours. Historical data stays
+    # in storage and in market analytics; this endpoint is for active decisions.
+    if status == 'active':
         rows = [row for row in rows if OfferSignalService.is_recent(row, hours / 24)]
     rows = [row for row in rows if OfferSignalService.is_action_geo_match(row, geo)]
     scored = [(row, OfferSignalService.score(row)) for row in rows]
@@ -91,7 +100,11 @@ def offers(q: str | None = None, source: str | None = None, status: Literal['act
     elif signal in {'priority', 'potential', 'noise'}:
         scored = [(row, meta) for row, meta in scored if meta['tier'] == signal]
     elif signal == 'recent':
-        scored = [(row, meta) for row, meta in scored if meta['recency'] == 'new']
+        scored = [(row, meta) for row, meta in scored if meta['recency'].startswith('under_')]
+    if signal in {'target', 'priority', 'potential'}:
+        # A strong title/keyword match is not enough to make a sparse record an
+        # actionable recommendation. Full offer text is needed for fit and docs.
+        scored = [(row, meta) for row, meta in scored if meta['confidence'] != 'low']
     from datetime import datetime
     def rank(item):
         row, meta = item
@@ -227,6 +240,9 @@ async def generate(identifier: int, payload: GenerationInput, db: Session = Depe
     analysis = db.query(JobAnalysis).filter(JobAnalysis.application_id == identifier).order_by(JobAnalysis.id.desc()).first()
     if analysis is None:
         raise HTTPException(409, 'Analysez cette candidature avant de générer des documents.')
+    content = re.sub(r'(?im)^(?:company|location|id):.*$', '', row.raw_offer or '').strip()
+    if len(content) < 120:
+        raise HTTPException(409, 'L’annonce est trop incomplète pour générer des documents fiables. Récupérez le descriptif complet, puis relancez la préparation.')
     try:
         from app.agents.generation_agent import GenerationAgent
         from app.services.language_service import detect_job_offer_language
@@ -451,3 +467,4 @@ async def create_outreach(payload: OutreachInput, db: Session = Depends(get_db))
     except Exception:
         db.rollback()
         raise HTTPException(502, 'La préparation du brouillon a échoué. Vérifiez la configuration IA et réessayez.') from None
+

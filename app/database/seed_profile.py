@@ -43,8 +43,8 @@ PROFILE_BLOCKS = [
             "Soft skills: stakeholder communication, cross-functional collaboration, business understanding, analytical thinking. "
 
             "REPORTING & BUSINESS VISIBILITY: "
-            "Built and maintained around 10 dashboards and reporting tools covering installed base, events and business KPIs. "
-            "Reports used weekly and monthly by marketing, commercial and management stakeholders — approximately 30–40 users. "
+            "Designed 6+ Power BI dashboards covering installed base, events and business KPIs. "
+            "Dashboards used weekly by dozens of marketing, commercial and management stakeholders. "
             "Impact: increased visibility on key business indicators, improved monitoring of activities and priorities, "
             "facilitated decision-making through structured reporting. "
 
@@ -81,9 +81,9 @@ PROFILE_BLOCKS = [
         "forbidden_claims": [
             "Do not claim ownership of dashboards without naming them",
             "Do not claim impact metrics without verification",
-            "Do not change '~30-40 users' to a specific number",
+            "Do not replace 'dozens of stakeholders' with an exact number",
         ],
-        "source_ref": "master_v3:sidel_experience",
+        "source_ref": "master_v4:sidel_experience",
         "priority": 10,
     },
     {
@@ -137,13 +137,9 @@ PROFILE_BLOCKS = [
             "Stack: Python, FastAPI, PostgreSQL, Git, OpenAI, Claude, LangChain. "
             "Concepts: AI agents, structured extraction, pipelines, testing, explainability, "
             "continuous improvement. "
-            "Impact: iterated through more than 10 versions of the matching engine, evaluated matching "
-            "quality using more than 30 test profiles, processed more than 1,000 job opportunities — "
-            "improved recommendation quality, increased explainability and consistency. "
-            "Generated more than 100 CVs, cover letters and application documents, reducing preparation "
-            "time from dozens of minutes to a few seconds. "
-            "Built a modular architecture of around 10 components, designed approximately 30 workflows "
-            "and pipelines, structured data across 4 PostgreSQL tables."
+            "Evaluation: 10+ cycles across 30 profiles and 1,000+ offers to assess relevance and reduce false positives. "
+            "Built application-document generation capabilities for CVs, cover letters and recruiter messages. "
+            "Integrated ESCO, normalized skills and replay workflows to keep evaluation testable and auditable."
         ),
         "tags": [
             "ai", "matching", "fastapi", "postgresql", "cv_parsing", "skills",
@@ -161,7 +157,7 @@ PROFILE_BLOCKS = [
             "Do not claim production scale without real user base",
             "Do not invent matching accuracy percentages",
         ],
-        "source_ref": "master_v3:elevia_platform",
+        "source_ref": "master_v4:elevia_platform",
         "priority": 10,
     },
     {
@@ -173,7 +169,7 @@ PROFILE_BLOCKS = [
             "recruiter message generation. "
             "Stack: Telegram, OpenAI, PostgreSQL, SQLAlchemy, Jinja2, Coolify. "
             "Impact: reduced application preparation time from ~45 minutes to ~5 minutes — "
-            "approximately 90% time reduction. Removed repetitive work and improved consistency "
+            "reducing preparation time from about 45 minutes to about 5 minutes. Removed repetitive work and improved consistency "
             "across applications."
         ),
         "tags": [
@@ -189,7 +185,7 @@ PROFILE_BLOCKS = [
         "metrics": {
             "before": "~45 minutes per application",
             "after": "~5 minutes per application",
-            "reduction": "~90%"
+            "reduction": ""
         },
         "forbidden_claims": [
             "Do not claim production scale without real user metrics",
@@ -471,3 +467,4 @@ if __name__ == "__main__":
     import sys
     force = "--force" in sys.argv
     seed_profile(force=force)
+

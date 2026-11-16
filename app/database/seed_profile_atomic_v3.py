@@ -60,8 +60,8 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "category": CategoryEnum.experience,
         "title": "Sidel — Dashboard Portfolio: Installed Base, Events, Business KPIs",
         "content": (
-            "Built and maintained ~10 dashboards and reporting tools covering installed base, "
-            "events and business KPIs. Used weekly and monthly by ~30–40 stakeholders across "
+            "Designed 6+ Power BI dashboards covering installed base, "
+            "events and business KPIs, used weekly by dozens of stakeholders across "
             "marketing, commercial and management teams. Impact: increased visibility on key "
             "business indicators, improved monitoring of activities and priorities, facilitated "
             "decision-making through structured reporting."
@@ -75,16 +75,16 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "technologies": ["Power BI", "Power Query", "Excel"],
         "job_families": ["Data Analyst", "BI Analyst", "Business Analyst"],
         "metrics": {
-            "dashboards": "~10",
-            "stakeholders": "~30–40",
+            "dashboards": "6+",
+            "stakeholders": "dozens",
             "frequency": "Weekly and monthly"
         },
         "forbidden_claims": [
             "Do not claim specific dashboard names without evidence",
-            "Do not change ~30–40 to an exact number",
+            "Do not replace 'dozens' with an exact number",
             "Do not claim automated beyond Power BI capabilities"
         ],
-        "source_ref": "master_v3:sidel_dashboard_portfolio",
+        "source_ref": "master_v4:sidel_dashboard_portfolio",
         "priority": 10,
     },
     {
@@ -400,11 +400,11 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
     },
     {
         "category": CategoryEnum.experience,
-        "title": "Elevia — Matching Engine: 10+ Versions, 30 Profiles, 1000+ Opportunities",
+        "title": "Elevia — Matching Engine: 10+ Evaluation Cycles, 30 Profiles, 1,000+ Opportunities",
         "content": (
-            "Designed and iterated through more than 10 versions of a matching engine. Evaluated "
-            "across 30 test profiles and over 1,000 job opportunities, improving recommendation "
-            "quality and explainability."
+            "Designed a recommendation engine combining structured extraction, semantic matching, "
+            "classification and explainable scoring. Evaluated through 10+ cycles across 30 profiles "
+            "and 1,000+ offers to assess relevance and reduce false positives."
         ),
         "tags": ["elevia", "matching", "optimization", "quality"],
         "truth_level": TruthLevelEnum.verified,
@@ -423,15 +423,15 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
             "Do not claim production-scale real users",
             "Do not invent accuracy percentages"
         ],
-        "source_ref": "master_v3:elevia_matching_engine",
+        "source_ref": "master_v4:elevia_platform",
         "priority": 10,
     },
     {
         "category": CategoryEnum.experience,
-        "title": "Elevia — Document Generation: 100+ CVs, ~90% Time Reduction",
+        "title": "Elevia — Document Generation Workflow",
         "content": (
-            "Generated 100+ AI-assisted application documents (CVs, cover letters, recruiter messages) "
-            "— reducing preparation time from dozens of minutes to a few seconds."
+            "Built document-generation capabilities for tailored CVs, motivation letters and recruiter emails "
+            "within the Elevia recommendation and career-intelligence platform."
         ),
         "tags": ["elevia", "document_generation", "efficiency"],
         "truth_level": TruthLevelEnum.verified,
@@ -441,23 +441,21 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "technologies": ["Python", "OpenAI", "LangChain", "Jinja2"],
         "job_families": ["AI Engineer", "Backend Engineer"],
         "metrics": {
-            "documents": "100+",
-            "before": "Dozens of minutes",
-            "after": "A few seconds"
+            "capability": "Tailored application document generation"
         },
         "forbidden_claims": [
-            "Do not change 'dozens of minutes' to specific hour counts",
+            "Do not invent document volumes or measured time reductions",
             "Do not claim zero human review needed"
         ],
-        "source_ref": "master_v3:elevia_document_generation",
+        "source_ref": "master_v4:elevia_document_generation",
         "priority": 10,
     },
     {
         "category": CategoryEnum.experience,
-        "title": "Elevia — Architecture: ~10 Components, 4 PostgreSQL Tables",
+        "title": "Elevia — Data Quality & Recommendation Architecture",
         "content": (
-            "Built a modular architecture of ~10 components across 4 PostgreSQL tables, covering "
-            "CV parsing, skill extraction, canonicalization, scoring and observability."
+            "Built a modular recommendation platform covering structured extraction, skill normalization, "
+            "matching, explainable scoring, data quality and replayable evaluation workflows."
         ),
         "tags": ["elevia", "architecture", "design"],
         "truth_level": TruthLevelEnum.verified,
@@ -466,15 +464,12 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "start_date": "2024",
         "technologies": ["Python", "PostgreSQL", "FastAPI", "SQL"],
         "job_families": ["Backend Engineer", "Data Engineer"],
-        "metrics": {
-            "components": "~10",
-            "tables": "4"
-        },
+        "metrics": {},
         "forbidden_claims": [
             "Do not claim 100% production robustness",
             "Do not claim zero maintenance needed"
         ],
-        "source_ref": "master_v3:elevia_architecture",
+        "source_ref": "master_v4:elevia_platform",
         "priority": 9,
     },
     {
@@ -494,7 +489,7 @@ PROFILE_BLOCKS_ATOMIC_V3 = [
         "metrics": {
             "before": "~45 minutes per application",
             "after": "~5 minutes per application",
-            "reduction": "~90%"
+            "reduction": ""
         },
         "forbidden_claims": [
             "Do not claim production-scale user base",
@@ -1508,3 +1503,4 @@ if __name__ == "__main__":
     import sys
     force = "--force" in sys.argv
     seed_profile_atomic_v3(force=force)
+

@@ -46,8 +46,8 @@ WRITING STANDARD — MEMORABLE CANDIDATE
 
 Every bullet must follow this structure: Action verb → concrete result → business impact.
 
-GOOD: "Automated monthly reporting (previously 2–3 days manual work) → reduced to under 2 hours"
-GOOD: "Built 10 dashboards used weekly by 30–40 stakeholders across 3 teams"
+GOOD: "Automated weekly Excel reporting from 5–6 hours to about 1 hour, including result checks"
+GOOD: "Designed 6+ Power BI dashboards used weekly by dozens of business stakeholders"
 BAD: "Contributed to improving reporting efficiency through automation"
 
 FORBIDDEN words and phrases (never use):
@@ -58,8 +58,8 @@ participated in, involved in, assisted with.
 
 RULES:
 - Use concrete numbers when they exist in the profile blocks (users, dashboards, customers, time saved, %)
-- Prefer "built and maintained 10 dashboards used by 30–40 stakeholders" over "created reporting tools"
-- Prefer "automated tasks that previously required half a day to several days" over "reduced manual effort"
+- Prefer "designed 6+ Power BI dashboards used weekly by dozens of business stakeholders" over "created reporting tools"
+- Prefer the verified weekly reporting result (5–6 hours to about 1 hour) over an unsupported time-saving claim
 - Never soften real impact with vague qualifiers — state it directly
 - Active voice only: "Built", "Automated", "Analyzed", "Delivered", "Led", "Designed"
 
@@ -97,7 +97,7 @@ STEP 1: Re-rank experiences
 
 STEP 2: Rewrite experiences
 - Every bullet = Action verb + concrete result + business impact
-- Use exact numbers from profile blocks (10 dashboards, 30–40 users, 61 customers, half a day saved, etc.)
+- Use only exact numbers and scales supported by Master CV V4 (6+ dashboards, dozens of users, 61 accounts, 5–6h/week to about 1h/week, etc.)
 - No buzzwords — direct language only
 - Active voice: "Built", "Automated", "Analyzed", "Delivered", "Led"
 - Show what changed because of this person's work (before → after when data exists)
@@ -231,6 +231,25 @@ CRITICAL: Never invent experience. Reference only what was provided in profile."
 
 def get_mail_prompt(analysis_json: dict, positioning: str) -> str:
     language = "French" if analysis_json.get("source_language") == "fr" else "English"
+    attachments = analysis_json.get("available_documents") or []
+    has_letter = "letter" in attachments
+    has_cv = "cv" in attachments
+    attachment_guidance = (
+        "The generated packet includes " + " and ".join(
+            label for key, label in (("letter", "the motivation letter"), ("cv", "the CV")) if key in attachments
+        ) + ". Mention only those documents."
+        if attachments else
+        "No attachments are confirmed for this email. Do not claim or imply that a letter or CV is attached."
+    )
+    letter_guidance = (
+        f"Core argument from the generated letter (use only to create a short invitation, do not repeat it): {analysis_json.get('letter_argument', '')}"
+        if has_letter else "Do not refer to a generated letter unless the workflow supplies one."
+    )
+    reading_step = (
+        "Invite the recruiter to read the attached motivation letter for the candidate's role-specific view."
+        if has_letter else "Keep the opening focused on this role and propose a simple exchange."
+    )
+    cv_step = "Mention the CV as the evidence for the experience, if it is included." if has_cv else "Do not claim a CV is attached unless it is included."
     return f"""Write only the body of a short professional application email (max 120 words, plain text).
 
 JOB: {analysis_json['job_title']} at {analysis_json['company']}
@@ -238,10 +257,15 @@ POSITIONING: {positioning}
 
 Write in {language}. Tone: direct, professional, natural (not robotic).
 
+Purpose: make the email a natural opening to the documents, so the letter carries the
+role-specific argument and the CV provides evidence. Give one concrete, offer-specific
+reason; do not retell the letter or summarize the CV. {attachment_guidance} {letter_guidance}
+
 Structure:
-1. Quick application message for the role
-2. 1-2 key points why you're interested
-3. Call to action (e.g., "happy to discuss further")
+1. A direct, human opening tied to this exact role
+2. {reading_step}
+3. {cv_step} Add a simple invitation to exchange.
 
 CRITICAL: Return the body only. Do not include a subject line, greeting, salutation,
-recipient placeholder, signature, contact details, or attachment claim. Keep it SHORT and genuine."""
+recipient placeholder, signature, or contact details. Keep it short, personal and factual."""
+

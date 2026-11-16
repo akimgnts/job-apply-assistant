@@ -16,6 +16,7 @@ from urllib.parse import urljoin
 
 from app.models.job_source_adapter import DiscoveredJobUrl, JobSourceAdapter, NormalizedJobOffer
 from app.services.location_filters import is_ile_de_france_location
+from app.services.activity_taxonomy_service import source_activity_sector
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class ApecAdapter(JobSourceAdapter):
         return all(left >= right for left, right in zip(dates, dates[1:]))
 
     @staticmethod
-    def window_reached(results: list[dict], now: datetime, date_field: str = "datePublication", window_hours: int = 48) -> bool:
+    def window_reached(results: list[dict], now: datetime, date_field: str = "datePublication", window_hours: int = 72) -> bool:
         cutoff = now.astimezone(timezone.utc) - timedelta(hours=window_hours)
         dates = [parse_apec_date(item.get(date_field)) for item in results]
         return bool(dates) and all(value is not None for value in dates) and any(value < cutoff for value in dates)
@@ -132,6 +133,8 @@ class ApecAdapter(JobSourceAdapter):
             external_job_id=number,
             required_skills=None,
             description=description,
+            source_payload=raw,
+            activity_sector=source_activity_sector(raw),
         )
 
     async def discover_jobs(self, context: dict) -> list[DiscoveredJobUrl]:
@@ -141,7 +144,7 @@ class ApecAdapter(JobSourceAdapter):
             keyword = " ".join(keyword)
         max_results = int(context.get("max_results", 200))
         page_size = int(context.get("page_size", 20))
-        window_hours = int(context.get("window_hours", 48))
+        window_hours = int(context.get("window_hours", 72))
         date_field = context.get("date_field", "datePublication")
         now = context.get("now") or datetime.now(timezone.utc)
         now = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
@@ -266,3 +269,4 @@ class ApecAdapter(JobSourceAdapter):
                 return response.status, response.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as exc:
             return exc.code, exc.read().decode("utf-8", "replace")
+

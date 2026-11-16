@@ -27,6 +27,8 @@ class NormalizedJobOffer:
     required_skills: Optional[list] = None
     description: Optional[str] = None
     contacts: Optional[List[Dict[str, Any]]] = None
+    source_payload: Optional[Dict[str, Any]] = None
+    activity_sector: Optional[str] = None
 
 
 class JobSourceAdapter(ABC):
@@ -95,3 +97,4 @@ class JobSourceAdapter(ABC):
         """
         extracted = await self.extract_job(discovered)
         return await self.normalize_job(extracted)
+

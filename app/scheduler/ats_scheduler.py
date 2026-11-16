@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from hashlib import sha256
 from app.config import config
+from app.services.activity_taxonomy_service import classify_activity_domain, source_activity_sector
 
 LOG_DIR = Path(os.getenv("ATS_LOG_DIR", "/tmp/jobapply-logs"))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -176,7 +177,7 @@ async def ingest_ats(ats_type, company_slug, max_per=50):
         context = {
             "search_terms": company_slug,
             "max_results": max_per or int(os.getenv("APEC_MAX_RESULTS", "200")),
-            "window_hours": int(os.getenv("APEC_WINDOW_HOURS", "48")),
+            "window_hours": max(72, int(os.getenv("APEC_WINDOW_HOURS", "72"))),
             "date_field": os.getenv("APEC_DATE_FIELD", "datePublication"),
             "page_size": int(os.getenv("APEC_PAGE_SIZE", "20")),
             "sleep": float(os.getenv("APEC_PAGE_SLEEP", "0.2")),
@@ -192,6 +193,8 @@ async def ingest_ats(ats_type, company_slug, max_per=50):
             try:
                 extracted = await adapter.extract_job(url_obj)
                 normalized = await adapter.normalize_job(extracted)
+                normalized.source_payload = normalized.source_payload or extracted
+                normalized.activity_sector = normalized.activity_sector or source_activity_sector(extracted)
                 all_offers.append(normalized)
             except Exception as exc:
                 extraction_errors += 1
@@ -281,15 +284,30 @@ def run_collection():
                             existing.posted_date = offer.posted_date
                         if offer_text and offer_text != (existing.raw_text or ""):
                             existing.raw_text = offer_text
+                        if offer.source_payload:
+                            existing.source_payload = offer.source_payload
+                        if offer.activity_sector:
+                            existing.activity_sector = offer.activity_sector
+                            existing.activity_sector_source = ats
+                        domain, domain_confidence = classify_activity_domain(offer.job_title, offer_text)
+                        if domain:
+                            existing.activity_domain = domain
+                            existing.activity_domain_confidence = domain_confidence
                         update_job_offer_lifecycle(db, offer.job_url)
                         duplicates += 1
                     else:
+                        activity_domain, domain_confidence = classify_activity_domain(offer.job_title, offer_text)
                         job = JobOffer(
                             company_id=company_obj.id,
                             job_title=offer.job_title,
                             job_url=offer.job_url,
                             source=offer.source,
                             raw_text=offer_text,
+                            source_payload=offer.source_payload,
+                            activity_sector=offer.activity_sector,
+                            activity_sector_source=ats if offer.activity_sector else None,
+                            activity_domain=activity_domain,
+                            activity_domain_confidence=domain_confidence,
                             posted_date=offer.posted_date,
                             status="active",
                             first_seen_at=capture_time,
@@ -381,3 +399,4 @@ if __name__ == "__main__":
     except Exception as exc:
         logger.error(f"Collection failed: {exc}", exc_info=True)
         sys.exit(1)
+
